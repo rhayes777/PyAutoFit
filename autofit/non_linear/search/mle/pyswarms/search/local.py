@@ -19,7 +19,8 @@ class PySwarmsLocal(AbstractPySwarms):
             name: Optional[str] = None,
             path_prefix: Optional[str] = None,
             unique_tag: Optional[str] = None,
-            iterations_per_update: int = None,
+            iterations_per_quick_update: int = None,
+            iterations_per_full_update: int = None,
             number_of_cores: int = None,
             session: Optional[sa.orm.Session] = None,
             **kwargs
@@ -52,7 +53,8 @@ class PySwarmsLocal(AbstractPySwarms):
             name=name,
             path_prefix=path_prefix,
             unique_tag=unique_tag,
-            iterations_per_update=iterations_per_update,
+            iterations_per_quick_update=iterations_per_quick_update,
+            iterations_per_full_update=iterations_per_full_update,
             number_of_cores=number_of_cores,
             session=session,
             **kwargs

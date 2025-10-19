@@ -1,4 +1,5 @@
 import datetime as dt
+from typing import List
 
 from autoconf import conf
 from autofit.mapper.prior_model.representative import find_groups
@@ -11,6 +12,42 @@ def padding(item, target=6):
     difference = target - len(string)
     prefix = difference * " "
     return f"{prefix}{string}"
+
+
+def result_max_lh_info_from(max_log_likelihood_sample : List[float], max_log_likelihood : float, model) -> List[str]:
+    """
+    Output the maximum log likelihood model only, for quick reference.
+    """
+    results = []
+
+    results += [
+        frm.add_whitespace(
+            str0="Maximum Log Likelihood ",
+            str1="{:.8f}".format(max_log_likelihood),
+            whitespace=info_whitespace(),
+        )
+    ]
+
+    results += ["\n\n", model.parameterization]
+
+    results += ["\n\nMaximum Log Likelihood Model:\n\n"]
+
+    formatter = frm.TextFormatter(line_length=info_whitespace())
+
+    paths = []
+
+    for (_, prior), value in zip(
+            model.unique_path_prior_tuples,
+            max_log_likelihood_sample,
+    ):
+        for path in model.all_paths_for_prior(prior):
+            paths.append((path, value))
+
+    for path, value in find_groups(paths):
+        formatter.add(path, format_str().format(value))
+    results += [formatter.text + "\n"]
+
+    return results
 
 
 def result_info_from(samples) -> str:
@@ -31,44 +68,13 @@ def result_info_from(samples) -> str:
             ]
             results += ["\n"]
 
-    results += [
-        frm.add_whitespace(
-            str0="Maximum Log Likelihood ",
-            str1="{:.8f}".format(max(samples.log_likelihood_list)),
-            whitespace=info_whitespace(),
-        )
-    ]
-    results += ["\n"]
-    results += [
-        frm.add_whitespace(
-            str0="Maximum Log Posterior ",
-            str1="{:.8f}".format(max(samples.log_posterior_list)),
-            whitespace=info_whitespace(),
-        )
-    ]
-    results += ["\n"]
-
-    results += ["\n", samples.model.parameterization, "\n\n"]
-
-    results += ["Maximum Log Likelihood Model:\n\n"]
-
-    formatter = frm.TextFormatter(line_length=info_whitespace())
-
     max_log_likelihood_sample = samples.max_log_likelihood(as_instance=False)
 
-    paths = []
-
-    model = samples.model
-    for (_, prior), value in zip(
-        model.unique_path_prior_tuples,
-        max_log_likelihood_sample,
-    ):
-        for path in model.all_paths_for_prior(prior):
-            paths.append((path, value))
-
-    for path, value in find_groups(paths):
-        formatter.add(path, format_str().format(value))
-    results += [formatter.text + "\n"]
+    results += result_max_lh_info_from(
+        max_log_likelihood_sample=max_log_likelihood_sample,
+        max_log_likelihood=(max(samples.log_likelihood_list)),
+        model=samples.model,
+    )
 
     if hasattr(samples, "pdf_converged"):
         if samples.pdf_converged:

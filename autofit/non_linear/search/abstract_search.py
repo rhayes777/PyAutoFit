@@ -129,7 +129,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         path_prefix: Optional[str] = None,
         unique_tag: Optional[str] = None,
         initializer: Initializer = None,
-        iterations_per_update: int = None,
+        iterations_per_quick_update: Optional[int] = None,
+        iterations_per_full_update: int = None,
         number_of_cores: int = 1,
         session: Optional[sa.orm.Session] = None,
         paths: Optional[AbstractPaths] = None,
@@ -208,19 +209,20 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         else:
             self.initializer = initializer
 
-        self.iterations_per_update = iterations_per_update or self._config(
-            "updates", "iterations_per_update"
-        )
+        self.iterations_per_quick_update = float((iterations_per_quick_update or
+            conf.instance["general"]["updates"]["iterations_per_quick_update"]))
+        
+
+        self.iterations_per_full_update = float((iterations_per_full_update or
+            conf.instance["general"]["updates"]["iterations_per_full_update"]))
 
         if conf.instance["general"]["hpc"]["hpc_mode"]:
-            self.iterations_per_update = conf.instance["general"]["hpc"][
-                "iterations_per_update"
+            self.iterations_per_quick_update = conf.instance["general"]["hpc"][
+                "iterations_per_quick_update"
             ]
-
-        self.remove_state_files_at_end = self._config(
-            "updates",
-            "remove_state_files_at_end",
-        )
+            self.iterations_per_full_update = conf.instance["general"]["hpc"][
+                "iterations_per_full_update"
+            ]
 
         self.iterations = 0
 
@@ -852,7 +854,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         """
         Perform an update of the non-linear search's model-fitting results.
 
-        This occurs every `iterations_per_update` of the non-linear search and once it is complete.
+        This occurs every `iterations_per_full_update` of the non-linear search and once it is complete.
 
         The update performs the following tasks (if the settings indicate they should be performed):
 
@@ -874,7 +876,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             If the update is during a non-linear search, in which case tasks are only performed after a certain number
             of updates and only a subset of visualization may be performed.
         """
-        self.iterations += self.iterations_per_update
+        self.iterations += self.iterations_per_full_update
 
         if not self.disable_output:
             if during_analysis:
@@ -1004,9 +1006,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             except exc.FitException:
                 pass
 
-            if not during_analysis and self.remove_state_files_at_end:
-                self.logger.debug("Removing state files")
-
         self._log_process_state()
 
         return samples
@@ -1024,7 +1023,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         """
         Perform visualization of the non-linear search's model-fitting results.
 
-        This occurs every `iterations_per_update` of the non-linear search, when the search is complete and can
+        This occurs every `iterations_per_full_update` of the non-linear search, when the search is complete and can
         also be forced to occur even though a search is completed on a rerun, to update the visualization
         with different `matplotlib` settings.
 

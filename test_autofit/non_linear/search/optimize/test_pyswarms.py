@@ -13,7 +13,7 @@ def test__loads_from_config_file_correct():
         social=0.5,
         inertia=0.6,
         initializer=af.InitializerBall(lower_limit=0.2, upper_limit=0.8),
-        iterations_per_update=10,
+        iterations_per_full_update=10,
         number_of_cores=2,
     )
 
@@ -23,7 +23,7 @@ def test__loads_from_config_file_correct():
     assert isinstance(search.initializer, af.InitializerBall)
     assert search.initializer.lower_limit == 0.2
     assert search.initializer.upper_limit == 0.8
-    assert search.iterations_per_update == 10
+    assert search.iterations_per_full_update == 10
     assert search.number_of_cores == 2
 
     search = af.PySwarmsGlobal()
@@ -32,7 +32,7 @@ def test__loads_from_config_file_correct():
     assert search.config_dict_search["cognitive"] == 0.1
     assert search.config_dict_run["iters"] == 2000
     assert isinstance(search.initializer, af.InitializerPrior)
-    assert search.iterations_per_update == 11
+    assert search.iterations_per_full_update == 1e99
     assert search.number_of_cores == 1
 
     search = af.PySwarmsLocal(
@@ -44,7 +44,7 @@ def test__loads_from_config_file_correct():
         number_of_k_neighbors=4,
         minkowski_p_norm=1,
         initializer=af.InitializerBall(lower_limit=0.2, upper_limit=0.8),
-        iterations_per_update=10,
+        iterations_per_full_update=10,
         number_of_cores=2,
     )
 
@@ -54,7 +54,7 @@ def test__loads_from_config_file_correct():
     assert isinstance(search.initializer, af.InitializerBall)
     assert search.initializer.lower_limit == 0.2
     assert search.initializer.upper_limit == 0.8
-    assert search.iterations_per_update == 10
+    assert search.iterations_per_full_update == 10
     assert search.number_of_cores == 2
 
     search = af.PySwarmsLocal()
@@ -63,7 +63,7 @@ def test__loads_from_config_file_correct():
     assert search.config_dict_search["cognitive"] == 0.1
     assert search.config_dict_run["iters"] == 2000
     assert isinstance(search.initializer, af.InitializerPrior)
-    assert search.iterations_per_update == 11
+    assert search.iterations_per_full_update == 1e99
     assert search.number_of_cores == 1
 
 

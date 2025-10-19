@@ -14,6 +14,8 @@ from autofit import jax_wrapper
 from autofit.jax_wrapper import numpy as xp
 from autofit import exc
 
+from autofit.text import text_util
+
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.paths.abstract import AbstractPaths
@@ -40,7 +42,8 @@ class Fitness:
         resample_figure_of_merit: float = -xp.inf,
         convert_to_chi_squared: bool = False,
         store_history: bool = False,
-        use_jax_vmap : bool = False
+        use_jax_vmap : bool = False,
+        iterations_per_quick_update: Optional[int] = None,
     ):
         """
         Interfaces with any non-linear search to fit the model to the data and return a log likelihood via
@@ -120,6 +123,11 @@ class Fitness:
             if self.use_jax_vmap:
                 self._call = self._vmap
 
+        self.iterations_per_quick_update = iterations_per_quick_update
+        self.quick_update_max_lh_parameters = None
+        self.quick_update_max_lh = -xp.inf
+        self.quick_update_count = 0
+
         if self.paths is not None:
             self.check_log_likelihood(fitness=self)
 
@@ -189,11 +197,15 @@ class Fitness:
             the log-likelihood itself or another objective function value,
             depending on configuration.
         """
+
         if self.use_jax_vmap:
             if len(np.array(parameters).shape) == 1:
                 parameters = np.array(parameters)[None, :]
 
         figure_of_merit = self._call(parameters)
+
+        if self.convert_to_chi_squared:
+            figure_of_merit *= -0.5
 
         if self.fom_is_log_likelihood:
             log_likelihood = figure_of_merit
@@ -201,12 +213,111 @@ class Fitness:
             log_prior_list = xp.array(self.model.log_prior_list_from_vector(vector=parameters))
             log_likelihood = figure_of_merit - xp.sum(log_prior_list)
 
+        self.manage_quick_update(parameters=parameters, log_likelihood=log_likelihood)
+
+        if self.convert_to_chi_squared:
+            log_likelihood *= -2.0
+
         if self.store_history:
 
             self.parameters_history_list.append(parameters)
             self.log_likelihood_history_list.append(log_likelihood)
 
         return figure_of_merit
+
+    def manage_quick_update(self, parameters, log_likelihood):
+        """
+        Manage quick updates during the non-linear search.
+
+        A "quick update" is a lightweight visualization of the current best-fit
+        (maximum likelihood) model parameters. This provides fast feedback on the
+        progress of the fit without waiting for the full analysis to complete.
+
+        It does not require leaving the active non-linear search, and is
+        therefore faster than the full analysis visualization.
+
+        Workflow:
+        ----------
+        1. Track the number of likelihood evaluations since the last quick update.
+        2. Identify the maximum log-likelihood from the current batch of evaluations.
+           - If `log_likelihood` is an array (batched evaluations), find the best
+             index with `argmax`.
+           - If it’s just a scalar (single evaluation), treat it as one update.
+        3. If a new maximum likelihood is found, update:
+           - `self.quick_update_max_lh` (best log-likelihood value so far).
+           - `self.quick_update_max_lh_parameters` (corresponding parameter vector).
+        4. Once the number of evaluations exceeds
+           `self.iterations_per_quick_update`, generate a quick visualization of
+           the current max-likelihood model via
+           `self.analysis.perform_quick_update()`.
+
+        Parameters
+        ----------
+        parameters : array-like
+            The parameter vectors evaluated in this batch. Shape is typically
+            (n_batch, n_param).
+        log_likelihood : float or array-like
+            The corresponding log-likelihood(s). If batched, must have shape
+            (n_batch,).
+
+        Notes
+        -----
+        - Quick updates are optional and controlled by
+          `self.iterations_per_quick_update`.
+        - If the `analysis` class does not implement
+          `perform_quick_update`, the update is silently skipped.
+        - This mechanism is intended for fast, coarse visualization only,
+          not detailed science-quality outputs.
+        """
+
+        if self.iterations_per_quick_update is None:
+            return
+
+        try:
+
+            best_idx = xp.argmax(log_likelihood)
+            best_log_likelihood = log_likelihood[best_idx]
+            best_parameters = parameters[best_idx]
+            total_updates = log_likelihood.shape[0]
+
+        except AttributeError:
+
+            best_log_likelihood = log_likelihood
+            best_parameters = parameters
+            total_updates = 1
+
+        if best_log_likelihood > self.quick_update_max_lh:
+            self.quick_update_max_lh = best_log_likelihood
+            self.quick_update_max_lh_parameters = best_parameters
+
+        self.quick_update_count += total_updates
+
+        if self.quick_update_count >= self.iterations_per_quick_update:
+
+            start_time = time.time()
+
+            logger.info("Performing quick update of maximum log likelihood fit image and model.results")
+
+            instance = self.model.instance_from_vector(vector=self.quick_update_max_lh_parameters)
+
+            try:
+                self.analysis.perform_quick_update(self.paths, instance)
+            except NotImplementedError:
+                pass
+
+            result_info = text_util.result_max_lh_info_from(
+                max_log_likelihood_sample=self.quick_update_max_lh_parameters.tolist(),
+                max_log_likelihood=self.quick_update_max_lh,
+                model=self.model,
+            )
+            result_info = "\n".join(result_info)
+
+            logger.info(result_info)
+            self.paths.output_model_results(result_info=result_info)
+
+            self.quick_update_count = 0
+
+            logger.info(f"Quick update complete in {time.time() - start_time} seconds.")
 
     @timeout(timeout_seconds)
     def __call__(self, parameters, *kwargs):
