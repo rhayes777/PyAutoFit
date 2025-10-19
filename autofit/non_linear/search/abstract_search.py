@@ -213,7 +213,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             conf.instance["general"]["updates"]["iterations_per_quick_update"]))
         
 
-        self.iterations_per_full_update = float((iterations_per_quick_update or
+        self.iterations_per_full_update = float((iterations_per_full_update or
             conf.instance["general"]["updates"]["iterations_per_full_update"]))
 
         if conf.instance["general"]["hpc"]["hpc_mode"]:

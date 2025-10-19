@@ -20,7 +20,6 @@ from autofit.text import text_util
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.analysis import Analysis
-from autofit.non_linear.samples.sample import Sample
 
 
 def get_timeout_seconds():
@@ -295,11 +294,9 @@ class Fitness:
 
         if self.quick_update_count >= self.iterations_per_quick_update:
 
-            logger.info(
-                """
-                Performing quick update of maximum log likelihood fit image and model.results
-                """
-                )
+            start_time = time.time()
+
+            logger.info("Performing quick update of maximum log likelihood fit image and model.results")
 
             instance = self.model.instance_from_vector(vector=self.quick_update_max_lh_parameters)
 
@@ -319,6 +316,8 @@ class Fitness:
             self.paths.output_model_results(result_info=result_info)
 
             self.quick_update_count = 0
+
+            logger.info(f"Quick update complete in {time.time() - start_time} seconds.")
 
     @timeout(timeout_seconds)
     def __call__(self, parameters, *kwargs):

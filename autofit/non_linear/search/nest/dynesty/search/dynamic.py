@@ -24,6 +24,7 @@ class DynestyDynamic(AbstractDynesty):
             name: Optional[str] = None,
             path_prefix: Optional[str] = None,
             unique_tag: Optional[str] = None,
+            iterations_per_quick_update: int = None,
             iterations_per_full_update: int = None,
             number_of_cores: int = None,
             **kwargs
@@ -57,6 +58,7 @@ class DynestyDynamic(AbstractDynesty):
             name=name,
             path_prefix=path_prefix,
             unique_tag=unique_tag,
+            iterations_per_quick_update=iterations_per_quick_update,
             iterations_per_full_update=iterations_per_full_update,
             number_of_cores=number_of_cores,
             **kwargs

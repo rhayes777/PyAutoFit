@@ -21,6 +21,7 @@ def make_dynesty_dict():
             },
             "inplace": False,
             "iterations_per_full_update": 1e99,
+            "iterations_per_quick_update": 1e99,
             "max_move": 100,
             "name": "",
             "nlive": 150,

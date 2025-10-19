@@ -26,6 +26,7 @@ class AbstractBFGS(AbstractMLE):
         unique_tag: Optional[str] = None,
         initializer: Optional[AbstractInitializer] = None,
         iterations_per_full_update: int = None,
+        iterations_per_quick_update: int = None,
         session: Optional[sa.orm.Session] = None,
         **kwargs
     ):
@@ -40,6 +41,7 @@ class AbstractBFGS(AbstractMLE):
             path_prefix=path_prefix,
             unique_tag=unique_tag,
             initializer=initializer,
+            iterations_per_quick_update=iterations_per_quick_update,
             iterations_per_full_update=iterations_per_full_update,
             session=session,
             **kwargs
