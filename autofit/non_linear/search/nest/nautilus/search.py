@@ -39,6 +39,7 @@ class Nautilus(abstract_nest.AbstractNest):
         name: Optional[str] = None,
         path_prefix: Optional[str] = None,
         unique_tag: Optional[str] = None,
+        iterations_per_quick_update: Optional[int] = None,
         iterations_per_update: int = None,
         number_of_cores: int = None,
         session: Optional[sa.orm.Session] = None,
@@ -83,6 +84,7 @@ class Nautilus(abstract_nest.AbstractNest):
             path_prefix=path_prefix,
             unique_tag=unique_tag,
             iterations_per_update=iterations_per_update,
+            iterations_per_quick_update=iterations_per_quick_update,
             number_of_cores=number_of_cores,
             session=session,
             **kwargs,
@@ -137,6 +139,8 @@ class Nautilus(abstract_nest.AbstractNest):
                 fom_is_log_likelihood=True,
                 resample_figure_of_merit=-1.0e99,
                 use_jax_vmap=True,
+                iterations_per_quick_update=self.iterations_per_quick_update
+
             )
 
             search_internal = self.fit_x1_cpu(
@@ -144,6 +148,7 @@ class Nautilus(abstract_nest.AbstractNest):
                 model=model,
                 analysis=analysis,
             )
+
         else:
 
             fitness = Fitness(
@@ -152,6 +157,7 @@ class Nautilus(abstract_nest.AbstractNest):
                 paths=self.paths,
                 fom_is_log_likelihood=True,
                 resample_figure_of_merit=-1.0e99,
+                iterations_per_quick_update=self.iterations_per_quick_update
             )
 
             search_internal = self.fit_multiprocessing(
@@ -296,6 +302,7 @@ class Nautilus(abstract_nest.AbstractNest):
         finished = False
 
         minimum_iterations_per_updates = 3 * self.config_dict_search["n_live"]
+
         if self.iterations_per_update < minimum_iterations_per_updates:
 
             self.iterations_per_update = minimum_iterations_per_updates

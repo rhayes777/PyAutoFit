@@ -129,6 +129,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         path_prefix: Optional[str] = None,
         unique_tag: Optional[str] = None,
         initializer: Initializer = None,
+        iterations_per_quick_update: Optional[int] = None,
         iterations_per_update: int = None,
         number_of_cores: int = 1,
         session: Optional[sa.orm.Session] = None,
@@ -207,6 +208,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             self.initializer = Initializer.from_config(config=self._config)
         else:
             self.initializer = initializer
+
+        self.iterations_per_quick_update = iterations_per_quick_update or self._config(
+            "updates", "iterations_per_quick_update"
+        )
 
         self.iterations_per_update = iterations_per_update or self._config(
             "updates", "iterations_per_update"

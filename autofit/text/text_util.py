@@ -39,14 +39,6 @@ def result_info_from(samples) -> str:
         )
     ]
     results += ["\n"]
-    results += [
-        frm.add_whitespace(
-            str0="Maximum Log Posterior ",
-            str1="{:.8f}".format(max(samples.log_posterior_list)),
-            whitespace=info_whitespace(),
-        )
-    ]
-    results += ["\n"]
 
     results += ["\n", samples.model.parameterization, "\n\n"]
 

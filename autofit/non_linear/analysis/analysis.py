@@ -300,5 +300,5 @@ class Analysis(ABC):
         """
         pass
 
-    def latent_lh_dict_from(self, **kwargs):
-        return None
+    def perform_quick_update(self, paths, instance):
+        raise NotImplementedError
