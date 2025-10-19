@@ -347,9 +347,9 @@ class DirectoryPaths(AbstractPaths):
         self.save_identifier()
         self.save_parent_identifier()
         self._save_model_info(model=self.model)
-        VisualiseGraph(
-            model=self.model,
-        ).save(str(self.output_path / "model_graph.html"))
+        # VisualiseGraph(
+        #     model=self.model,
+        # ).save(str(self.output_path / "model_graph.html"))
 
         if info:
             self.save_json("info", info)
