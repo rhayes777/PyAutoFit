@@ -14,10 +14,13 @@ from autofit import jax_wrapper
 from autofit.jax_wrapper import numpy as xp
 from autofit import exc
 
+from autofit.text import text_util
+
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.analysis import Analysis
+from autofit.non_linear.samples.sample import Sample
 
 
 def get_timeout_seconds():
@@ -121,16 +124,13 @@ class Fitness:
             if self.use_jax_vmap:
                 self._call = self._vmap
 
+        self.iterations_per_quick_update = iterations_per_quick_update
+        self.quick_update_max_lh_parameters = None
+        self.quick_update_max_lh = -xp.inf
+        self.quick_update_count = 0
+
         if self.paths is not None:
             self.check_log_likelihood(fitness=self)
-
-        self.iterations_per_quick_update = iterations_per_quick_update
-
-        if self.iterations_per_quick_update is not None:
-
-            self.quick_update_max_lh_parameters = None
-            self.quick_update_max_lh = -xp.inf
-            self.quick_update_count = 0
 
     def call(self, parameters):
         """
@@ -301,6 +301,14 @@ class Fitness:
                 self.analysis.perform_quick_update(self.paths, instance)
             except NotImplementedError:
                 pass
+
+            max_lh_info = text_util.max_lh_model_info_from(
+                max_log_likelihood_sample=self.quick_update_max_lh_parameters.tolist(),
+                max_log_likelihood=self.quick_update_max_lh,
+                model=self.model,
+            )
+
+            print("\n".join(max_lh_info))
 
             self.quick_update_count = 0
 
