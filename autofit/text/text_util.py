@@ -44,7 +44,6 @@ def result_max_lh_info_from(max_log_likelihood_sample : List[float], max_log_lik
             paths.append((path, value))
 
     for path, value in find_groups(paths):
-        print(path, value)
         formatter.add(path, format_str().format(value))
     results += [formatter.text + "\n"]
 
