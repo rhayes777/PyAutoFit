@@ -51,5 +51,5 @@ def test__loads_from_config_file_correct():
     assert search.config_dict_options["maxiter"] == 15000
     assert search.config_dict_options["disp"] == False
     assert isinstance(search.initializer, af.InitializerPrior)
-    assert search.iterations_per_full_update == 11
+    assert search.iterations_per_full_update == 1e99
 

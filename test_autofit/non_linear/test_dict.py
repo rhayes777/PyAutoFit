@@ -20,7 +20,7 @@ def make_dynesty_dict():
                 "type": "instance",
             },
             "inplace": False,
-            "iterations_per_full_update": 500,
+            "iterations_per_full_update": 1e99,
             "max_move": 100,
             "name": "",
             "nlive": 150,

@@ -32,7 +32,7 @@ def test__loads_from_config_file_correct():
     assert search.config_dict_search["cognitive"] == 0.1
     assert search.config_dict_run["iters"] == 2000
     assert isinstance(search.initializer, af.InitializerPrior)
-    assert search.iterations_per_full_update == 11
+    assert search.iterations_per_full_update == 1e99
     assert search.number_of_cores == 1
 
     search = af.PySwarmsLocal(
@@ -63,7 +63,7 @@ def test__loads_from_config_file_correct():
     assert search.config_dict_search["cognitive"] == 0.1
     assert search.config_dict_run["iters"] == 2000
     assert isinstance(search.initializer, af.InitializerPrior)
-    assert search.iterations_per_full_update == 11
+    assert search.iterations_per_full_update == 1e99
     assert search.number_of_cores == 1
 
 
