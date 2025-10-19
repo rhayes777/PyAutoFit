@@ -14,7 +14,7 @@ def padding(item, target=6):
     return f"{prefix}{string}"
 
 
-def max_lh_model_info_from(max_log_likelihood_sample : List[float], max_log_likelihood : float, model) -> List[str]:
+def result_max_lh_info_from(max_log_likelihood_sample : List[float], max_log_likelihood : float, model) -> List[str]:
     """
     Output the maximum log likelihood model only, for quick reference.
     """
@@ -71,7 +71,7 @@ def result_info_from(samples) -> str:
 
     max_log_likelihood_sample = samples.max_log_likelihood(as_instance=False)
 
-    results += max_lh_model_info_from(
+    results += result_max_lh_info_from(
         max_log_likelihood_sample=max_log_likelihood_sample,
         max_log_likelihood=(max(samples.log_likelihood_list)),
         model=samples.model,

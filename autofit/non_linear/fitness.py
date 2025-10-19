@@ -295,6 +295,12 @@ class Fitness:
 
         if self.quick_update_count >= self.iterations_per_quick_update:
 
+            logger.info(
+                """
+                Performing quick update of maximum log likelihood fit image and model.results
+                """
+                )
+
             instance = self.model.instance_from_vector(vector=self.quick_update_max_lh_parameters)
 
             try:
@@ -302,13 +308,15 @@ class Fitness:
             except NotImplementedError:
                 pass
 
-            max_lh_info = text_util.max_lh_model_info_from(
+            result_info = text_util.result_max_lh_info_from(
                 max_log_likelihood_sample=self.quick_update_max_lh_parameters.tolist(),
                 max_log_likelihood=self.quick_update_max_lh,
                 model=self.model,
             )
+            result_info = "\n".join(result_info)
 
-            print("\n".join(max_lh_info))
+            logger.info(result_info)
+            self.paths.output_model_results(result_info=result_info)
 
             self.quick_update_count = 0
 
