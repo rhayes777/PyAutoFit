@@ -23,7 +23,7 @@ def test_identifier():
 
 def test_identifier_with_model():
     paths = af.DirectoryPaths()
-    paths.model = af.Model(af.Gaussian)
+    paths.model = af.Model(af.ex.Gaussian)
     new_paths = from_dict(to_dict(paths))
 
     assert new_paths.identifier == paths.identifier

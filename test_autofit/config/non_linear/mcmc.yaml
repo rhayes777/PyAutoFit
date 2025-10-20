@@ -17,12 +17,6 @@ Emcee:
     nsteps: 2000
   search:
     nwalkers: 50
-  updates:
-    iterations_per_update: 2500
-    log_every_update: 1
-    model_results_every_update: 1
-    remove_state_files_at_end: true
-    visualize_every_update: 1
 Zeus:
   auto_correlations:
     change_threshold: 0.01
@@ -51,6 +45,3 @@ Zeus:
     vectorize: false
   search:
     nwalkers: 50
-  updates:
-    iterations_per_update: 500
-    remove_state_files_at_end: true

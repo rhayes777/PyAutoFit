@@ -26,7 +26,7 @@ def make_paths():
 
 
 def test_restore(paths):
-    paths.model = af.Model(af.Gaussian)
+    paths.model = af.Model(af.ex.Gaussian)
     paths.save_all({}, {})
 
     paths.zip_remove()

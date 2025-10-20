@@ -25,7 +25,8 @@ class AbstractBFGS(AbstractMLE):
         path_prefix: Optional[str] = None,
         unique_tag: Optional[str] = None,
         initializer: Optional[AbstractInitializer] = None,
-        iterations_per_update: int = None,
+        iterations_per_full_update: int = None,
+        iterations_per_quick_update: int = None,
         session: Optional[sa.orm.Session] = None,
         **kwargs
     ):
@@ -40,7 +41,8 @@ class AbstractBFGS(AbstractMLE):
             path_prefix=path_prefix,
             unique_tag=unique_tag,
             initializer=initializer,
-            iterations_per_update=iterations_per_update,
+            iterations_per_quick_update=iterations_per_quick_update,
+            iterations_per_full_update=iterations_per_full_update,
             session=session,
             **kwargs
         )
@@ -136,14 +138,14 @@ class AbstractBFGS(AbstractMLE):
         while total_iterations < maxiter:
             iterations_remaining = maxiter - total_iterations
 
-            iterations = min(self.iterations_per_update, iterations_remaining)
+            iterations = min(self.iterations_per_full_update, iterations_remaining)
 
             if iterations > 0:
                 config_dict_options = self.config_dict_options
                 config_dict_options["maxiter"] = iterations
 
                 search_internal = optimize.minimize(
-                    fun=fitness.__call__,
+                    fun=fitness.call_wrap,
                     x0=x0,
                     method=self.method,
                     options=config_dict_options,

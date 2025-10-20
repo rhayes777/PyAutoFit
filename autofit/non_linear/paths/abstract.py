@@ -438,9 +438,7 @@ class AbstractPaths(ABC):
         result_info = text_util.result_info_from(
             samples=samples,
         )
-        filename = self.output_path / "model.results"
-        with open_(filename, "w") as f:
-            f.write(result_info)
+        self.output_model_results(result_info=result_info)
 
         if latent_samples:
             result_info = text_util.result_info_from(
@@ -473,3 +471,10 @@ class AbstractPaths(ABC):
     @property
     def _info_file(self) -> Path:
         return self._files_path / "samples_info.json"
+
+    def output_model_results(self, result_info):
+
+        filename = self.output_path / "model.results"
+
+        with open_(filename, "w") as f:
+            f.write(result_info)

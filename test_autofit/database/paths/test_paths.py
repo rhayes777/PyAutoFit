@@ -80,7 +80,7 @@ def test_completion(
 
 
 def test_object(paths):
-    gaussian = af.Gaussian(
+    gaussian = af.ex.Gaussian(
         normalization=2.1
     )
 

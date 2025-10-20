@@ -55,7 +55,7 @@ def make_latent_samples():
     analysis = Analysis()
     return analysis.compute_latent_samples(
         SamplesPDF(
-            model=af.Model(af.Gaussian),
+            model=af.Model(af.ex.Gaussian),
             sample_list=[
                 af.Sample(
                     log_likelihood=1.0,
@@ -82,7 +82,6 @@ def test_info(latent_samples):
     assert (
         info
         == """Maximum Log Likelihood                                                          1.00000000
-Maximum Log Posterior                                                           1.00000000
 
 model                                                                           Collection (N=1)
 
@@ -123,7 +122,7 @@ def test_complex_model():
     analysis = ComplexAnalysis()
     latent_samples = analysis.compute_latent_samples(
         SamplesPDF(
-            model=af.Model(af.Gaussian),
+            model=af.Model(af.ex.Gaussian),
             sample_list=[
                 af.Sample(
                     log_likelihood=1.0,

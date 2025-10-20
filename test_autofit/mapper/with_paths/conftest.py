@@ -8,7 +8,7 @@ import autofit as af
 )
 def make_gaussian_1():
     return af.Model(
-        af.Gaussian
+        af.ex.Gaussian
     )
 
 
@@ -19,6 +19,6 @@ def make_model(gaussian_1):
     return af.Collection(
         gaussian_1=gaussian_1,
         gaussian_2=af.Model(
-            af.Gaussian
+            af.ex.Gaussian
         ),
     )

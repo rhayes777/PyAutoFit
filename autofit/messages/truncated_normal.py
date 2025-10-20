@@ -74,14 +74,11 @@ class TruncatedNormalMessage(AbstractMessage):
         ----------
         mean
             The mean (μ) of the normal distribution.
-
         sigma
             The standard deviation (σ) of the distribution. Must be non-negative.
-
         log_norm
             An additive constant to the log probability of the message. Used internally for message-passing normalization.
             Default is 0.0.
-
         id_
             An optional unique identifier used to track the message in larger probabilistic graphs or models.
         """
@@ -96,6 +93,7 @@ class TruncatedNormalMessage(AbstractMessage):
             log_norm=log_norm,
             id_=id_,
         )
+
         self.mean, self.sigma, self.lower_limit, self.upper_limit = self.parameters
 
     def cdf(self, x: Union[float, np.ndarray]) -> Union[float, np.ndarray]:

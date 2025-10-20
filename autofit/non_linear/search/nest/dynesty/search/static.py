@@ -29,10 +29,10 @@ class DynestyStatic(AbstractDynesty):
         name: Optional[str] = None,
         path_prefix: Optional[Union[str, Path]] = None,
         unique_tag: Optional[str] = None,
-        iterations_per_update: int = None,
+        iterations_per_quick_update: int = None,
+        iterations_per_full_update: int = None,
         number_of_cores: int = None,
         session: Optional[sa.orm.Session] = None,
-        use_gradient: bool = False,
         **kwargs,
     ):
         """
@@ -52,27 +52,24 @@ class DynestyStatic(AbstractDynesty):
         unique_tag
             The name of a unique tag for this model-fit, which will be given a unique entry in the sqlite database
             and also acts as the folder after the path prefix and before the search name.
-        iterations_per_update
+        iterations_per_full_update
             The number of iterations performed between update (e.g. output latest model to hard-disk, visualization).
         number_of_cores
             The number of cores sampling is performed using a Python multiprocessing Pool instance.
         session
             An SQLalchemy session instance so the results of the model-fit are written to an SQLite database.
-        use_gradient
-            Determines whether the gradient should be passed to the Dynesty sampler.
         """
 
         super().__init__(
             name=name,
             path_prefix=path_prefix,
             unique_tag=unique_tag,
-            iterations_per_update=iterations_per_update,
+            iterations_per_quick_update=iterations_per_quick_update,
+            iterations_per_full_update=iterations_per_full_update,
             number_of_cores=number_of_cores,
             session=session,
             **kwargs,
         )
-
-        self.use_gradient = use_gradient
 
     @property
     def search_internal(self):
@@ -111,8 +108,6 @@ class DynestyStatic(AbstractDynesty):
         """
         from dynesty import NestedSampler as StaticSampler
 
-        gradient = fitness.grad if self.use_gradient else None
-
         if checkpoint_exists:
             search_internal = StaticSampler.restore(
                 fname=self.checkpoint_file, pool=pool
@@ -131,7 +126,6 @@ class DynestyStatic(AbstractDynesty):
                 self.write_uses_pool(uses_pool=True)
                 return StaticSampler(
                     loglikelihood=pool.loglike,
-                    gradient=gradient,
                     prior_transform=pool.prior_transform,
                     ndim=model.prior_count,
                     live_points=live_points,
@@ -143,7 +137,6 @@ class DynestyStatic(AbstractDynesty):
             self.write_uses_pool(uses_pool=False)
             return StaticSampler(
                 loglikelihood=fitness,
-                gradient=gradient,
                 prior_transform=prior_transform,
                 ndim=model.prior_count,
                 logl_args=[model, fitness],

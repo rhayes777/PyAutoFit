@@ -1,7 +1,10 @@
 import jax
 import logging
+import numpy as np
+from IPython.display import clear_output
 import os
 import time
+
 from timeout_decorator import timeout
 from typing import Optional
 
@@ -9,8 +12,10 @@ from autoconf import conf
 from autoconf import cached_property
 
 from autofit import jax_wrapper
-from autofit.jax_wrapper import numpy as np
+from autofit.jax_wrapper import numpy as xp
 from autofit import exc
+
+from autofit.text import text_util
 
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -34,9 +39,11 @@ class Fitness:
         analysis : Analysis,
         paths : Optional[AbstractPaths] = None,
         fom_is_log_likelihood: bool = True,
-        resample_figure_of_merit: float = -np.inf,
+        resample_figure_of_merit: float = -xp.inf,
         convert_to_chi_squared: bool = False,
         store_history: bool = False,
+        use_jax_vmap : bool = False,
+        iterations_per_quick_update: Optional[int] = None,
     ):
         """
         Interfaces with any non-linear search to fit the model to the data and return a log likelihood via
@@ -105,11 +112,24 @@ class Fitness:
         self.convert_to_chi_squared = convert_to_chi_squared
         self.store_history = store_history
 
-        if self.paths is not None:
-            self.check_log_likelihood(fitness=self)
-
         self.parameters_history_list = []
         self.log_likelihood_history_list = []
+
+        self.use_jax_vmap = use_jax_vmap
+
+        self._call = self.call
+
+        if jax_wrapper.use_jax:
+            if self.use_jax_vmap:
+                self._call = self._vmap
+
+        self.iterations_per_quick_update = iterations_per_quick_update
+        self.quick_update_max_lh_parameters = None
+        self.quick_update_max_lh = -xp.inf
+        self.quick_update_count = 0
+
+        if self.paths is not None:
+            self.check_log_likelihood(fitness=self)
 
     def call(self, parameters):
         """
@@ -128,7 +148,6 @@ class Fitness:
         -------
         The figure of merit returned to the non-linear search, which is either the log likelihood or log posterior.
         """
-
         # Get instance from model
         instance = self.model.instance_from_vector(vector=parameters)
 
@@ -136,21 +155,171 @@ class Fitness:
         log_likelihood = self.analysis.log_likelihood_function(instance=instance)
 
         # Penalize NaNs in the log-likelihood
-        log_likelihood = np.where(np.isnan(log_likelihood), self.resample_figure_of_merit, log_likelihood)
+        log_likelihood = xp.where(xp.isnan(log_likelihood), self.resample_figure_of_merit, log_likelihood)
 
         # Determine final figure of merit
         if self.fom_is_log_likelihood:
             figure_of_merit = log_likelihood
         else:
             # Ensure prior list is compatible with JAX (must return a JAX array, not list)
-            log_prior_array = np.array(self.model.log_prior_list_from_vector(vector=parameters))
-            figure_of_merit = log_likelihood + np.sum(log_prior_array)
+            log_prior_array = xp.array(self.model.log_prior_list_from_vector(vector=parameters))
+            figure_of_merit = log_likelihood + xp.sum(log_prior_array)
 
         # Convert to chi-squared scale if requested
         if self.convert_to_chi_squared:
             figure_of_merit *= -2.0
 
         return figure_of_merit
+
+    def call_wrap(self, parameters):
+        """
+        Wrapper around a JAX-jitted likelihood function that optionally stores
+        the history of evaluated parameters and likelihood values.
+
+        Depending on whether the figure of merit
+        (FoM) is defined as a log-likelihood (`self.fom_is_log_likelihood`), it
+        either uses the FoM directly or subtracts the summed log-prior to obtain
+        the log-likelihood.
+
+        If `self.store_history` is True, both the input parameters and the
+        corresponding log-likelihood are appended to internal history lists
+        (`self.parameters_history_list`, `self.log_likelihood_history_list`).
+
+        Parameters
+        ----------
+        parameters
+            A vector of model parameters to evaluate.
+
+        Returns
+        -------
+        float
+            The computed figure of merit for the input parameters. This is either
+            the log-likelihood itself or another objective function value,
+            depending on configuration.
+        """
+
+        if self.use_jax_vmap:
+            if len(np.array(parameters).shape) == 1:
+                parameters = np.array(parameters)[None, :]
+
+        figure_of_merit = self._call(parameters)
+
+        if self.convert_to_chi_squared:
+            figure_of_merit *= -0.5
+
+        if self.fom_is_log_likelihood:
+            log_likelihood = figure_of_merit
+        else:
+            log_prior_list = xp.array(self.model.log_prior_list_from_vector(vector=parameters))
+            log_likelihood = figure_of_merit - xp.sum(log_prior_list)
+
+        self.manage_quick_update(parameters=parameters, log_likelihood=log_likelihood)
+
+        if self.convert_to_chi_squared:
+            log_likelihood *= -2.0
+
+        if self.store_history:
+
+            self.parameters_history_list.append(parameters)
+            self.log_likelihood_history_list.append(log_likelihood)
+
+        return figure_of_merit
+
+    def manage_quick_update(self, parameters, log_likelihood):
+        """
+        Manage quick updates during the non-linear search.
+
+        A "quick update" is a lightweight visualization of the current best-fit
+        (maximum likelihood) model parameters. This provides fast feedback on the
+        progress of the fit without waiting for the full analysis to complete.
+
+        It does not require leaving the active non-linear search, and is
+        therefore faster than the full analysis visualization.
+
+        Workflow:
+        ----------
+        1. Track the number of likelihood evaluations since the last quick update.
+        2. Identify the maximum log-likelihood from the current batch of evaluations.
+           - If `log_likelihood` is an array (batched evaluations), find the best
+             index with `argmax`.
+           - If it’s just a scalar (single evaluation), treat it as one update.
+        3. If a new maximum likelihood is found, update:
+           - `self.quick_update_max_lh` (best log-likelihood value so far).
+           - `self.quick_update_max_lh_parameters` (corresponding parameter vector).
+        4. Once the number of evaluations exceeds
+           `self.iterations_per_quick_update`, generate a quick visualization of
+           the current max-likelihood model via
+           `self.analysis.perform_quick_update()`.
+
+        Parameters
+        ----------
+        parameters : array-like
+            The parameter vectors evaluated in this batch. Shape is typically
+            (n_batch, n_param).
+        log_likelihood : float or array-like
+            The corresponding log-likelihood(s). If batched, must have shape
+            (n_batch,).
+
+        Notes
+        -----
+        - Quick updates are optional and controlled by
+          `self.iterations_per_quick_update`.
+        - If the `analysis` class does not implement
+          `perform_quick_update`, the update is silently skipped.
+        - This mechanism is intended for fast, coarse visualization only,
+          not detailed science-quality outputs.
+        """
+
+        if self.iterations_per_quick_update is None:
+            return
+
+        try:
+
+            best_idx = xp.argmax(log_likelihood)
+            best_log_likelihood = log_likelihood[best_idx]
+            best_parameters = parameters[best_idx]
+            total_updates = log_likelihood.shape[0]
+
+        except AttributeError:
+
+            best_log_likelihood = log_likelihood
+            best_parameters = parameters
+            total_updates = 1
+
+        if best_log_likelihood > self.quick_update_max_lh:
+            self.quick_update_max_lh = best_log_likelihood
+            self.quick_update_max_lh_parameters = best_parameters
+
+        self.quick_update_count += total_updates
+
+        if self.quick_update_count >= self.iterations_per_quick_update:
+
+            clear_output(wait=True)
+
+            start_time = time.time()
+
+            logger.info("Performing quick update of maximum log likelihood fit image and model.results")
+
+            instance = self.model.instance_from_vector(vector=self.quick_update_max_lh_parameters)
+
+            try:
+                self.analysis.perform_quick_update(self.paths, instance)
+            except NotImplementedError:
+                pass
+
+            result_info = text_util.result_max_lh_info_from(
+                max_log_likelihood_sample=self.quick_update_max_lh_parameters.tolist(),
+                max_log_likelihood=self.quick_update_max_lh,
+                model=self.model,
+            )
+            result_info = "\n".join(result_info)
+
+            logger.info(result_info)
+            self.paths.output_model_results(result_info=result_info)
+
+            self.quick_update_count = 0
+
+            logger.info(f"Quick update complete in {time.time() - start_time} seconds.")
 
     @timeout(timeout_seconds)
     def __call__(self, parameters, *kwargs):
@@ -172,7 +341,7 @@ class Fitness:
         -------
         The figure of merit returned to the non-linear search, which is either the log likelihood or log posterior.
         """
-        return self._call(parameters)
+        return self.call_wrap(parameters)
 
     # def __getstate__(self):
     #     state = self.__dict__.copy()
@@ -186,6 +355,18 @@ class Fitness:
 
     @cached_property
     def _vmap(self):
+        """
+        Vectorized and JIT-compiled likelihood function.
+
+        This wraps the base likelihood function (`self.call`) with both
+        `jax.jit` and `jax.vmap`, producing a function that can evaluate
+        batches of parameter vectors efficiently in parallel. The first
+        call incurs compilation time, but subsequent calls are highly
+        optimized.
+
+        Because this is a `cached_property`, the compiled function is stored
+        after its first creation, avoiding repeated JIT compilation overhead.
+        """
         start = time.time()
         logger.info("JAX: Applying vmap and jit to likelihood function -- may take a few seconds.")
         func = jax.vmap(jax.jit(self.call))
@@ -193,19 +374,41 @@ class Fitness:
         return func
 
     @cached_property
-    def _call(self):
+    def _jit(self):
+        """
+        JIT-compiled likelihood function.
+
+        This wraps the base likelihood function (`self.call`) with `jax.jit`,
+        producing a compiled version optimized for repeated evaluation on a
+        single set of parameters. The first call triggers compilation, while
+        later calls benefit from the compiled execution.
+
+        As a `cached_property`, the compiled function is cached after its
+        first use, so JIT compilation only occurs once.
+        """
         start = time.time()
         logger.info("JAX: Applying jit to likelihood function -- may take a few seconds.")
         func = jax_wrapper.jit(self.call)
         logger.info(f"JAX: jit applied in {time.time() - start} seconds.")
         return func
 
-
     @cached_property
     def _grad(self):
+        """
+        Gradient of the JIT-compiled likelihood function.
+
+        This wraps the JIT-compiled likelihood function (`self._call`) with
+        `jax.grad`, returning a function that computes gradients of the
+        likelihood with respect to its input parameters. Useful for gradient-
+        based optimization and inference methods.
+
+        Since this is a `cached_property`, the gradient function is compiled
+        and cached on first access, ensuring that expensive setup is done
+        only once.
+        """
         start = time.time()
         logger.info("JAX: Applying grad to likelihood function -- may take a few seconds.")
-        func = jax_wrapper.grad(self._call)
+        func = jax_wrapper.grad(self.call)
         logger.info(f"JAX: grad applied in {time.time() - start} seconds.")
         return func
 
@@ -236,6 +439,7 @@ class Fitness:
         result
             The result containing the maximum log likelihood fit of the model.
         """
+        import numpy as np
 
         if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
             return

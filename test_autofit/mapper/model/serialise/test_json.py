@@ -18,7 +18,7 @@ def make_collection_dict(model_dict):
 
 @pytest.fixture(name="model")
 def make_model():
-    return af.Model(af.Gaussian, centre=af.UniformPrior(upper_limit=2.0))
+    return af.Model(af.ex.Gaussian, centre=af.UniformPrior(upper_limit=2.0))
 
 
 @pytest.fixture(autouse=True)
@@ -48,13 +48,13 @@ class TestTuple:
 class TestFromDict:
     def test_model_from_dict(self, model_dict):
         model = af.Model.from_dict(model_dict)
-        assert model.cls == af.Gaussian
+        assert model.cls == af.ex.Gaussian
         assert model.prior_count == 3
         assert model.centre.upper_limit == 2.0
 
     def test_instance_from_dict(self, instance_dict):
         instance = from_dict(instance_dict)
-        assert isinstance(instance, af.Gaussian)
+        assert isinstance(instance, af.ex.Gaussian)
         assert instance.centre == 0.0
         assert instance.normalization == 0.1
         assert instance.sigma == 0.01
@@ -70,7 +70,7 @@ class TestToDict:
         assert remove_ids(model.dict()) == model_dict
 
     def test_model_floats(self, instance_dict):
-        model = af.Model(af.Gaussian, centre=0.0, normalization=0.1, sigma=0.01)
+        model = af.Model(af.ex.Gaussian, centre=0.0, normalization=0.1, sigma=0.01)
 
         assert model.dict() == instance_dict
 
@@ -79,7 +79,7 @@ class TestToDict:
         assert remove_ids(collection.dict()) == collection_dict
 
     def test_collection_instance(self, instance_dict):
-        collection = af.Collection(gaussian=af.Gaussian())
+        collection = af.Collection(gaussian=af.ex.Gaussian())
         assert collection.dict() == {
             "type": "collection",
             "arguments": {
@@ -122,7 +122,7 @@ class TestFromJson:
 
         model = af.Model.from_json(file=model_file)
 
-        assert model.cls == af.Gaussian
+        assert model.cls == af.ex.Gaussian
         assert model.prior_count == 3
         assert model.centre.upper_limit == 2.0
 

@@ -94,7 +94,6 @@ from .non_linear.result import Result
 from .non_linear.result import ResultsCollection
 from .non_linear.settings import SettingsSearch
 from .non_linear.samples.pdf import marginalize
-from .example.model import Gaussian, Exponential
 from .text import formatter
 from .text import samples_text
 from .visualise import VisualiseGraph
@@ -129,6 +128,7 @@ for type_ in (
     "LogUniform",
     "Gaussian",
     "LogGaussian",
+    "TruncatedGaussian",
     "compound",
     "Constant",
 ):
@@ -142,4 +142,4 @@ def save_abc(pickler, obj):
 
 
 
-__version__ = "2025.5.10.1"
+__version__ = "2025.10.16.2"

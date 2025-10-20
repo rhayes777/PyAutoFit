@@ -10,7 +10,7 @@ def make_width_modifier():
 
 @pytest.fixture(name="updated_model")
 def make_updated_model(width_modifier):
-    model = af.Model(af.Gaussian)
+    model = af.Model(af.ex.Gaussian)
     model.centre.width_modifier = width_modifier
 
     return model.mapper_from_prior_means([1.0, 1.0, 1.0])

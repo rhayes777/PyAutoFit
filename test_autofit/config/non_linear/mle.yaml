@@ -7,9 +7,6 @@ Drawer:
     silence: false
   search:
     total_draws: 10
-  updates:
-    iterations_per_update: 500
-    remove_state_files_at_end: true
 LBFGS:
   initialize:
     ball_lower_limit: 0.49
@@ -29,12 +26,6 @@ LBFGS:
     silence: false
   search:
     tol: null
-  updates:
-    iterations_per_update: 11
-    log_every_update: 1
-    model_results_every_update: 1
-    remove_state_files_at_end: true
-    visualize_every_update: 1
 PySwarmsGlobal:
   initialize:
     ball_lower_limit: 0.49
@@ -52,12 +43,6 @@ PySwarmsGlobal:
     inertia: 0.3
     n_particles: 50
     social: 0.2
-  updates:
-    iterations_per_update: 11
-    log_every_update: 1
-    model_results_every_update: 1
-    remove_state_files_at_end: true
-    visualize_every_update: 1
 PySwarmsLocal:
   initialize:
     ball_lower_limit: 0.49
@@ -77,9 +62,3 @@ PySwarmsLocal:
     n_particles: 50
     number_of_k_neighbors: 3
     social: 0.2
-  updates:
-    iterations_per_update: 11
-    log_every_update: 1
-    model_results_every_update: 1
-    remove_state_files_at_end: true
-    visualize_every_update: 1

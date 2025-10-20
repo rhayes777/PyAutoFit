@@ -23,7 +23,7 @@ def make_search():
 
 @pytest.fixture(name="model")
 def make_model():
-    return af.Model(af.Gaussian)
+    return af.Model(af.ex.Gaussian)
 
 
 @pytest.fixture(name="analysis")
@@ -51,7 +51,7 @@ def make_fitness(
 
 
 class Analysis(af.Analysis):
-    def log_likelihood_function(self, instance: af.Gaussian):
+    def log_likelihood_function(self, instance: af.ex.Gaussian):
         return -((10 - instance.centre) ** 2)
 
 
@@ -134,14 +134,14 @@ def test_sneaky_map(search, model, analysis):
 
     result = search.fit(model, analysis)
 
-    assert isinstance(result.instance, af.Gaussian)
+    assert isinstance(result.instance, af.ex.Gaussian)
 
 
 @pytest.mark.parametrize(
     "function",
     [
         _FunctionWrapper(lambda: 1, None, None),
-        Fitness(af.Model(af.Gaussian), MockAnalysis()),
+        Fitness(af.Model(af.ex.Gaussian), MockAnalysis()),
         _function_wrapper(lambda: 1, [], {}, "loglikelihood"),
     ],
 )

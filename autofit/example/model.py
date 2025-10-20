@@ -1,7 +1,8 @@
 import math
+import numpy as np
 from typing import Tuple
 
-from autofit.jax_wrapper import numpy as np
+from autofit.jax_wrapper import numpy as xp
 
 """
 The `Gaussian` class in this module is the model components that is fitted to data using a non-linear search. The
@@ -46,7 +47,7 @@ class Gaussian:
         the free parameters of the model which we are interested and may want to store the full samples information
         on (e.g. to create posteriors).
         """
-        return 2 * np.sqrt(2 * np.log(2)) * self.sigma
+        return 2 * xp.sqrt(2 * xp.log(2)) * self.sigma
 
     def _tree_flatten(self):
         return (self.centre, self.normalization, self.sigma), None
@@ -76,16 +77,16 @@ class Gaussian:
         """
         transformed_xvalues = xvalues - self.centre
 
-        return np.multiply(
-            np.divide(self.normalization, self.sigma * np.sqrt(2.0 * np.pi)),
-            np.exp(-0.5 * np.square(np.divide(transformed_xvalues, self.sigma))),
+        return xp.multiply(
+            xp.divide(self.normalization, self.sigma * xp.sqrt(2.0 * xp.pi)),
+            xp.exp(-0.5 * xp.square(xp.divide(transformed_xvalues, self.sigma))),
         )
 
     def f(self, x: float):
         return (
             self.normalization
-            / (self.sigma * np.sqrt(2 * math.pi))
-            * np.exp(-0.5 * ((x - self.centre) / self.sigma) ** 2)
+            / (self.sigma * xp.sqrt(2 * math.pi))
+            * xp.exp(-0.5 * ((x - self.centre) / self.sigma) ** 2)
         )
 
     def __call__(self, xvalues: np.ndarray) -> np.ndarray:
@@ -147,9 +148,9 @@ class Exponential:
         values
             The x coordinates in the original reference frame of the grid.
         """
-        transformed_xvalues = np.subtract(xvalues, self.centre)
-        return self.normalization * np.multiply(
-            self.rate, np.exp(-1.0 * self.rate * abs(transformed_xvalues))
+        transformed_xvalues = xp.subtract(xvalues, self.centre)
+        return self.normalization * xp.multiply(
+            self.rate, xp.exp(-1.0 * self.rate * abs(transformed_xvalues))
         )
 
     def __call__(self, xvalues: np.ndarray) -> np.ndarray:

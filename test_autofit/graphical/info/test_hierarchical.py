@@ -9,12 +9,12 @@ from autofit.graphical.declarative.graph import GraphInfoFormatter
 
 @pytest.fixture(name="model_factor_1")
 def make_model_factor_1():
-    return g.AnalysisFactor(af.Model(af.Gaussian), af.m.MockAnalysis())
+    return g.AnalysisFactor(af.Model(af.ex.Gaussian), af.m.MockAnalysis())
 
 
 @pytest.fixture(name="model_factor_2")
 def make_model_factor_2():
-    return g.AnalysisFactor(af.Model(af.Gaussian), af.m.MockAnalysis())
+    return g.AnalysisFactor(af.Model(af.ex.Gaussian), af.m.MockAnalysis())
 
 
 @pytest.fixture(name="hierarchical_factor")

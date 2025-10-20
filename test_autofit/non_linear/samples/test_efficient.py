@@ -9,7 +9,7 @@ import pytest
 @pytest.fixture(name="samples")
 def make_samples():
     return af.SamplesPDF(
-        model=af.Model(af.Gaussian),
+        model=af.Model(af.ex.Gaussian),
         sample_list=[
             af.Sample(
                 log_likelihood=1.0,
@@ -59,4 +59,4 @@ def test_database(efficient, session):
     recovered = Object.from_object(efficient)()
     samples = recovered.samples
 
-    assert samples.model.cls is af.Gaussian
+    assert samples.model.cls is af.ex.Gaussian

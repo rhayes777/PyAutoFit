@@ -52,7 +52,7 @@ def make_model_dict(assertion_dict):
 
 @pytest.fixture(name="model")
 def make_model():
-    return af.Model(af.Gaussian)
+    return af.Model(af.ex.Gaussian)
 
 
 def test_to_dict(model_dict, model):

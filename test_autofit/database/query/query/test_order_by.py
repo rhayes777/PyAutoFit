@@ -12,7 +12,7 @@ def make_gaussian_0(
 ):
     gaussian_0 = db.Fit(
         id="gaussian_0",
-        instance=af.Gaussian(
+        instance=af.ex.Gaussian(
             centre=1
         ),
         info={"info": 1},

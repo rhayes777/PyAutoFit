@@ -14,7 +14,7 @@ def log_value_error(func):
         """
         Prevent an exception terminating the run if visualization fails due to convergence not yet being reached.
 
-        Searches attempt to perform visualization every `iterations_per_update`, however these visualization calls
+        Searches attempt to perform visualization every `iterations_per_full_update`, however these visualization calls
         may occur before the search has converged on enough of parameter to successfully perform visualization.
 
         This can lead the search to raise an exception which terminates the Python script, when we instead

@@ -31,7 +31,7 @@ def test_from_dict():
 
 
 def test_from_model():
-    model = af.Model(af.Gaussian)
+    model = af.Model(af.ex.Gaussian)
 
     model.centre = model.sigma
 
@@ -47,8 +47,8 @@ def test_from_model():
 
 def test_collection():
     collection = af.Collection(
-        gaussian_1=af.Model(af.Gaussian),
-        gaussian_2=af.Model(af.Gaussian),
+        gaussian_1=af.Model(af.ex.Gaussian),
+        gaussian_2=af.Model(af.ex.Gaussian),
     )
     collection.gaussian_1.centre = collection.gaussian_2.centre
 

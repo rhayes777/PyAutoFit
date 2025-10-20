@@ -7,7 +7,7 @@ from autofit.non_linear.mock.mock_samples import MockSamples
 def make_model_gaussian_x1():
 
     return af.Model(
-        af.Gaussian
+        af.ex.Gaussian
     )
 
 

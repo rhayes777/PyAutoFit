@@ -7,7 +7,7 @@ from autofit.non_linear.samples.summary import SamplesSummary
 @pytest.fixture(name="model")
 def make_model():
     return af.Model(
-        af.Gaussian, centre=af.UniformPrior(lower_limit=0.0, upper_limit=1.0)
+        af.ex.Gaussian, centre=af.UniformPrior(lower_limit=0.0, upper_limit=1.0)
     )
 
 
@@ -71,7 +71,7 @@ def test_higher_dimension_instance_attributes(model, samples_1, samples_2):
 def make_deep_result(model, samples_1, samples_2):
     model = af.Collection(
         gaussian=af.Model(
-            af.Gaussian,
+            af.ex.Gaussian,
             centre=af.UniformPrior(lower_limit=0.0, upper_limit=1.0),
         )
     )
@@ -102,7 +102,7 @@ def test_paths(deep_result):
 def test_instances(deep_result):
     assert (
         deep_result.attribute_grid("gaussian").native
-        == [af.Gaussian(1.0, 2.0, 3.0), af.Gaussian(1.0, 2.0, 3.0)]
+        == [af.ex.Gaussian(1.0, 2.0, 3.0), af.ex.Gaussian(1.0, 2.0, 3.0)]
     ).all()
 
 

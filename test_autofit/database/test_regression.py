@@ -8,12 +8,12 @@ from autofit.database import Fit
 
 @pytest.fixture(name="model")
 def make_model():
-    return af.Model(af.Gaussian)
+    return af.Model(af.ex.Gaussian)
 
 
 def test_instance_from_prior_medians(model):
     db.Object.from_object(model)()
-    db.Object.from_object(af.Gaussian())()
+    db.Object.from_object(af.ex.Gaussian())()
     instance = model.instance_from_prior_medians()
     db.Object.from_object(instance)()
 
@@ -21,35 +21,35 @@ def test_instance_from_prior_medians(model):
 def test_object_to_instance(model):
     assert isinstance(
         db.Object.from_object(model)().instance_from_prior_medians(),
-        af.Gaussian,
+        af.ex.Gaussian,
     )
 
 
 def test_model_with_parameterless_component():
-    child = af.Gaussian()
+    child = af.ex.Gaussian()
     model = af.Model(
-        af.Gaussian,
+        af.ex.Gaussian,
         centre=child,
     )
     assert ("centre", child) in model.items()
 
     model = db.Object.from_object(model)()
     instance = model.instance_from_prior_medians()
-    assert isinstance(instance.centre, af.Gaussian)
+    assert isinstance(instance.centre, af.ex.Gaussian)
 
 
 def test_instance_in_collection():
-    collection = af.Collection(gaussian=af.Gaussian())
-    assert list(collection.items()) == [("gaussian", af.Gaussian())]
+    collection = af.Collection(gaussian=af.ex.Gaussian())
+    assert list(collection.items()) == [("gaussian", af.ex.Gaussian())]
 
 
 def test_samples_summary_model():
     fit = af.db.Fit()
-    model = af.Model(af.Gaussian)
+    model = af.Model(af.ex.Gaussian)
     fit["samples_summary"] = af.Samples(model=model, sample_list=[])
     fit.model = model
 
-    assert fit["samples_summary"].model.cls == af.Gaussian
+    assert fit["samples_summary"].model.cls == af.ex.Gaussian
 
 
 def test_dict_with_tuple_keys():

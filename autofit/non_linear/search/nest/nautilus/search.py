@@ -39,7 +39,8 @@ class Nautilus(abstract_nest.AbstractNest):
         name: Optional[str] = None,
         path_prefix: Optional[str] = None,
         unique_tag: Optional[str] = None,
-        iterations_per_update: int = None,
+        iterations_per_quick_update: Optional[int] = None,
+        iterations_per_full_update: int = None,
         number_of_cores: int = None,
         session: Optional[sa.orm.Session] = None,
         **kwargs
@@ -64,7 +65,7 @@ class Nautilus(abstract_nest.AbstractNest):
         unique_tag
             The name of a unique tag for this model-fit, which will be given a unique entry in the sqlite database
             and also acts as the folder after the path prefix and before the search name.
-        iterations_per_update
+        iterations_per_full_update
             The number of iterations performed between update (e.g. output latest model to hard-disk, visualization).
         number_of_cores
             The number of cores sampling is performed using a Python multiprocessing Pool instance.
@@ -82,7 +83,8 @@ class Nautilus(abstract_nest.AbstractNest):
             name=name,
             path_prefix=path_prefix,
             unique_tag=unique_tag,
-            iterations_per_update=iterations_per_update,
+            iterations_per_full_update=iterations_per_full_update,
+            iterations_per_quick_update=iterations_per_quick_update,
             number_of_cores=number_of_cores,
             session=session,
             **kwargs,
@@ -109,14 +111,6 @@ class Nautilus(abstract_nest.AbstractNest):
         set of accepted ssamples of the fit.
         """
 
-        fitness = Fitness(
-            model=model,
-            analysis=analysis,
-            paths=self.paths,
-            fom_is_log_likelihood=True,
-            resample_figure_of_merit=-1.0e99,
-        )
-
         if not isinstance(self.paths, NullPaths):
             checkpoint_exists = os.path.exists(self.checkpoint_file)
         else:
@@ -137,25 +131,41 @@ class Nautilus(abstract_nest.AbstractNest):
             or self.kwargs.get("force_x1_cpu")
             or jax_wrapper.use_jax
         ):
+
+            fitness = Fitness(
+                model=model,
+                analysis=analysis,
+                paths=self.paths,
+                fom_is_log_likelihood=True,
+                resample_figure_of_merit=-1.0e99,
+                use_jax_vmap=True,
+                iterations_per_quick_update=self.iterations_per_quick_update
+
+            )
+
             search_internal = self.fit_x1_cpu(
                 fitness=fitness,
                 model=model,
                 analysis=analysis,
             )
+
         else:
-            if not self.using_mpi:
-                search_internal = self.fit_multiprocessing(
-                    fitness=fitness,
-                    model=model,
-                    analysis=analysis,
-                )
-            else:
-                search_internal = self.fit_mpi(
-                    fitness=fitness,
-                    model=model,
-                    analysis=analysis,
-                    checkpoint_exists=checkpoint_exists,
-                )
+
+            fitness = Fitness(
+                model=model,
+                analysis=analysis,
+                paths=self.paths,
+                fom_is_log_likelihood=True,
+                resample_figure_of_merit=-1.0e99,
+                iterations_per_quick_update=self.iterations_per_quick_update
+            )
+
+            search_internal = self.fit_multiprocessing(
+                fitness=fitness,
+                model=model,
+                analysis=analysis,
+            )
+
         return search_internal, fitness
 
     @property
@@ -170,7 +180,7 @@ class Nautilus(abstract_nest.AbstractNest):
                 "You are attempting to perform a model-fit using Nautilus. \n\n"
                 "However, the optional library Nautilus (https://nautilus-sampler.readthedocs.io/en/stable/index.html) is "
                 "not installed.\n\n"
-                "Install it via the command `pip install nautilus-sampler==0.7.2`.\n\n"
+                "Install it via the command `pip install nautilus-sampler==1.0.5`.\n\n"
                 "----------------------"
             )
 
@@ -216,9 +226,8 @@ class Nautilus(abstract_nest.AbstractNest):
 
         search_internal = self.sampler_cls(
             prior=PriorVectorized(model=model),
-            likelihood=fitness._vmap,
+            likelihood=fitness.call_wrap,
             n_dim=model.prior_count,
-         #   prior_kwargs={"model": model},
             filepath=self.checkpoint_file,
             pool=None,
             vectorized=True,
@@ -250,9 +259,8 @@ class Nautilus(abstract_nest.AbstractNest):
         """
         search_internal = self.sampler_cls(
             prior=PriorVectorized(model=model),
-            likelihood=fitness.__call__,
+            likelihood=fitness.call_wrap,
             n_dim=model.prior_count,
-            prior_kwargs={"model": model},
             filepath=self.checkpoint_file,
             pool=self.number_of_cores,
             **self.config_dict_search,
@@ -271,7 +279,7 @@ class Nautilus(abstract_nest.AbstractNest):
         """
         The x1 CPU and multiprocessing searches both call this function to perform the non-linear search.
 
-        This function calls the search a reduced number of times, corresponding to the `iterations_per_update` of the
+        This function calls the search a reduced number of times, corresponding to the `iterations_per_full_update` of the
         search. This allows the search to output results on-the-fly, for example writing to the hard-disk the latest
         model and samples.
 
@@ -293,19 +301,20 @@ class Nautilus(abstract_nest.AbstractNest):
 
         finished = False
 
-        minimum_iterations_per_updates = 3 * self.config_dict_search["n_live"]
-        if self.iterations_per_update < minimum_iterations_per_updates:
+        minimum_iterations_per_full_updates = 3 * self.config_dict_search["n_live"]
 
-            self.iterations_per_update = minimum_iterations_per_updates
+        if self.iterations_per_full_update < minimum_iterations_per_full_updates:
+
+            self.iterations_per_full_update = minimum_iterations_per_full_updates
 
             logger.info(
                 f"""
-                The number of iterations_per_update is less than 3 times the number of live points, which can cause
+                The number of iterations_per_full_update is less than 3 times the number of live points, which can cause
                 issues where Nautilus loses sampling information due to stopping to output results. The number of
                 iterations per update has been increased to 3 times the number of live points, therefore a value
-                of {minimum_iterations_per_updates}.
+                of {minimum_iterations_per_full_updates}.
 
-                To remove this warning, increase the number of iterations_per_update to three or more times the
+                To remove this warning, increase the number of iterations_per_full_update to three or more times the
                 number of live points.
                 """
             )
@@ -347,64 +356,6 @@ class Nautilus(abstract_nest.AbstractNest):
 
         return search_internal
 
-    def fit_mpi(self, fitness, model, analysis, checkpoint_exists: bool):
-        """
-        Perform the non-linear search, using MPI to distribute the model-fit across multiple computing nodes.
-
-        This uses PyAutoFit's sneaky pool class, which allows us to use the multiprocessing module in a way that plays
-        nicely with the non-linear search (e.g. exception handling, keyboard interupts, etc.).
-
-        MPI parallelization can be distributed across multiple devices or computing nodes.
-
-        Parameters
-        ----------
-        fitness
-            The function which takes a model instance and returns its log likelihood via the Analysis class
-        model
-            The model which maps parameters chosen via the non-linear search (e.g. via the priors or sampling) to
-            instances of the model, which are passed to the fitness function.
-        analysis
-            Contains the data and the log likelihood function which fits an instance of the model to the data, returning
-            the log likelihood the search maximizes.
-        checkpoint_exists
-            Does the checkpoint file corresponding do a previous run of this search exist?
-        """
-        with self.make_sneakier_pool(
-            fitness_function=fitness.__call__,
-            prior_transform=PriorVectorized(model=model),
-            fitness_args=(model, fitness.__call__),
-            prior_transform_args=(model,),
-        ) as pool:
-            if not pool.is_master():
-                pool.wait()
-                sys.exit(0)
-
-            search_internal = self.sampler_cls(
-                prior=pool.prior_transform,
-                likelihood=pool.fitness,
-                n_dim=model.prior_count,
-                filepath=self.checkpoint_file,
-                pool=pool,
-                **self.config_dict_search,
-            )
-
-            if checkpoint_exists:
-                if self.is_master:
-
-                    self.perform_update(
-                        model=model,
-                        analysis=analysis,
-                        during_analysis=True,
-                        fitness=fitness,
-                        search_internal=search_internal,
-                    )
-
-            search_internal.run(
-                **self.config_dict_run,
-            )
-
-        return search_internal
-
     def iterations_from(
         self, search_internal
     ) -> Tuple[int, int]:
@@ -412,7 +363,7 @@ class Nautilus(abstract_nest.AbstractNest):
         Returns the next number of iterations that a dynesty call will use and the total number of iterations
         that have been performed so far.
 
-        This is used so that the `iterations_per_update` input leads to on-the-fly output of dynesty results.
+        This is used so that the `iterations_per_full_update` input leads to on-the-fly output of dynesty results.
 
         It also ensures dynesty does not perform more samples than the `n_like_max` input variable.
 
@@ -439,7 +390,7 @@ class Nautilus(abstract_nest.AbstractNest):
         except ValueError:
             total_iterations = 0
 
-        iterations = total_iterations + self.iterations_per_update
+        iterations = total_iterations + self.iterations_per_full_update
 
         if self.config_dict_run["n_like_max"] is not None:
             if iterations > self.config_dict_run["n_like_max"]:

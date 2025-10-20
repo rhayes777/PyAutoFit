@@ -525,7 +525,7 @@ Instances (Collection)
 
 We can create an instance of collection containing both the ``Gaussian`` and ``Exponential`` classes using this model.
 
-Below, we create an ``instance`` where:
+We create an ``instance`` where:
 
 - The ``Gaussian`` class has ``centre=30.0``, ``normalization=2.0`` and ``sigma=3.0``.
 - The ``Exponential`` class has ``centre=60.0``, ``normalization=4.0`` and ``rate=1.0````.

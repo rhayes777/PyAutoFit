@@ -22,6 +22,8 @@ from autoconf import conf, cached_property
 
 from autoconf.output import should_output
 
+from autofit.jax_wrapper import numpy as xp
+
 from autofit import exc, jax_wrapper
 from autofit.database.sqlalchemy_ import sa
 from autofit.graphical import (
@@ -127,7 +129,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         path_prefix: Optional[str] = None,
         unique_tag: Optional[str] = None,
         initializer: Initializer = None,
-        iterations_per_update: int = None,
+        iterations_per_quick_update: Optional[int] = None,
+        iterations_per_full_update: int = None,
         number_of_cores: int = 1,
         session: Optional[sa.orm.Session] = None,
         paths: Optional[AbstractPaths] = None,
@@ -161,18 +164,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             self.disable_output = False
 
         from autofit.non_linear.paths.database import DatabasePaths
-
-        try:
-            from mpi4py import MPI
-
-            comm = MPI.COMM_WORLD
-            self.is_master = comm.Get_rank() == 0
-
-            logger.debug(f"Creating non-linear search: {comm.Get_rank()}")
-
-        except ModuleNotFoundError:
-            self.is_master = True
-            logger.debug(f"Creating non-linear search")
 
         if name:
             path_prefix = Path(path_prefix or "")
@@ -218,19 +209,20 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         else:
             self.initializer = initializer
 
-        self.iterations_per_update = iterations_per_update or self._config(
-            "updates", "iterations_per_update"
-        )
+        self.iterations_per_quick_update = float((iterations_per_quick_update or
+            conf.instance["general"]["updates"]["iterations_per_quick_update"]))
+        
+
+        self.iterations_per_full_update = float((iterations_per_full_update or
+            conf.instance["general"]["updates"]["iterations_per_full_update"]))
 
         if conf.instance["general"]["hpc"]["hpc_mode"]:
-            self.iterations_per_update = conf.instance["general"]["hpc"][
-                "iterations_per_update"
+            self.iterations_per_quick_update = conf.instance["general"]["hpc"][
+                "iterations_per_quick_update"
             ]
-
-        self.remove_state_files_at_end = self._config(
-            "updates",
-            "remove_state_files_at_end",
-        )
+            self.iterations_per_full_update = conf.instance["general"]["hpc"][
+                "iterations_per_full_update"
+            ]
 
         self.iterations = 0
 
@@ -442,27 +434,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         return search_instance
 
-    @property
-    def using_mpi(self) -> bool:
-        """
-        Whether the search is being performing using MPI for parallelisation or not.
-
-        This is performed by checking the size of the MPI.COMM_WORLD communicator.
-
-        Returns
-        -------
-        A bool indicating if the search is using MPI.
-        """
-
-        try:
-            from mpi4py import MPI
-
-            comm = MPI.COMM_WORLD
-            return comm.size > 1
-
-        except ModuleNotFoundError:
-            return False
-
     def fit(
         self,
         model: AbstractPriorModel,
@@ -511,19 +482,17 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self.paths.model = model
         self.paths.unique_tag = self.unique_tag
 
-        if self.is_master:
-            self.paths.restore()
+        self.paths.restore()
 
         model.freeze()
         analysis = analysis.modify_before_fit(paths=self.paths, model=model)
         model.unfreeze()
 
-        if self.is_master:
-            self.pre_fit_output(
-                analysis=analysis,
-                model=model,
-                info=info,
-            )
+        self.pre_fit_output(
+            analysis=analysis,
+            model=model,
+            info=info,
+        )
 
         if not self.paths.is_complete:
             result = self.start_resume_fit(
@@ -536,14 +505,13 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 model=model,
             )
 
-        if self.is_master:
-            analysis = analysis.modify_after_fit(
-                paths=self.paths, model=model, result=result
-            )
+        analysis = analysis.modify_after_fit(
+            paths=self.paths, model=model, result=result
+        )
 
-            self.post_fit_output(
-                search_internal=result.search_internal,
-            )
+        self.post_fit_output(
+            search_internal=result.search_internal,
+        )
 
         gc.collect()
 
@@ -669,11 +637,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         The result of the non-linear search, which includes the best-fit model instance and best-fit log likelihood
         and errors on the model parameters.
         """
-        if self.is_master:
-            if not isinstance(self.paths, DatabasePaths) and not isinstance(
-                self.paths, NullPaths
-            ):
-                self.timer.start()
+        if not isinstance(self.paths, DatabasePaths) and not isinstance(
+            self.paths, NullPaths
+        ):
+            self.timer.start()
 
         model.freeze()
         search_internal, fitness = self._fit(
@@ -696,9 +663,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             search_internal=search_internal,
         )
 
-        if self.is_master:
-            analysis.save_results(paths=self.paths, result=result)
-            analysis.save_results_combined(paths=self.paths, result=result)
+        analysis.save_results(paths=self.paths, result=result)
+        analysis.save_results_combined(paths=self.paths, result=result)
 
         model.unfreeze()
 
@@ -757,22 +723,21 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             paths=self.paths,
         )
 
-        if self.is_master:
-            self.logger.info(f"Fit Already Completed: skipping non-linear search.")
+        self.logger.info(f"Fit Already Completed: skipping non-linear search.")
 
-            if self.force_visualize_overwrite:
-                self.perform_visualization(
-                    model=model,
-                    analysis=analysis,
-                    samples_summary=samples_summary,
-                    during_analysis=False,
-                )
+        if self.force_visualize_overwrite:
+            self.perform_visualization(
+                model=model,
+                analysis=analysis,
+                samples_summary=samples_summary,
+                during_analysis=False,
+            )
 
-            if self.force_pickle_overwrite:
-                self.logger.info("Forcing pickle overwrite")
+        if self.force_pickle_overwrite:
+            self.logger.info("Forcing pickle overwrite")
 
-                analysis.save_results(paths=self.paths, result=result)
-                analysis.save_results_combined(paths=self.paths, result=result)
+            analysis.save_results(paths=self.paths, result=result)
+            analysis.save_results_combined(paths=self.paths, result=result)
 
         model.unfreeze()
 
@@ -889,7 +854,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         """
         Perform an update of the non-linear search's model-fitting results.
 
-        This occurs every `iterations_per_update` of the non-linear search and once it is complete.
+        This occurs every `iterations_per_full_update` of the non-linear search and once it is complete.
 
         The update performs the following tasks (if the settings indicate they should be performed):
 
@@ -911,17 +876,12 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             If the update is during a non-linear search, in which case tasks are only performed after a certain number
             of updates and only a subset of visualization may be performed.
         """
-        self.iterations += self.iterations_per_update
+        self.iterations += self.iterations_per_full_update
 
         if not self.disable_output:
-            if during_analysis:
-                self.logger.info(
-                    f"""Fit Running: Updating results after {self.iterations} iterations (see output folder)."""
-                )
-            else:
-                self.logger.info(
-                    "Fit Complete: Updating final results (see output folder)."
-                )
+            self.logger.info(
+                f"""Fit Running: Updating results (see output folder)."""
+            )
 
         if not isinstance(self.paths, DatabasePaths) and not isinstance(
             self.paths, NullPaths
@@ -936,52 +896,57 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         except exc.FitException:
             return samples
 
-        if self.is_master:
-            self.paths.save_samples_summary(samples_summary=samples_summary)
+        self.paths.save_samples_summary(samples_summary=samples_summary)
 
-            samples_save = samples
+        samples_save = samples
 
-            log_message = True
+        log_message = True
 
-            if during_analysis:
-                log_message = False
-            elif self.disable_output:
-                log_message = False
+        if during_analysis:
+            log_message = False
+        elif self.disable_output:
+            log_message = False
 
-            samples_save = samples_save.samples_above_weight_threshold_from(
-                log_message=log_message
-            )
-            self.paths.save_samples(samples=samples_save)
+        samples_save = samples_save.samples_above_weight_threshold_from(
+            log_message=log_message
+        )
+        self.paths.save_samples(samples=samples_save)
 
-            latent_samples = None
 
-            if (during_analysis and conf.instance["output"]["latent_during_fit"]) or (
-                not during_analysis and conf.instance["output"]["latent_after_fit"]
-            ):
+        if (during_analysis and conf.instance["output"]["latent_during_fit"]) or (
+            not during_analysis and conf.instance["output"]["latent_after_fit"]
+        ):
 
-                if conf.instance["output"]["latent_draw_via_pdf"]:
+            if conf.instance["output"]["latent_draw_via_pdf"]:
 
-                    total_draws = conf.instance["output"]["latent_draw_via_pdf_size"]
+                total_draws = conf.instance["output"]["latent_draw_via_pdf_size"]
 
-                    logger.info(f"Creating latent samples by drawing {total_draws} from the PDF.")
+                logger.info(f"Creating latent samples by drawing {total_draws} from the PDF.")
 
+                try:
                     latent_samples = samples.samples_drawn_randomly_via_pdf_from(total_draws=total_draws)
-
-                else:
-
-                    logger.info(f"Creating latent samples using all samples above the samples weight threshold.")
-
+                except AttributeError:
                     latent_samples = samples_save
+                    logger.info(
+                        "Drawing via PDF not available for this search, "
+                        "using all samples above the samples weight threshold instead."
+                        "")
 
-                latent_samples = analysis.compute_latent_samples(latent_samples)
+            else:
 
-                if latent_samples:
-                    if not conf.instance["output"]["latent_draw_via_pdf"]:
-                        self.paths.save_latent_samples(latent_samples)
-                    self.paths.save_samples_summary(
-                        latent_samples.summary(),
-                        "latent/latent_summary",
-                    )
+                logger.info(f"Creating latent samples using all samples above the samples weight threshold.")
+
+                latent_samples = samples_save
+
+            latent_samples = analysis.compute_latent_samples(latent_samples)
+
+            if latent_samples:
+                if not conf.instance["output"]["latent_draw_via_pdf"]:
+                    self.paths.save_latent_samples(latent_samples)
+                self.paths.save_samples_summary(
+                    latent_samples.summary(),
+                    "latent/latent_summary",
+                )
 
             start = time.time()
 
@@ -1011,7 +976,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 parameters = samples.max_log_likelihood(as_instance=False)
 
                 start = time.time()
-                figure_of_merit = fitness(parameters)
+                figure_of_merit = fitness.call_wrap(parameters)
 
                 # account for asynchronous JAX calls
                 np.array(figure_of_merit)
@@ -1036,9 +1001,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             except exc.FitException:
                 pass
 
-            if not during_analysis and self.remove_state_files_at_end:
-                self.logger.debug("Removing state files")
-
         self._log_process_state()
 
         return samples
@@ -1056,7 +1018,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         """
         Perform visualization of the non-linear search's model-fitting results.
 
-        This occurs every `iterations_per_update` of the non-linear search, when the search is complete and can
+        This occurs every `iterations_per_full_update` of the non-linear search, when the search is complete and can
         also be forced to occur even though a search is completed on a rerun, to update the visualization
         with different `matplotlib` settings.
 
@@ -1243,14 +1205,13 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         )
 
     def make_sneakier_pool(self, fitness_function: Fitness, **kwargs) -> SneakierPool:
-        if self.is_master:
-            self.logger.info(f"number of cores == {self.number_of_cores}")
 
-        if self.is_master:
-            if self.number_of_cores > 1:
-                self.logger.info("Creating SneakierPool...")
-            else:
-                self.logger.info("Creating multiprocessing Pool of size 1...")
+        self.logger.info(f"number of cores == {self.number_of_cores}")
+
+        if self.number_of_cores > 1:
+            self.logger.info("Creating SneakierPool...")
+        else:
+            self.logger.info("Creating multiprocessing Pool of size 1...")
 
         pool = SneakierPool(
             processes=self.number_of_cores, fitness=fitness_function, **kwargs

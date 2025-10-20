@@ -11,7 +11,7 @@ def make_paths(session):
         session
     )
     paths.model = af.Model(
-        af.Gaussian
+        af.ex.Gaussian
     )
     assert paths.is_complete is False
     return paths
