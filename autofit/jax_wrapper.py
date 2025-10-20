@@ -17,7 +17,15 @@ if use_jax:
 
     xla_env = os.environ.get("XLA_FLAGS")
 
-    if "--xla_disable_hlo_passes=constant_folding" not in xla_env:
+    xla_env_set = True
+
+    if xla_env is None:
+        xla_env_set = False
+    elif isinstance(xla_env, str):
+        xla_env_set = not "--xla_disable_hlo_passes=constant_folding" in xla_env
+
+
+    if not xla_env_set:
         logger.info(
             """
             For fast JAX compile times, the envirment variable XLA_FLAGS must be set to "--xla_disable_hlo_passes=constant_folding",
