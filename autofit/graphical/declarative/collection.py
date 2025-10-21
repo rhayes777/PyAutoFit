@@ -279,3 +279,16 @@ class FactorGraphModel(AbstractDeclarativeFactor):
             instance,
             during_analysis=during_analysis,
         )
+
+    def perform_quick_update(self, paths, instance):
+
+        try:
+            self.model_factors[0].visualize_combined(
+                analyses=self.model_factors,
+                paths=paths,
+                instance=instance,
+                during_analysis=True,
+                quick_update=True,
+            )
+        except Exception as e:
+            pass

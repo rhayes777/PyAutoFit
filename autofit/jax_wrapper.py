@@ -22,8 +22,7 @@ if use_jax:
     if xla_env is None:
         xla_env_set = False
     elif isinstance(xla_env, str):
-        xla_env_set = not "--xla_disable_hlo_passes=constant_folding" in xla_env
-
+        xla_env_set = "--xla_disable_hlo_passes=constant_folding" in xla_env
 
     if not xla_env_set:
         logger.info(

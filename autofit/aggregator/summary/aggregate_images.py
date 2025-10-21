@@ -210,6 +210,8 @@ class AggregateImages:
             else:
                 output_name = name[i]
 
+            output_path = folder / output_name
+            output_path.parent.mkdir(parents=True, exist_ok=True)
             image.save(folder / f"{output_name}.png")
 
     @staticmethod
