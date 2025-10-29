@@ -2,7 +2,7 @@ from autoconf.dictable import register_parser
 from . import conf
 
 conf.instance.register(__file__)
-
+ 
 import abc
 import pickle
 from dill import register
