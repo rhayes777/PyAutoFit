@@ -105,8 +105,9 @@ class ComputedColumn(AbstractColumn):
         self.compute = compute
 
     def value(self, row: "Row"):
+
         try:
-            return self.compute(row.result.samples)
+            return self.compute(row.result)
         except AttributeError as e:
             raise AssertionError(
                 "Cannot compute additional fields if no samples.json present"
