@@ -22,9 +22,10 @@ from autoconf import conf, cached_property
 
 from autoconf.output import should_output
 
-from autofit.jax_wrapper import numpy as xp
+from autoconf.jax_wrapper import numpy as xp
+from autoconf import jax_wrapper
 
-from autofit import exc, jax_wrapper
+from autofit import exc
 from autofit.database.sqlalchemy_ import sa
 from autofit.graphical import (
     MeanField,

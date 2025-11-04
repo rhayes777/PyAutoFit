@@ -2,7 +2,7 @@ import math
 import numpy as np
 from typing import Tuple
 
-from autofit.jax_wrapper import numpy as xp
+from autoconf.jax_wrapper import numpy as xp
 
 """
 The `Gaussian` class in this module is the model components that is fitted to data using a non-linear search. The

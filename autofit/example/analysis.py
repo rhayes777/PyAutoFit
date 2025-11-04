@@ -1,7 +1,7 @@
 import numpy as np
 from typing import Dict, Optional
 
-from autofit.jax_wrapper import numpy as xp
+from autoconf.jax_wrapper import numpy as xp
 
 import autofit as af
 

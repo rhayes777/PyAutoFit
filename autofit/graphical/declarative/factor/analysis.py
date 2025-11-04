@@ -10,7 +10,7 @@ from autofit.non_linear.analysis import Analysis
 from autofit.non_linear.paths.abstract import AbstractPaths
 from .abstract import AbstractModelFactor
 
-from autofit.jax_wrapper import register_pytree_node_class
+from autoconf.jax_wrapper import register_pytree_node_class
 
 
 class FactorCallable:

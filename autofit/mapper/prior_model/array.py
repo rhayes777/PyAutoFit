@@ -3,10 +3,10 @@ from typing import Tuple, Dict, Optional, Union
 from autoconf.dictable import from_dict
 from .abstract import AbstractPriorModel
 from autofit.mapper.prior.abstract import Prior
-from autofit.jax_wrapper import numpy as xp, use_jax
+from autoconf.jax_wrapper import numpy as xp, use_jax
 import numpy as np
 
-from autofit.jax_wrapper import register_pytree_node_class
+from autoconf.jax_wrapper import register_pytree_node_class
 
 
 @register_pytree_node_class

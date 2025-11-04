@@ -8,7 +8,7 @@ import jax.numpy as jnp
 import time
 from typing import Optional, Dict
 
-from autofit.jax_wrapper import use_jax
+from autoconf.jax_wrapper import use_jax
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.paths.abstract import AbstractPaths

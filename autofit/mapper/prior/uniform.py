@@ -1,4 +1,4 @@
-from autofit.jax_wrapper import register_pytree_node_class
+from autoconf.jax_wrapper import register_pytree_node_class
 from typing import Optional, Tuple
 
 from autofit.messages.normal import UniformNormalMessage

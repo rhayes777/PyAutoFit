@@ -11,7 +11,7 @@ from autofit.non_linear.samples.summary import SamplesSummary
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior_model.prior_model import Model
 
-from autofit.jax_wrapper import register_pytree_node_class
+from autoconf.jax_wrapper import register_pytree_node_class
 from ...non_linear.combined_result import CombinedResult
 
 

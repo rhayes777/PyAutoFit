@@ -13,7 +13,7 @@ from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.parallel import SneakyPool
 
-from autofit import jax_wrapper
+from autoconf import jax_wrapper
 
 logger = logging.getLogger(__name__)
 

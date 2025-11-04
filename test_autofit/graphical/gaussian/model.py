@@ -1,6 +1,6 @@
 import numpy
 
-from autofit.jax_wrapper import numpy as np
+from autoconf.jax_wrapper import numpy as np
 
 # TODO: Use autofit class?
 from scipy import stats

@@ -392,7 +392,7 @@ class NormalMessage(AbstractMessage):
         >>> physical_value = prior.value_for(unit=0.5)
         """
 
-        from autofit import jax_wrapper
+        from autoconf import jax_wrapper
 
         if jax_wrapper.use_jax:
             from jax._src.scipy.special import erfinv

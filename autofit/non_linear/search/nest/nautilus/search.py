@@ -6,7 +6,7 @@ import os
 import sys
 from typing import Dict, Optional, Tuple
 
-from autofit import jax_wrapper
+from autoconf import jax_wrapper
 from autofit.database.sqlalchemy_ import sa
 
 from autoconf import conf

@@ -11,8 +11,8 @@ from typing import Optional
 from autoconf import conf
 from autoconf import cached_property
 
-from autofit import jax_wrapper
-from autofit.jax_wrapper import numpy as xp
+from autoconf import jax_wrapper
+from autoconf.jax_wrapper import numpy as xp
 from autofit import exc
 
 from autofit.text import text_util

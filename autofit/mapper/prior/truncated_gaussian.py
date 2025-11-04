@@ -1,6 +1,6 @@
 from typing import Optional, Tuple
 
-from autofit.jax_wrapper import register_pytree_node_class
+from autoconf.jax_wrapper import register_pytree_node_class
 
 from autofit.messages.truncated_normal import TruncatedNormalMessage
 from .abstract import Prior

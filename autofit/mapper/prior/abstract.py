@@ -2,11 +2,11 @@ import itertools
 import random
 from abc import ABC, abstractmethod
 from copy import copy
-import jax
 from typing import Union, Tuple, Optional, Dict
 
 from autoconf import conf
-from autofit import exc, jax_wrapper
+from autoconf import jax_wrapper
+
 from autofit.mapper.prior.arithmetic import ArithmeticMixin
 from autofit.mapper.prior.constant import Constant
 from autofit.mapper.prior.deferred import DeferredArgument

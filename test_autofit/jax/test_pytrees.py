@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from autofit.jax_wrapper import numpy as jnp
+from autoconf.jax_wrapper import numpy as jnp
 
 import autofit as af
 

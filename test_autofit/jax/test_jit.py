@@ -1,9 +1,9 @@
 import pickle
 
-from autofit.jax_wrapper import numpy as xp, jit
+from autoconf.jax_wrapper import numpy as xp, jit
 
 import autofit as af
-from autofit import jax_wrapper
+from autoconf import jax_wrapper
 from test_autofit.graphical.gaussian.model import Analysis, Gaussian, make_data
 from test_autofit.graphical.gaussian import model as model_module
 

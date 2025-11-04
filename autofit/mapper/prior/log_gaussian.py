@@ -2,7 +2,7 @@ from typing import Optional
 
 import numpy as np
 
-from autofit.jax_wrapper import register_pytree_node_class
+from autoconf.jax_wrapper import register_pytree_node_class
 from autofit.messages.normal import NormalMessage
 from .abstract import Prior
 from ...messages.composed_transform import TransformedMessage
