@@ -987,19 +987,11 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
                 log_likelihood_function_time = time.time() - start
 
-                if jax_wrapper.use_jax:
-                    start = time.time()
-                    fitness.call(parameters)
-                    log_likelihood_function_time_no_jax = time.time() - start
-                else:
-                    log_likelihood_function_time_no_jax = None
-
                 self.paths.save_summary(
                     samples=samples,
                     latent_samples=latent_samples,
                     log_likelihood_function_time=log_likelihood_function_time,
                     visualization_time=visualization_time,
-                    log_likelihood_function_time_no_jax=log_likelihood_function_time_no_jax,
                 )
 
             except exc.FitException:
@@ -1048,6 +1040,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             The instance of the model that is used for visualization. If not input, the maximum log likelihood
             instance from the samples is used.
         """
+        gggg
 
         self.logger.debug("Visualizing")
 
