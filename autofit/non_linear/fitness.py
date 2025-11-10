@@ -43,6 +43,7 @@ class Fitness:
         convert_to_chi_squared: bool = False,
         store_history: bool = False,
         use_jax_vmap : bool = False,
+        batch_size : Optional[int] = None,
         iterations_per_quick_update: Optional[int] = None,
     ):
         """
@@ -123,6 +124,7 @@ class Fitness:
             if self.use_jax_vmap:
                 self._call = self._vmap
 
+        self.batch_size = batch_size
         self.iterations_per_quick_update = iterations_per_quick_update
         self.quick_update_max_lh_parameters = None
         self.quick_update_max_lh = -xp.inf
@@ -152,7 +154,7 @@ class Fitness:
         instance = self.model.instance_from_vector(vector=parameters)
 
         # Evaluate log likelihood (must be side-effect free and exception-free)
-        log_likelihood = self.analysis.log_likelihood_function(instance=instance)
+        log_likelihood = self.analysis.log_likelihood_function(instance=instance, xp=xp)
 
         # Penalize NaNs in the log-likelihood
         log_likelihood = xp.where(xp.isnan(log_likelihood), self.resample_figure_of_merit, log_likelihood)

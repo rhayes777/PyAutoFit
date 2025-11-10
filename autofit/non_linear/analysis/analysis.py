@@ -58,7 +58,7 @@ class Analysis(ABC):
 
         return method
 
-    def compute_latent_samples(self, samples: Samples) -> Optional[Samples]:
+    def compute_latent_samples(self, samples: Samples, batch_size : Optional[int] = None) -> Optional[Samples]:
         """
         Compute latent variables from a model instance.
 
@@ -91,11 +91,19 @@ class Analysis(ABC):
             `(intensity_total, magnitude, angle)`. Each entry may be NaN if the corresponding component
             of the model is not present.
         """
+
+        if use_jax:
+            xp = jnp
+        else:
+            xp = np
+
+        batch_size = batch_size or 10
+
         try:
 
             start_latent = time.time()
 
-            compute_latent_for_model = functools.partial(self.compute_latent_variables, model=samples.model)
+            compute_latent_for_model = functools.partial(self.compute_latent_variables, model=samples.model, xp=xp)
 
             if use_jax:
                 start = time.time()
@@ -107,7 +115,6 @@ class Analysis(ABC):
                     return np.array([compute_latent_for_model(xx) for xx in x])
 
             parameter_array = np.array(samples.parameter_lists)
-            batch_size = 50
             latent_samples = []
 
             # process in batches

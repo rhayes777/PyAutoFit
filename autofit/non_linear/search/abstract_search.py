@@ -939,7 +939,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
                 latent_samples = samples_save
 
-            latent_samples = analysis.compute_latent_samples(latent_samples)
+            latent_samples = analysis.compute_latent_samples(
+                latent_samples,
+                batch_size=fitness.batch_size
+            )
 
             if latent_samples:
                 if not conf.instance["output"]["latent_draw_via_pdf"]:

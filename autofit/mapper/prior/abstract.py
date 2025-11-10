@@ -5,7 +5,6 @@ from copy import copy
 from typing import Union, Tuple, Optional, Dict
 
 from autoconf import conf
-from autoconf import jax_wrapper
 
 from autofit.mapper.prior.arithmetic import ArithmeticMixin
 from autofit.mapper.prior.constant import Constant

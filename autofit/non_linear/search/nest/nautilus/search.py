@@ -139,6 +139,7 @@ class Nautilus(abstract_nest.AbstractNest):
                 fom_is_log_likelihood=True,
                 resample_figure_of_merit=-1.0e99,
                 use_jax_vmap=True,
+                batch_size=self.config_dict_search["n_batch"],
                 iterations_per_quick_update=self.iterations_per_quick_update
 
             )
