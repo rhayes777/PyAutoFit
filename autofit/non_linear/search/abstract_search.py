@@ -912,7 +912,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         )
         self.paths.save_samples(samples=samples_save)
 
-        # latent_samples = None
+        latent_samples = None
         #
         # if (during_analysis and conf.instance["output"]["latent_during_fit"]) or (
         #     not during_analysis and conf.instance["output"]["latent_after_fit"]
@@ -921,7 +921,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         #     if conf.instance["output"]["latent_draw_via_pdf"]:
         #
         #         total_draws = conf.instance["output"]["latent_draw_via_pdf_size"]
-        # 
+        #
         #         logger.info(f"Creating latent samples by drawing {total_draws} from the PDF.")
         #
         #         try:
