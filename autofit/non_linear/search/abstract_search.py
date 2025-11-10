@@ -22,7 +22,6 @@ from autoconf import conf, cached_property
 
 from autoconf.output import should_output
 
-from autoconf.jax_wrapper import numpy as xp
 from autoconf import jax_wrapper
 
 from autofit import exc
@@ -913,89 +912,90 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         )
         self.paths.save_samples(samples=samples_save)
 
+        # latent_samples = None
+        #
+        # if (during_analysis and conf.instance["output"]["latent_during_fit"]) or (
+        #     not during_analysis and conf.instance["output"]["latent_after_fit"]
+        # ):
+        #
+        #     if conf.instance["output"]["latent_draw_via_pdf"]:
+        #
+        #         total_draws = conf.instance["output"]["latent_draw_via_pdf_size"]
+        # 
+        #         logger.info(f"Creating latent samples by drawing {total_draws} from the PDF.")
+        #
+        #         try:
+        #             latent_samples = samples.samples_drawn_randomly_via_pdf_from(total_draws=total_draws)
+        #         except AttributeError:
+        #             latent_samples = samples_save
+        #             logger.info(
+        #                 "Drawing via PDF not available for this search, "
+        #                 "using all samples above the samples weight threshold instead."
+        #                 "")
+        #
+        #     else:
+        #
+        #         logger.info(f"Creating latent samples using all samples above the samples weight threshold.")
+        #
+        #         latent_samples = samples_save
+        #
+        #     latent_samples = analysis.compute_latent_samples(
+        #         latent_samples,
+        #         batch_size=fitness.batch_size
+        #     )
+        #
+        #     if latent_samples:
+        #         if not conf.instance["output"]["latent_draw_via_pdf"]:
+        #             self.paths.save_latent_samples(latent_samples)
+        #         self.paths.save_samples_summary(
+        #             latent_samples.summary(),
+        #             "latent/latent_summary",
+        #         )
 
-        if (during_analysis and conf.instance["output"]["latent_during_fit"]) or (
-            not during_analysis and conf.instance["output"]["latent_after_fit"]
-        ):
+        start = time.time()
 
-            if conf.instance["output"]["latent_draw_via_pdf"]:
+        self.perform_visualization(
+            model=model,
+            analysis=analysis,
+            samples_summary=samples_summary,
+            during_analysis=during_analysis,
+            search_internal=search_internal,
+        )
 
-                total_draws = conf.instance["output"]["latent_draw_via_pdf_size"]
+        visualization_time = time.time() - start
 
-                logger.info(f"Creating latent samples by drawing {total_draws} from the PDF.")
+        if self.should_profile:
 
-                try:
-                    latent_samples = samples.samples_drawn_randomly_via_pdf_from(total_draws=total_draws)
-                except AttributeError:
-                    latent_samples = samples_save
-                    logger.info(
-                        "Drawing via PDF not available for this search, "
-                        "using all samples above the samples weight threshold instead."
-                        "")
+            self.logger.debug("Profiling Maximum Likelihood Model")
 
-            else:
-
-                logger.info(f"Creating latent samples using all samples above the samples weight threshold.")
-
-                latent_samples = samples_save
-
-            latent_samples = analysis.compute_latent_samples(
-                latent_samples,
-                batch_size=fitness.batch_size
+            analysis.profile_log_likelihood_function(
+                paths=self.paths,
+                instance=instance,
             )
 
-            if latent_samples:
-                if not conf.instance["output"]["latent_draw_via_pdf"]:
-                    self.paths.save_latent_samples(latent_samples)
-                self.paths.save_samples_summary(
-                    latent_samples.summary(),
-                    "latent/latent_summary",
-                )
+        self.logger.debug("Outputting model result")
+
+        try:
+
+            parameters = samples.max_log_likelihood(as_instance=False)
 
             start = time.time()
+            figure_of_merit = fitness.call_wrap(parameters)
 
-            self.perform_visualization(
-                model=model,
-                analysis=analysis,
-                samples_summary=samples_summary,
-                during_analysis=during_analysis,
-                search_internal=search_internal,
+            # account for asynchronous JAX calls
+            np.array(figure_of_merit)
+
+            log_likelihood_function_time = time.time() - start
+
+            self.paths.save_summary(
+                samples=samples,
+                latent_samples=latent_samples,
+                log_likelihood_function_time=log_likelihood_function_time,
+                visualization_time=visualization_time,
             )
 
-            visualization_time = time.time() - start
-
-            if self.should_profile:
-
-                self.logger.debug("Profiling Maximum Likelihood Model")
-
-                analysis.profile_log_likelihood_function(
-                    paths=self.paths,
-                    instance=instance,
-                )
-
-            self.logger.debug("Outputting model result")
-
-            try:
-
-                parameters = samples.max_log_likelihood(as_instance=False)
-
-                start = time.time()
-                figure_of_merit = fitness.call_wrap(parameters)
-
-                # account for asynchronous JAX calls
-                np.array(figure_of_merit)
-
-                log_likelihood_function_time = time.time() - start
-
-                self.paths.save_summary(
-                    samples=samples,
-                    latent_samples=latent_samples,
-                    log_likelihood_function_time=log_likelihood_function_time,
-                    visualization_time=visualization_time,
-                )
-
-            except exc.FitException:
-                pass
+        except exc.FitException:
+            pass
 
         self._log_process_state()
 
@@ -1040,7 +1040,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             The instance of the model that is used for visualization. If not input, the maximum log likelihood
             instance from the samples is used.
         """
-        gggg
 
         self.logger.debug("Visualizing")
 
@@ -1048,7 +1047,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         if instance is None and samples_summary is None:
             raise AssertionError(
-                """The search's perform_visualization method has been called without an input instance or 
+                """
+                The search's perform_visualization method has been called without an input instance or 
                 samples_summary. 
 
                 This should not occur, please ensure one of these inputs is provided.
