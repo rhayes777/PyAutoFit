@@ -1,8 +1,6 @@
 import numpy as np
 from typing import Dict, Optional
 
-from autoconf.jax_wrapper import numpy as xp
-
 import autofit as af
 
 from autofit.example.result import ResultExample
@@ -38,7 +36,7 @@ class Analysis(af.Analysis):
 
     LATENT_KEYS = ["gaussian.fwhm"]
 
-    def __init__(self, data: np.ndarray, noise_map: np.ndarray):
+    def __init__(self, data: np.ndarray, noise_map: np.ndarray, use_jax=False):
         """
         In this example the `Analysis` object only contains the data and noise-map. It can be easily extended,
         for more complex data-sets and model fitting problems.
@@ -51,12 +49,12 @@ class Analysis(af.Analysis):
             A 1D numpy array containing the noise values of the data, used for computing the goodness of fit
             metric.
         """
-        super().__init__()
+        super().__init__(use_jax=use_jax)
 
         self.data = data
         self.noise_map = noise_map
 
-    def log_likelihood_function(self, instance: af.ModelInstance) -> float:
+    def log_likelihood_function(self, instance: af.ModelInstance, xp=np) -> float:
         """
         Determine the log likelihood of a fit of multiple profiles to the dataset.
 
@@ -98,14 +96,15 @@ class Analysis(af.Analysis):
         The model data of the profiles.
         """
 
-        xvalues = xp.arange(self.data.shape[0])
-        model_data_1d = xp.zeros(self.data.shape[0])
+        xvalues = self._xp.arange(self.data.shape[0])
+        model_data_1d = self._xp.zeros(self.data.shape[0])
 
         try:
             for profile in instance:
                 try:
                     model_data_1d += profile.model_data_from(
-                        xvalues=xvalues
+                        xvalues=xvalues,
+                        xp=self._xp
                     )
                 except AttributeError:
                     pass

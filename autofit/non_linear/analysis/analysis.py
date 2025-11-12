@@ -36,6 +36,13 @@ class Analysis(ABC):
 
     LATENT_KEYS = []
 
+    def __init__(
+        self, use_jax : bool = False, **kwargs
+    ):
+
+        self.use_jax = use_jax
+        self.kwargs = kwargs
+
     def __getattr__(self, item: str):
         """
         If a method starts with 'visualize_' then we assume it is associated with
@@ -57,6 +64,12 @@ class Analysis(ABC):
             return _method(self, *args, **kwargs)
 
         return method
+
+    @property
+    def _xp(self):
+        if self.use_jax:
+            return jnp
+        return np
 
     def compute_latent_samples(self, samples: Samples, batch_size : Optional[int] = None) -> Optional[Samples]:
         """
@@ -91,19 +104,13 @@ class Analysis(ABC):
             `(intensity_total, magnitude, angle)`. Each entry may be NaN if the corresponding component
             of the model is not present.
         """
-
-        if use_jax:
-            xp = jnp
-        else:
-            xp = np
-
         batch_size = batch_size or 10
 
         try:
 
             start_latent = time.time()
 
-            compute_latent_for_model = functools.partial(self.compute_latent_variables, model=samples.model, xp=xp)
+            compute_latent_for_model = functools.partial(self.compute_latent_variables, model=samples.model)
 
             if use_jax:
                 start = time.time()
@@ -125,7 +132,7 @@ class Analysis(ABC):
                 # batched JAX call on this chunk
                 latent_values_batch = batched_compute_latent(batch)
 
-                if use_jax:
+                if self.use_jax:
                     latent_values_batch = jnp.stack(latent_values_batch, axis=-1)  # (batch, n_latents)
                     mask = jnp.all(jnp.isfinite(latent_values_batch), axis=0)
                     latent_values_batch = latent_values_batch[:, mask]

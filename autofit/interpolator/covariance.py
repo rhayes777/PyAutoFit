@@ -18,6 +18,7 @@ class CovarianceAnalysis(Analysis):
         x: np.ndarray,
         y: np.ndarray,
         inverse_covariance_matrix: np.ndarray,
+        use_jax : bool = False
     ):
         """
         An analysis class that describes a linear relationship between x and y, y = mx + c
@@ -30,6 +31,8 @@ class CovarianceAnalysis(Analysis):
             The y values. This is a matrix comprising all the variables in the model at each x value
         inverse_covariance_matrix
         """
+        super().__init__(use_jax=use_jax)
+
         self.x = x
         self.y = y
         self.inverse_covariance_matrix = inverse_covariance_matrix

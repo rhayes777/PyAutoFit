@@ -1,4 +1,3 @@
-import jax
 import logging
 import numpy as np
 from IPython.display import clear_output
@@ -11,8 +10,6 @@ from typing import Optional
 from autoconf import conf
 from autoconf import cached_property
 
-from autoconf import jax_wrapper
-from autoconf.jax_wrapper import numpy as xp
 from autofit import exc
 
 from autofit.text import text_util
@@ -21,6 +18,8 @@ from autofit.text import text_util
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.analysis import Analysis
+
+
 
 def get_timeout_seconds():
 
@@ -39,12 +38,13 @@ class Fitness:
         analysis : Analysis,
         paths : Optional[AbstractPaths] = None,
         fom_is_log_likelihood: bool = True,
-        resample_figure_of_merit: float = -xp.inf,
+        resample_figure_of_merit: float = None,
         convert_to_chi_squared: bool = False,
         store_history: bool = False,
         use_jax_vmap : bool = False,
         batch_size : Optional[int] = None,
         iterations_per_quick_update: Optional[int] = None,
+        xp=np,
     ):
         """
         Interfaces with any non-linear search to fit the model to the data and return a log likelihood via
@@ -109,7 +109,7 @@ class Fitness:
         self.model = model
         self.paths = paths
         self.fom_is_log_likelihood = fom_is_log_likelihood
-        self.resample_figure_of_merit = resample_figure_of_merit
+        self.resample_figure_of_merit = resample_figure_of_merit or -xp.inf
         self.convert_to_chi_squared = convert_to_chi_squared
         self.store_history = store_history
 
@@ -120,9 +120,8 @@ class Fitness:
 
         self._call = self.call
 
-        if jax_wrapper.use_jax:
-            if self.use_jax_vmap:
-                self._call = self._vmap
+        if self.use_jax_vmap:
+            self._call = self._vmap
 
         self.batch_size = batch_size
         self.iterations_per_quick_update = iterations_per_quick_update
@@ -132,6 +131,13 @@ class Fitness:
 
         if self.paths is not None:
             self.check_log_likelihood(fitness=self)
+
+    @property
+    def _xp(self):
+        if self.analysis.use_jax:
+            import jax.numpy as jnp
+            return jnp
+        return np
 
     def call(self, parameters):
         """
@@ -154,18 +160,18 @@ class Fitness:
         instance = self.model.instance_from_vector(vector=parameters)
 
         # Evaluate log likelihood (must be side-effect free and exception-free)
-        log_likelihood = self.analysis.log_likelihood_function(instance=instance, xp=xp)
+        log_likelihood = self.analysis.log_likelihood_function(instance=instance)
 
         # Penalize NaNs in the log-likelihood
-        log_likelihood = xp.where(xp.isnan(log_likelihood), self.resample_figure_of_merit, log_likelihood)
+        log_likelihood = self._xp.where(self._xp.isnan(log_likelihood), self.resample_figure_of_merit, log_likelihood)
 
         # Determine final figure of merit
         if self.fom_is_log_likelihood:
             figure_of_merit = log_likelihood
         else:
             # Ensure prior list is compatible with JAX (must return a JAX array, not list)
-            log_prior_array = xp.array(self.model.log_prior_list_from_vector(vector=parameters))
-            figure_of_merit = log_likelihood + xp.sum(log_prior_array)
+            log_prior_array = self._xp.array(self.model.log_prior_list_from_vector(vector=parameters))
+            figure_of_merit = log_likelihood + self._xp.sum(log_prior_array)
 
         # Convert to chi-squared scale if requested
         if self.convert_to_chi_squared:
@@ -212,8 +218,8 @@ class Fitness:
         if self.fom_is_log_likelihood:
             log_likelihood = figure_of_merit
         else:
-            log_prior_list = xp.array(self.model.log_prior_list_from_vector(vector=parameters))
-            log_likelihood = figure_of_merit - xp.sum(log_prior_list)
+            log_prior_list = self._xp.array(self.model.log_prior_list_from_vector(vector=parameters))
+            log_likelihood = figure_of_merit - self._xp.sum(log_prior_list)
 
         self.manage_quick_update(parameters=parameters, log_likelihood=log_likelihood)
 
@@ -277,7 +283,7 @@ class Fitness:
 
         try:
 
-            best_idx = xp.argmax(log_likelihood)
+            best_idx = self._xp.argmax(log_likelihood)
             best_log_likelihood = log_likelihood[best_idx]
             best_parameters = parameters[best_idx]
             total_updates = log_likelihood.shape[0]
@@ -369,6 +375,7 @@ class Fitness:
         Because this is a `cached_property`, the compiled function is stored
         after its first creation, avoiding repeated JIT compilation overhead.
         """
+        import jax
         start = time.time()
         logger.info("JAX: Applying vmap and jit to likelihood function -- may take a few seconds.")
         func = jax.vmap(jax.jit(self.call))
@@ -388,6 +395,7 @@ class Fitness:
         As a `cached_property`, the compiled function is cached after its
         first use, so JIT compilation only occurs once.
         """
+        import jax
         start = time.time()
         logger.info("JAX: Applying jit to likelihood function -- may take a few seconds.")
         func = jax_wrapper.jit(self.call)
@@ -408,6 +416,7 @@ class Fitness:
         and cached on first access, ensuring that expensive setup is done
         only once.
         """
+        import jax
         start = time.time()
         logger.info("JAX: Applying grad to likelihood function -- may take a few seconds.")
         func = jax_wrapper.grad(self.call)

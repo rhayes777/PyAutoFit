@@ -265,7 +265,6 @@ class DatabasePaths(AbstractPaths):
         latent_samples,
         log_likelihood_function_time,
         visualization_time = None,
-        log_likelihood_function_time_no_jax = None,
     ):
         self.fit.instance = samples.max_log_likelihood()
         self.fit.max_log_likelihood = samples.max_log_likelihood_sample.log_likelihood

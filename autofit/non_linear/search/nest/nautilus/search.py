@@ -1,12 +1,9 @@
-import jax
-import jax.numpy as jnp
 import numpy as np
 import logging
 import os
 import sys
 from typing import Dict, Optional, Tuple
 
-from autoconf import jax_wrapper
 from autofit.database.sqlalchemy_ import sa
 
 from autoconf import conf
@@ -17,6 +14,7 @@ from autofit.non_linear.paths.null import NullPaths
 from autofit.non_linear.search.nest import abstract_nest
 from autofit.non_linear.samples.sample import Sample
 from autofit.non_linear.samples.nest import SamplesNest
+
 
 logger = logging.getLogger(__name__)
 
@@ -129,7 +127,7 @@ class Nautilus(abstract_nest.AbstractNest):
         if (
             self.config_dict.get("force_x1_cpu")
             or self.kwargs.get("force_x1_cpu")
-            or jax_wrapper.use_jax
+            or analysis.use_jax
         ):
 
             fitness = Fitness(
@@ -138,10 +136,9 @@ class Nautilus(abstract_nest.AbstractNest):
                 paths=self.paths,
                 fom_is_log_likelihood=True,
                 resample_figure_of_merit=-1.0e99,
+                iterations_per_quick_update=self.iterations_per_quick_update,
                 use_jax_vmap=True,
                 batch_size=self.config_dict_search["n_batch"],
-                iterations_per_quick_update=self.iterations_per_quick_update
-
             )
 
             search_internal = self.fit_x1_cpu(

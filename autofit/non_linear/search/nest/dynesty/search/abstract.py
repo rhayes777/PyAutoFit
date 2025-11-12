@@ -8,7 +8,6 @@ import warnings
 from autoconf import conf
 from autofit import exc
 from autofit.database.sqlalchemy_ import sa
-from autoconf import jax_wrapper
 from autofit.non_linear.fitness import Fitness
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.paths.null import NullPaths
@@ -147,7 +146,7 @@ class AbstractDynesty(AbstractNest, ABC):
                         "parallel"
                     ].get("force_x1_cpu")
                     or self.kwargs.get("force_x1_cpu")
-                    or jax_wrapper.use_jax
+                    or analysis.use_jax
                 ):
                     raise RuntimeError
 

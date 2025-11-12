@@ -11,6 +11,13 @@ def make_factor(hierarchical_factor):
 def test_optimise(factor):
     search = af.DynestyStatic(maxcall=100, dynamic_delta=False, delta=0.1,)
 
+    print(type(factor.analysis))
+    print(type(factor.analysis))
+    print(type(factor.analysis))
+    print(type(factor.analysis))
+    print(type(factor.analysis))
+
+
     _, status = search.optimise(
         factor.mean_field_approximation().factor_approximation(factor)
     )

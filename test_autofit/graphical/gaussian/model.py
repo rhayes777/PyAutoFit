@@ -89,6 +89,8 @@ class Analysis(af.Analysis):
         self.y = y
         self.sigma = sigma
 
+        super().__init__()
+
     def log_likelihood_function(self, instance: Gaussian) -> np.array:
         """
         This function takes an instance created by the Model and computes the
