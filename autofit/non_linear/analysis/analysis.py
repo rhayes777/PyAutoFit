@@ -3,12 +3,8 @@ import logging
 from abc import ABC
 import functools
 import numpy as np
-import jax
-import jax.numpy as jnp
 import time
 from typing import Optional, Dict
-
-from autoconf.jax_wrapper import use_jax
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.paths.abstract import AbstractPaths
@@ -68,6 +64,7 @@ class Analysis(ABC):
     @property
     def _xp(self):
         if self.use_jax:
+            import jax.numpy as jnp
             return jnp
         return np
 
@@ -112,7 +109,8 @@ class Analysis(ABC):
 
             compute_latent_for_model = functools.partial(self.compute_latent_variables, model=samples.model)
 
-            if use_jax:
+            if self.use_jax:
+                import jax
                 start = time.time()
                 logger.info("JAX: Applying vmap and jit to likelihood function for latent variables -- may take a few seconds.")
                 batched_compute_latent = jax.jit(jax.vmap(compute_latent_for_model))
@@ -133,6 +131,7 @@ class Analysis(ABC):
                 latent_values_batch = batched_compute_latent(batch)
 
                 if self.use_jax:
+                    import jax.numpy as jnp
                     latent_values_batch = jnp.stack(latent_values_batch, axis=-1)  # (batch, n_latents)
                     mask = jnp.all(jnp.isfinite(latent_values_batch), axis=0)
                     latent_values_batch = latent_values_batch[:, mask]
