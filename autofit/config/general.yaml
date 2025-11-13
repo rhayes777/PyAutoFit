@@ -1,5 +1,3 @@
-jax:
-  use_jax: false                    # If True, PyAutoFit uses JAX internally, whereas False uses normal Numpy.
 updates:
   iterations_per_quick_update: 1e99 # Non-linear search iterations between every quick update, which just displays the maximum likelihood model fit.
   iterations_per_full_update: 1e99  # Non-linear search iterations between every full update, which outputs all visuals and result fits (e.g. model.result, search.summary), this exits the search and can be slow.  

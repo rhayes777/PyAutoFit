@@ -13,8 +13,6 @@ from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.parallel import SneakyPool
 
-from autoconf import jax_wrapper
-
 logger = logging.getLogger(__name__)
 
 
@@ -66,7 +64,7 @@ class AbstractInitializer(ABC):
         if os.environ.get("PYAUTOFIT_TEST_MODE") == "1" and test_mode_samples:
             return self.samples_in_test_mode(total_points=total_points, model=model)
 
-        if jax_wrapper.use_jax or n_cores == 1:
+        if n_cores == 1:
             return self.samples_jax(
                 total_points=total_points,
                 model=model,

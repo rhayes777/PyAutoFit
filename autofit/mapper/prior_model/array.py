@@ -73,8 +73,6 @@ class Array(AbstractPriorModel):
         -------
         The array with the priors replaced.
         """
-        from autoconf.jax_wrapper import numpy as xp
-        array = xp.zeros(self.shape)
         for index in self.indices:
             value = self[index]
             try:
@@ -86,8 +84,11 @@ class Array(AbstractPriorModel):
                 pass
 
             if hasattr(array, "at"):
+                import jax.numpy as jnp
+                array = jnp.zeros(self.shape)
                 array = array.at[index].set(value)
             else:
+                array = np.zeros(self.shape)
                 array[index] = value
         return array
 

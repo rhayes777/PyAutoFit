@@ -1,3 +1,4 @@
+from autoconf import jax_wrapper
 from autoconf.dictable import register_parser
 from . import conf
 
