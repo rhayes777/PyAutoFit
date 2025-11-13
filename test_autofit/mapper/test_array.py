@@ -178,6 +178,9 @@ class Analysis(af.Analysis):
 
 
 def test_optimisation():
+
+    import jax.numpy as jnp
+
     array = af.Array(
         shape=(2, 2),
         prior=af.UniformPrior(
@@ -192,4 +195,5 @@ def test_optimisation():
     array[0, 1] = posterior[0, 1]
 
     result = af.DynestyStatic().fit(model=array, analysis=Analysis())
-    assert isinstance(result.instance, np.ndarray)
+
+    assert isinstance(result.instance, jnp.ndarray)
