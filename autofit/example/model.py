@@ -36,13 +36,6 @@ class Gaussian:
         self.normalization = normalization
         self.sigma = sigma
 
-    def _tree_flatten(self):
-        return (self.centre, self.normalization, self.sigma), None
-
-    @classmethod
-    def _tree_unflatten(cls, aux_data, children):
-        return Gaussian(*children)
-
     @property
     def fwhm(self) -> float:
         """
@@ -53,6 +46,13 @@ class Gaussian:
         on (e.g. to create posteriors).
         """
         return 2 * np.sqrt(2 * np.log(2)) * self.sigma
+
+    def _tree_flatten(self):
+        return (self.centre, self.normalization, self.sigma), None
+
+    @classmethod
+    def _tree_unflatten(cls, aux_data, children):
+        return Gaussian(*children)
 
     def __eq__(self, other):
         return (

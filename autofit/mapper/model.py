@@ -3,8 +3,6 @@ import logging
 from functools import wraps
 from typing import Optional, Union, Tuple, List, Iterable, Type, Dict
 
-from autoconf.jax_wrapper import register_pytree_node_class
-
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior_model.recursion import DynamicRecursionCache
 
@@ -384,7 +382,6 @@ def path_instances_of_class(
         return results
 
 
-@register_pytree_node_class
 class ModelInstance(AbstractModel):
     """
     An instance of a Collection or Model. This is created by optimisers and correspond

@@ -11,11 +11,8 @@ from autofit.non_linear.samples.summary import SamplesSummary
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior_model.prior_model import Model
 
-from autoconf.jax_wrapper import register_pytree_node_class
 from ...non_linear.combined_result import CombinedResult
 
-
-@register_pytree_node_class
 class FactorGraphModel(AbstractDeclarativeFactor):
     def __init__(
         self,

@@ -5,10 +5,7 @@ from .abstract import AbstractPriorModel
 from autofit.mapper.prior.abstract import Prior
 import numpy as np
 
-from autoconf.jax_wrapper import register_pytree_node_class
 
-
-@register_pytree_node_class
 class Array(AbstractPriorModel):
     def __init__(
         self,

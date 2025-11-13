@@ -1,12 +1,9 @@
 from typing import Optional, Tuple
 
-from autoconf.jax_wrapper import register_pytree_node_class
-
 from autofit.messages.truncated_normal import TruncatedNormalMessage
 from .abstract import Prior
 
 
-@register_pytree_node_class
 class TruncatedGaussianPrior(Prior):
     __identifier_fields__ = ("mean", "sigma", "lower_limit", "upper_limit")
     __database_args__ = ("mean", "sigma", "lower_limit", "upper_limit", "id_")

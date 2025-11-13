@@ -398,7 +398,7 @@ class Fitness:
         import jax
         start = time.time()
         logger.info("JAX: Applying jit to likelihood function -- may take a few seconds.")
-        func = jax_wrapper.jit(self.call)
+        func = jax.jit(self.call)
         logger.info(f"JAX: jit applied in {time.time() - start} seconds.")
         return func
 
@@ -419,7 +419,7 @@ class Fitness:
         import jax
         start = time.time()
         logger.info("JAX: Applying grad to likelihood function -- may take a few seconds.")
-        func = jax_wrapper.grad(self.call)
+        func = jax.grad(self.call)
         logger.info(f"JAX: grad applied in {time.time() - start} seconds.")
         return func
 
