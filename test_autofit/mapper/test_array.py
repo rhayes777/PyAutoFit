@@ -31,29 +31,31 @@ def test_prior_count_3d(array_3d):
 
 def test_instance(array):
     instance = array.instance_from_prior_medians()
-    assert (instance == [[0.0, 0.0], [0.0, 0.0]]).all()
+    print(array.info)
+    assert (instance == np.array([[0.0, 0.0], [0.0, 0.0]])).all()
 
 
 def test_instance_3d(array_3d):
     instance = array_3d.instance_from_prior_medians()
     assert (
         instance
-        == [
+        == np.array([
             [[0.0, 0.0], [0.0, 0.0]],
             [[0.0, 0.0], [0.0, 0.0]],
-        ]
+        ])
     ).all()
 
 
 def test_modify_prior(array):
     array[0, 0] = 1.0
     assert array.prior_count == 3
+    print(array.instance_from_prior_medians())
     assert (
         array.instance_from_prior_medians()
-        == [
+        == np.array([
             [1.0, 0.0],
             [0.0, 0.0],
-        ]
+        ])
     ).all()
 
 
@@ -115,10 +117,10 @@ def test_from_dict(array_dict):
     assert array.prior_count == 4
     assert (
         array.instance_from_prior_medians()
-        == [
+        == np.array([
             [0.0, 0.0],
             [0.0, 0.0],
-        ]
+        ])
     ).all()
 
 
@@ -132,13 +134,13 @@ def array_1d():
 
 def test_1d_array(array_1d):
     assert array_1d.prior_count == 2
-    assert (array_1d.instance_from_prior_medians() == [0.0, 0.0]).all()
+    assert (array_1d.instance_from_prior_medians() == np.array([0.0, 0.0])).all()
 
 
 def test_1d_array_modify_prior(array_1d):
     array_1d[0] = 1.0
     assert array_1d.prior_count == 1
-    assert (array_1d.instance_from_prior_medians() == [1.0, 0.0]).all()
+    assert (array_1d.instance_from_prior_medians() == np.array([1.0, 0.0])).all()
 
 
 def test_tree_flatten(array):
@@ -150,10 +152,10 @@ def test_tree_flatten(array):
     assert new_array.prior_count == 4
     assert (
         new_array.instance_from_prior_medians()
-        == [
+        == np.array([
             [0.0, 0.0],
             [0.0, 0.0],
-        ]
+        ])
     ).all()
 
 
@@ -176,6 +178,9 @@ class Analysis(af.Analysis):
 
 
 def test_optimisation():
+
+    import jax.numpy as jnp
+
     array = af.Array(
         shape=(2, 2),
         prior=af.UniformPrior(
@@ -190,4 +195,5 @@ def test_optimisation():
     array[0, 1] = posterior[0, 1]
 
     result = af.DynestyStatic().fit(model=array, analysis=Analysis())
-    assert isinstance(result.instance, np.ndarray)
+
+    assert isinstance(result.instance, jnp.ndarray)

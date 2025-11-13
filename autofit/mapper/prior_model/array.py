@@ -3,13 +3,9 @@ from typing import Tuple, Dict, Optional, Union
 from autoconf.dictable import from_dict
 from .abstract import AbstractPriorModel
 from autofit.mapper.prior.abstract import Prior
-from autoconf.jax_wrapper import numpy as xp, use_jax
 import numpy as np
 
-from autoconf.jax_wrapper import register_pytree_node_class
 
-
-@register_pytree_node_class
 class Array(AbstractPriorModel):
     def __init__(
         self,
@@ -77,7 +73,8 @@ class Array(AbstractPriorModel):
         -------
         The array with the priors replaced.
         """
-        array = xp.zeros(self.shape)
+        make_array = True
+
         for index in self.indices:
             value = self[index]
             try:
@@ -88,10 +85,20 @@ class Array(AbstractPriorModel):
             except AttributeError:
                 pass
 
-            if use_jax:
-                array = array.at[index].set(value)
-            else:
+            if make_array:
+                if isinstance(value, np.ndarray) or isinstance(value, np.float64):
+                    array = np.zeros(self.shape)
+                    make_array = False
+                else:
+                    import jax.numpy as jnp
+                    array = jnp.zeros(self.shape)
+                    make_array = False
+
+            if isinstance(value, np.ndarray) or isinstance(value, np.float64):
                 array[index] = value
+            else:
+                array = array.at[index].set(value)
+
         return array
 
     def __setitem__(

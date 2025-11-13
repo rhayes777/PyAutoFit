@@ -391,15 +391,14 @@ class NormalMessage(AbstractMessage):
         >>> prior = af.GaussianPrior(mean=1.0, sigma=2.0)
         >>> physical_value = prior.value_for(unit=0.5)
         """
-
-        from autoconf import jax_wrapper
-
-        if jax_wrapper.use_jax:
-            from jax._src.scipy.special import erfinv
-            inv = erfinv(1 - 2.0 * (1.0 - unit))
-        else:
+        if isinstance(unit, np.ndarray) or isinstance(unit, np.float64):
             from scipy.special import erfinv as scipy_erfinv
             inv = scipy_erfinv(1 - 2.0 * (1.0 - unit))
+        else:
+            import jax.numpy as jnp
+            from jax._src.scipy.special import erfinv
+            inv = erfinv(1 - 2.0 * (1.0 - unit))
+
         return self.mean + (self.sigma * np.sqrt(2) * inv)
 
     def log_prior_from_value(self, value: float) -> float:

@@ -144,7 +144,7 @@ class Factor:
 
 class _HierarchicalFactor(AbstractModelFactor):
     def __init__(
-        self, distribution_model: HierarchicalFactor, drawn_prior: Prior,
+        self, distribution_model: HierarchicalFactor, drawn_prior: Prior, use_jax : bool = False
     ):
         """
         A factor that links a variable to a parameterised distribution.
@@ -159,6 +159,7 @@ class _HierarchicalFactor(AbstractModelFactor):
         """
         self.distribution_model = distribution_model
         self.drawn_prior = drawn_prior
+        self.use_jax = use_jax
 
         prior_variable_dict = {prior.name: prior for prior in distribution_model.priors}
 

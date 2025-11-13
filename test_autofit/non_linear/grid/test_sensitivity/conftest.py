@@ -24,6 +24,7 @@ class Simulate:
 
 class Analysis(af.Analysis):
     def __init__(self, dataset: np.array):
+        super().__init__()
         self.dataset = dataset
 
     def log_likelihood_function(self, instance):

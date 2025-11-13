@@ -19,6 +19,7 @@ def reset_namer():
 
 class Analysis(af.Analysis):
     def __init__(self, value):
+        super().__init__()
         self.value = value
 
     def log_likelihood_function(self, instance):

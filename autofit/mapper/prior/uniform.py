@@ -1,4 +1,3 @@
-from autoconf.jax_wrapper import register_pytree_node_class
 from typing import Optional, Tuple
 
 from autofit.messages.normal import UniformNormalMessage
@@ -9,7 +8,6 @@ from ...messages.transform import LinearShiftTransform
 
 from autofit import exc
 
-@register_pytree_node_class
 class UniformPrior(Prior):
     __identifier_fields__ = ("lower_limit", "upper_limit")
     __database_args__ = ("lower_limit", "upper_limit", "id_")

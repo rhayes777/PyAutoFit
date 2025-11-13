@@ -1,6 +1,5 @@
 from copy import deepcopy
 from inspect import getfullargspec
-import jax
 from typing import Tuple, Dict, Any, Callable, Union, List, Optional, TYPE_CHECKING
 
 import numpy as np
@@ -285,6 +284,8 @@ class Factor(AbstractFactor):
         numerical_jacobian=True,
         jacfwd=True,
     ):
+        import jax
+
         self._vjp = vjp
         self._jacfwd = jacfwd
         if vjp or factor_vjp:
@@ -327,6 +328,7 @@ class Factor(AbstractFactor):
         return self._cache[key]
 
     def _jax_factor_vjp(self, *args) -> Tuple[Any, Callable]:
+        import jax
         return jax.vjp(self._factor, *args)
 
     _factor_vjp = _jax_factor_vjp

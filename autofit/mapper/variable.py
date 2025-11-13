@@ -417,9 +417,9 @@ class VariableData(Dict[Variable, np.ndarray]):
     def vecnorm(self, ord: Optional[float] = None) -> float:
         if ord:
             absval = VariableData.abs(self)
-            if ord == np.Inf:
+            if ord == np.inf:
                 return absval.max()
-            elif ord == -np.Inf:
+            elif ord == -np.inf:
                 return absval.min()
             else:
                 return (absval**ord).sum() ** (1.0 / ord)

@@ -1,12 +1,9 @@
 from typing import Optional
 
-from autoconf.jax_wrapper import register_pytree_node_class
-
 from autofit.messages.normal import NormalMessage
 from .abstract import Prior
 
 
-@register_pytree_node_class
 class GaussianPrior(Prior):
     __identifier_fields__ = ("mean", "sigma")
     __database_args__ = ("mean", "sigma", "id_")

@@ -22,8 +22,6 @@ from autoconf import conf, cached_property
 
 from autoconf.output import should_output
 
-from autoconf import jax_wrapper
-
 from autofit import exc
 from autofit.database.sqlalchemy_ import sa
 from autofit.graphical import (
@@ -243,9 +241,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 setattr(self, key, value)
         except KeyError:
             pass
-
-        if jax_wrapper.use_jax:
-            self.number_of_cores = 1
 
         self.number_of_cores = number_of_cores
 
@@ -913,44 +908,44 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self.paths.save_samples(samples=samples_save)
 
         latent_samples = None
-        #
-        # if (during_analysis and conf.instance["output"]["latent_during_fit"]) or (
-        #     not during_analysis and conf.instance["output"]["latent_after_fit"]
-        # ):
-        #
-        #     if conf.instance["output"]["latent_draw_via_pdf"]:
-        #
-        #         total_draws = conf.instance["output"]["latent_draw_via_pdf_size"]
-        #
-        #         logger.info(f"Creating latent samples by drawing {total_draws} from the PDF.")
-        #
-        #         try:
-        #             latent_samples = samples.samples_drawn_randomly_via_pdf_from(total_draws=total_draws)
-        #         except AttributeError:
-        #             latent_samples = samples_save
-        #             logger.info(
-        #                 "Drawing via PDF not available for this search, "
-        #                 "using all samples above the samples weight threshold instead."
-        #                 "")
-        #
-        #     else:
-        #
-        #         logger.info(f"Creating latent samples using all samples above the samples weight threshold.")
-        #
-        #         latent_samples = samples_save
-        #
-        #     latent_samples = analysis.compute_latent_samples(
-        #         latent_samples,
-        #         batch_size=fitness.batch_size
-        #     )
-        #
-        #     if latent_samples:
-        #         if not conf.instance["output"]["latent_draw_via_pdf"]:
-        #             self.paths.save_latent_samples(latent_samples)
-        #         self.paths.save_samples_summary(
-        #             latent_samples.summary(),
-        #             "latent/latent_summary",
-        #         )
+
+        if (during_analysis and conf.instance["output"]["latent_during_fit"]) or (
+            not during_analysis and conf.instance["output"]["latent_after_fit"]
+        ):
+
+            if conf.instance["output"]["latent_draw_via_pdf"]:
+
+                total_draws = conf.instance["output"]["latent_draw_via_pdf_size"]
+
+                logger.info(f"Creating latent samples by drawing {total_draws} from the PDF.")
+
+                try:
+                    latent_samples = samples.samples_drawn_randomly_via_pdf_from(total_draws=total_draws)
+                except AttributeError:
+                    latent_samples = samples_save
+                    logger.info(
+                        "Drawing via PDF not available for this search, "
+                        "using all samples above the samples weight threshold instead."
+                        "")
+
+            else:
+
+                logger.info(f"Creating latent samples using all samples above the samples weight threshold.")
+
+                latent_samples = samples_save
+
+            latent_samples = analysis.compute_latent_samples(
+                latent_samples,
+                batch_size=fitness.batch_size
+            )
+
+            if latent_samples:
+                if not conf.instance["output"]["latent_draw_via_pdf"]:
+                    self.paths.save_latent_samples(latent_samples)
+                self.paths.save_samples_summary(
+                    latent_samples.summary(),
+                    "latent/latent_summary",
+                )
 
         start = time.time()
 
