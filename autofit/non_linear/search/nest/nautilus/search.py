@@ -220,7 +220,10 @@ class Nautilus(abstract_nest.AbstractNest):
         )
 
         config_dict = self.config_dict_search
-        config_dict.pop("vectorized")
+        try:
+            config_dict.pop("vectorized")
+        except KeyError:
+            pass
 
         search_internal = self.sampler_cls(
             prior=PriorVectorized(model=model),

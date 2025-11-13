@@ -73,6 +73,8 @@ class Array(AbstractPriorModel):
         -------
         The array with the priors replaced.
         """
+        make_array = True
+
         for index in self.indices:
             value = self[index]
             try:
@@ -83,13 +85,20 @@ class Array(AbstractPriorModel):
             except AttributeError:
                 pass
 
-            if hasattr(array, "at"):
-                import jax.numpy as jnp
-                array = jnp.zeros(self.shape)
-                array = array.at[index].set(value)
-            else:
-                array = np.zeros(self.shape)
+            if make_array:
+                if isinstance(value, np.ndarray) or isinstance(value, np.float64):
+                    array = np.zeros(self.shape)
+                    make_array = False
+                else:
+                    import jax.numpy as jnp
+                    array = jnp.zeros(self.shape)
+                    make_array = False
+
+            if isinstance(value, np.ndarray) or isinstance(value, np.float64):
                 array[index] = value
+            else:
+                array = array.at[index].set(value)
+
         return array
 
     def __setitem__(

@@ -19,8 +19,10 @@ class AbstractDeclarativeFactor(Analysis, ABC):
     optimiser: AbstractFactorOptimiser
     _plates: Tuple[Plate, ...] = ()
 
-    def __init__(self, include_prior_factors=False):
+    def __init__(self, include_prior_factors=False, use_jax : bool = False):
         self.include_prior_factors = include_prior_factors
+
+        super().__init__(use_jax=use_jax)
 
     @property
     @abstractmethod
