@@ -1,7 +1,5 @@
 import copy
 import inspect
-import jax.numpy as jnp
-import jax
 import json
 import logging
 import random

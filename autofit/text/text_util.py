@@ -125,17 +125,11 @@ def search_summary_to_file(
         log_likelihood_function_time,
         filename,
         visualization_time=None,
-        log_likelihood_function_time_no_jax=None,
 ):
     summary = search_summary_from_samples(samples=samples)
     summary.append(
         f"Log Likelihood Function Evaluation Time (seconds) = {log_likelihood_function_time}\n"
     )
-
-    if log_likelihood_function_time_no_jax is not None:
-        summary.append(
-            f"Log Likelihood Function Evaluation Time No JAX (seconds) = {log_likelihood_function_time_no_jax}\n"
-        )
 
     expected_time = dt.timedelta(
         seconds=float(samples.total_samples * log_likelihood_function_time)

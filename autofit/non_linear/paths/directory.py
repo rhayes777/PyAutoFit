@@ -210,11 +210,14 @@ class DirectoryPaths(AbstractPaths):
 
         # This is a nasty hack to load emcee backends. It will be removed once the source code is more stable.
 
-        import emcee
+        try:
+            import emcee
 
-        backend_filename = self.search_internal_path / "search_internal.hdf"
-        if os.path.isfile(backend_filename):
-            return emcee.backends.HDFBackend(filename=str(backend_filename))
+            backend_filename = self.search_internal_path / "search_internal.hdf"
+            if os.path.isfile(backend_filename):
+                return emcee.backends.HDFBackend(filename=str(backend_filename))
+        except ImportError:
+            pass
 
         filename = self.search_internal_path / "search_internal.dill"
 

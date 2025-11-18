@@ -6,7 +6,7 @@ from ... import SamplesSummary, AbstractPaths, SamplesPDF
 
 
 class ModelAnalysis(Analysis):
-    def __init__(self, analysis: Analysis, model: AbstractPriorModel):
+    def __init__(self, analysis: Analysis, model: AbstractPriorModel, use_jax : bool = False):
         """
         Comprises a model and an analysis that can be applied to instances of that model.
 
@@ -15,6 +15,8 @@ class ModelAnalysis(Analysis):
         analysis
         model
         """
+        super().__init__(use_jax=use_jax)
+
         self.analysis = analysis
         self.model = model
 

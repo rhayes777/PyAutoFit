@@ -45,7 +45,6 @@ class NullPaths(AbstractPaths):
         latent_samples,
         log_likelihood_function_time,
         visualization_time = None,
-        log_likelihood_function_time_no_jax = None,
     ):
         pass
 

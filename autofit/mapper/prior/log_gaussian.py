@@ -2,14 +2,12 @@ from typing import Optional
 
 import numpy as np
 
-from autofit.jax_wrapper import register_pytree_node_class
 from autofit.messages.normal import NormalMessage
 from .abstract import Prior
 from ...messages.composed_transform import TransformedMessage
 from ...messages.transform import log_transform
 
 
-@register_pytree_node_class
 class LogGaussianPrior(Prior):
     __identifier_fields__ = ("mean", "sigma")
     __database_args__ = ("mean", "sigma", "id_")

@@ -10,8 +10,6 @@ from autofit.non_linear.analysis import Analysis
 from autofit.non_linear.paths.abstract import AbstractPaths
 from .abstract import AbstractModelFactor
 
-from autofit.jax_wrapper import register_pytree_node_class
-
 
 class FactorCallable:
     def __init__(
@@ -45,8 +43,6 @@ class FactorCallable:
         instance = self.prior_model.instance_for_arguments(arguments)
         return self.analysis.log_likelihood_function(instance)
 
-
-@register_pytree_node_class
 class AnalysisFactor(AbstractModelFactor):
     @property
     def prior_model(self):

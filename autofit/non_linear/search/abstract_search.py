@@ -22,9 +22,7 @@ from autoconf import conf, cached_property
 
 from autoconf.output import should_output
 
-from autofit.jax_wrapper import numpy as xp
-
-from autofit import exc, jax_wrapper
+from autofit import exc
 from autofit.database.sqlalchemy_ import sa
 from autofit.graphical import (
     MeanField,
@@ -217,12 +215,12 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             conf.instance["general"]["updates"]["iterations_per_full_update"]))
 
         if conf.instance["general"]["hpc"]["hpc_mode"]:
-            self.iterations_per_quick_update = conf.instance["general"]["hpc"][
+            self.iterations_per_quick_update = float(conf.instance["general"]["hpc"][
                 "iterations_per_quick_update"
-            ]
-            self.iterations_per_full_update = conf.instance["general"]["hpc"][
+            ])
+            self.iterations_per_full_update = float(conf.instance["general"]["hpc"][
                 "iterations_per_full_update"
-            ]
+            ])
 
         self.iterations = 0
 
@@ -243,9 +241,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 setattr(self, key, value)
         except KeyError:
             pass
-
-        if jax_wrapper.use_jax:
-            self.number_of_cores = 1
 
         self.number_of_cores = number_of_cores
 
@@ -912,6 +907,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         )
         self.paths.save_samples(samples=samples_save)
 
+        latent_samples = None
 
         if (during_analysis and conf.instance["output"]["latent_during_fit"]) or (
             not during_analysis and conf.instance["output"]["latent_after_fit"]
@@ -938,7 +934,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
                 latent_samples = samples_save
 
-            latent_samples = analysis.compute_latent_samples(latent_samples)
+            latent_samples = analysis.compute_latent_samples(
+                latent_samples,
+                batch_size=fitness.batch_size
+            )
 
             if latent_samples:
                 if not conf.instance["output"]["latent_draw_via_pdf"]:
@@ -948,58 +947,50 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                     "latent/latent_summary",
                 )
 
-            start = time.time()
+        start = time.time()
 
-            self.perform_visualization(
-                model=model,
-                analysis=analysis,
-                samples_summary=samples_summary,
-                during_analysis=during_analysis,
-                search_internal=search_internal,
+        self.perform_visualization(
+            model=model,
+            analysis=analysis,
+            samples_summary=samples_summary,
+            during_analysis=during_analysis,
+            search_internal=search_internal,
+        )
+
+        visualization_time = time.time() - start
+
+        if self.should_profile:
+
+            self.logger.debug("Profiling Maximum Likelihood Model")
+
+            analysis.profile_log_likelihood_function(
+                paths=self.paths,
+                instance=instance,
             )
 
-            visualization_time = time.time() - start
+        self.logger.debug("Outputting model result")
 
-            if self.should_profile:
+        try:
 
-                self.logger.debug("Profiling Maximum Likelihood Model")
+            parameters = samples.max_log_likelihood(as_instance=False)
 
-                analysis.profile_log_likelihood_function(
-                    paths=self.paths,
-                    instance=instance,
-                )
+            start = time.time()
+            figure_of_merit = fitness.call_wrap(parameters)
 
-            self.logger.debug("Outputting model result")
+            # account for asynchronous JAX calls
+            np.array(figure_of_merit)
 
-            try:
+            log_likelihood_function_time = time.time() - start
 
-                parameters = samples.max_log_likelihood(as_instance=False)
+            self.paths.save_summary(
+                samples=samples,
+                latent_samples=latent_samples,
+                log_likelihood_function_time=log_likelihood_function_time,
+                visualization_time=visualization_time,
+            )
 
-                start = time.time()
-                figure_of_merit = fitness.call_wrap(parameters)
-
-                # account for asynchronous JAX calls
-                np.array(figure_of_merit)
-
-                log_likelihood_function_time = time.time() - start
-
-                if jax_wrapper.use_jax:
-                    start = time.time()
-                    fitness.call(parameters)
-                    log_likelihood_function_time_no_jax = time.time() - start
-                else:
-                    log_likelihood_function_time_no_jax = None
-
-                self.paths.save_summary(
-                    samples=samples,
-                    latent_samples=latent_samples,
-                    log_likelihood_function_time=log_likelihood_function_time,
-                    visualization_time=visualization_time,
-                    log_likelihood_function_time_no_jax=log_likelihood_function_time_no_jax,
-                )
-
-            except exc.FitException:
-                pass
+        except exc.FitException:
+            pass
 
         self._log_process_state()
 
@@ -1051,7 +1042,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         if instance is None and samples_summary is None:
             raise AssertionError(
-                """The search's perform_visualization method has been called without an input instance or 
+                """
+                The search's perform_visualization method has been called without an input instance or 
                 samples_summary. 
 
                 This should not occur, please ensure one of these inputs is provided.

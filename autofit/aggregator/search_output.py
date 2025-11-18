@@ -229,6 +229,17 @@ class SearchOutput(AbstractSearchOutput, fit_interface.Fit):
         return summary
 
     @property
+    def latent_summary(self) -> SamplesSummary:
+        """
+        The summary of the samples, which includes the maximum log likelihood sample and the log evidence.
+
+        This is loaded from a JSON file.
+        """
+        summary = self.value("latent.latent_summary")
+        summary.model = self.model
+        return summary
+
+    @property
     def instance(self):
         """
         The instance of the maximum log likelihood sample i.e. the instance

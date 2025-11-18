@@ -2,7 +2,6 @@ from typing import Optional, Tuple
 
 import numpy as np
 
-from autofit.jax_wrapper import register_pytree_node_class
 from autofit.messages.normal import UniformNormalMessage
 from autofit.messages.transform import log_10_transform, LinearShiftTransform
 from .abstract import Prior
@@ -10,7 +9,6 @@ from ...messages.composed_transform import TransformedMessage
 
 from autofit import exc
 
-@register_pytree_node_class
 class LogUniformPrior(Prior):
     __identifier_fields__ = ("lower_limit", "upper_limit")
     __database_args__ = ("lower_limit", "upper_limit", "id_")

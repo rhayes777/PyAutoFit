@@ -1,8 +1,5 @@
-import numpy
+import numpy as np
 
-from autofit.jax_wrapper import numpy as np
-
-# TODO: Use autofit class?
 from scipy import stats
 
 import autofit as af
@@ -78,7 +75,7 @@ class Gaussian(Profile):
 def make_data(gaussian, x):
     model_line = gaussian(xvalues=x)
     signal_to_noise_ratio = 25.0
-    noise = numpy.random.normal(0.0, 1.0 / signal_to_noise_ratio, len(x))
+    noise = np.random.normal(0.0, 1.0 / signal_to_noise_ratio, len(x))
     y = model_line + noise
     return y
 
@@ -88,6 +85,8 @@ class Analysis(af.Analysis):
         self.x = x
         self.y = y
         self.sigma = sigma
+
+        super().__init__()
 
     def log_likelihood_function(self, instance: Gaussian) -> np.array:
         """

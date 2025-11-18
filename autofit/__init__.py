@@ -1,3 +1,4 @@
+from autoconf import jax_wrapper
 from autoconf.dictable import register_parser
 from . import conf
 
@@ -140,6 +141,4 @@ def save_abc(pickler, obj):
     pickle._Pickler.save_type(pickler, obj)
 
 
-
-
-__version__ = "2025.10.20.1"
+__version__ = "2025.11.5.1"

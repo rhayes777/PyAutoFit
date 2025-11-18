@@ -240,7 +240,7 @@ def take_quasi_newton_step(
 ) -> Tuple[Optional[float], OptimisationState]:
     """ """
     state.search_direction = search_direction(state, **(search_direction_kws or {}))
-    if state.search_direction.vecnorm(np.Inf) == 0:
+    if state.search_direction.vecnorm(np.inf) == 0:
         # if gradient is zero then at maximum already
         return 0.0, state
 

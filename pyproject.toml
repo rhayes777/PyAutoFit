@@ -7,9 +7,7 @@ name = "autofit"
 dynamic = ["version"]
 description = "Classy Probabilistic Programming"
 readme = { file = "README.rst", content-type = "text/x-rst" }
-license-files = [
-    "LICENSE",
-]
+license = { text = "MIT" }
 requires-python = ">=3.9"
 authors = [
     { name = "James Nightingale", email = "James.Nightingale@newcastle.ac.uk" },
@@ -37,8 +35,6 @@ dependencies = [
     "typing-inspect>=0.4.0",
     "emcee>=3.1.6",
     "gprof2dot==2021.2.21",
-    "jax==0.4.28",
-    "jaxlib==0.4.28",
     "matplotlib",
     "numpydoc>=1.0.0",
     "pyprojroot==0.2.0",

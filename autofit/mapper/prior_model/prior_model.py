@@ -5,8 +5,6 @@ import logging
 import typing
 from typing import *
 
-from autofit.jax_wrapper import register_pytree_node_class, register_pytree_node
-
 from autoconf.class_path import get_class_path
 from autoconf.exc import ConfigException
 from autofit.mapper.model import assert_not_frozen
@@ -23,8 +21,6 @@ logger = logging.getLogger(__name__)
 
 class_args_dict = dict()
 
-
-@register_pytree_node_class
 class Model(AbstractPriorModel):
     """
     @DynamicAttrs
@@ -209,15 +205,15 @@ class Model(AbstractPriorModel):
             if not hasattr(self, key):
                 setattr(self, key, self._convert_value(value))
 
-        try:
-            # noinspection PyTypeChecker
-            register_pytree_node(
-                self.cls,
-                self.instance_flatten,
-                self.instance_unflatten,
-            )
-        except ValueError:
-            pass
+        # try:
+        #     # noinspection PyTypeChecker
+        #     register_pytree_node(
+        #         self.cls,
+        #         self.instance_flatten,
+        #         self.instance_unflatten,
+        #     )
+        # except ValueError:
+        #     pass
 
     @staticmethod
     def _convert_value(value):

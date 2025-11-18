@@ -183,7 +183,7 @@ def test__samples_drawn_randomly_via_pdf_from():
             parameter_lists=parameters,
             log_likelihood_list=[0.0, 0.0, 0.0, 0.0, 0.0],
             log_prior_list=[0.0, 0.0, 0.0, 0.0, 0.0],
-            weight_list=[0.2, 0.2, 1.0, 1.0, 1.0],
+            weight_list=[0.2, 0.2, 0.2, 0.2, 0.2],
         ),
     )
 

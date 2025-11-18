@@ -11,17 +11,15 @@ from autofit.non_linear.samples.summary import SamplesSummary
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior_model.prior_model import Model
 
-from autofit.jax_wrapper import register_pytree_node_class
 from ...non_linear.combined_result import CombinedResult
 
-
-@register_pytree_node_class
 class FactorGraphModel(AbstractDeclarativeFactor):
     def __init__(
         self,
         *model_factors: Union[AbstractDeclarativeFactor, HierarchicalFactor],
         name=None,
         include_prior_factors=True,
+        use_jax : bool = False
     ):
         """
         A collection of factors that describe models, which can be
@@ -36,6 +34,7 @@ class FactorGraphModel(AbstractDeclarativeFactor):
         """
         super().__init__(
             include_prior_factors=include_prior_factors,
+            use_jax=use_jax,
         )
         self._model_factors = list(model_factors)
         self._name = name or namer(self.__class__.__name__)
@@ -279,3 +278,16 @@ class FactorGraphModel(AbstractDeclarativeFactor):
             instance,
             during_analysis=during_analysis,
         )
+
+    def perform_quick_update(self, paths, instance):
+
+        try:
+            self.model_factors[0].visualize_combined(
+                analyses=self.model_factors,
+                paths=paths,
+                instance=instance,
+                during_analysis=True,
+                quick_update=True,
+            )
+        except Exception as e:
+            pass

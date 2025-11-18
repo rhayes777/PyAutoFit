@@ -2,8 +2,6 @@ import math
 import numpy as np
 from typing import Tuple
 
-from autofit.jax_wrapper import numpy as xp
-
 """
 The `Gaussian` class in this module is the model components that is fitted to data using a non-linear search. The
 inputs of its __init__ constructor are the parameters which can be fitted for.
@@ -47,7 +45,7 @@ class Gaussian:
         the free parameters of the model which we are interested and may want to store the full samples information
         on (e.g. to create posteriors).
         """
-        return 2 * xp.sqrt(2 * xp.log(2)) * self.sigma
+        return 2 * np.sqrt(2 * np.log(2)) * self.sigma
 
     def _tree_flatten(self):
         return (self.centre, self.normalization, self.sigma), None
@@ -64,7 +62,7 @@ class Gaussian:
             and self.sigma == other.sigma
         )
 
-    def model_data_from(self, xvalues: np.ndarray) -> np.ndarray:
+    def model_data_from(self, xvalues: np.ndarray, xp=np) -> np.ndarray:
         """
         Calculate the normalization of the profile on a 1D grid of Cartesian x coordinates.
 
@@ -82,7 +80,7 @@ class Gaussian:
             xp.exp(-0.5 * xp.square(xp.divide(transformed_xvalues, self.sigma))),
         )
 
-    def f(self, x: float):
+    def f(self, x: float, xp=np):
         return (
             self.normalization
             / (self.sigma * xp.sqrt(2 * math.pi))
@@ -137,7 +135,7 @@ class Exponential:
         self.normalization = normalization
         self.rate = rate
 
-    def model_data_from(self, xvalues: np.ndarray) -> np.ndarray:
+    def model_data_from(self, xvalues: np.ndarray, xp=np) -> np.ndarray:
         """
         Calculate the 1D Gaussian profile on a 1D grid of Cartesian x coordinates.
 
