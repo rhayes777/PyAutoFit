@@ -124,6 +124,7 @@ class AggregateImages:
         self,
         subplots: List[Union[Enum, List[Image.Image], Callable]],
         subplot_width: Optional[int] = sys.maxsize,
+        transpose: bool = False,
     ) -> Image.Image:
         """
         Extract the images at the specified subplots and combine them into
@@ -143,6 +144,9 @@ class AggregateImages:
             the number of subplots.
             If this is less than the number of subplots then it causes the
             images to wrap.
+        transpose
+            If True the output image is transposed before being returned, else it
+            is returned as is.
 
         Returns
         -------
@@ -158,6 +162,10 @@ class AggregateImages:
                     subplot_width=subplot_width,
                 )
             )
+
+        if transpose:
+
+            matrix = [list(row) for row in zip(*matrix)]
 
         return self._matrix_to_image(matrix)
 

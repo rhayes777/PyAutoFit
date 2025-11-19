@@ -31,7 +31,7 @@ from .database.aggregator import Aggregator
 from .aggregator.summary.aggregate_csv import AggregateCSV
 from .aggregator.summary.aggregate_csv import ValueType
 from .aggregator.summary.aggregate_images import AggregateImages
-from .aggregator.summary.aggregate_fits import AggregateFITS, FITSFit
+from .aggregator.summary.aggregate_fits import AggregateFITS
 from .database.aggregator import Query
 from autofit.aggregator.fit_interface import Fit
 from .aggregator.search_output import SearchOutput

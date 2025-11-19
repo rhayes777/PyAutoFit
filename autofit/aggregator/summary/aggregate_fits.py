@@ -20,18 +20,6 @@ def subplot_filename(subplot: Enum) -> str:
         .lstrip("_")
     )
 
-
-class FITSFit(Enum):
-    """
-    The HDUs that can be extracted from the fit.fits file.
-    """
-
-    ModelData = "MODEL_IMAGE"
-    ResidualMap = "RESIDUAL_MAP"
-    NormalizedResidualMap = "NORMALIZED_RESIDUAL_MAP"
-    ChiSquaredMap = "CHI_SQUARED_MAP"
-
-
 class AggregateFITS:
     def __init__(self, aggregator: Union[Aggregator, List[SearchOutput]]):
         """
@@ -104,7 +92,10 @@ class AggregateFITS:
 
         output = [fits.PrimaryHDU()]
         for i, result in enumerate(self.aggregator):
-            output.extend(self._hdus(result, hdus, extname_prefix_list[i]))
+
+            extname_prefix = extname_prefix_list[i] if extname_prefix_list is not None else None
+
+            output.extend(self._hdus(result, hdus, extname_prefix))
 
         return fits.HDUList(output)
 

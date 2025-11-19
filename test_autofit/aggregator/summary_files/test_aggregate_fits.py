@@ -1,7 +1,19 @@
+from enum import Enum
 import pytest
 
 import autofit as af
 from pathlib import Path
+
+
+class FITSFit(Enum):
+    """
+    The HDUs that can be extracted from the fit.fits file.
+    """
+
+    ModelData = "MODEL_IMAGE"
+    ResidualMap = "RESIDUAL_MAP"
+    NormalizedResidualMap = "NORMALIZED_RESIDUAL_MAP"
+    ChiSquaredMap = "CHI_SQUARED_MAP"
 
 
 @pytest.fixture(name="summary")
@@ -12,8 +24,8 @@ def make_summary(aggregator):
 def test_aggregate(summary):
     result = summary.extract_fits(
         [
-            af.FITSFit.ModelData,
-            af.FITSFit.ResidualMap,
+            FITSFit.ModelData,
+            FITSFit.ResidualMap,
         ],
     )
     assert len(result) == 5
@@ -25,8 +37,8 @@ def test_output_to_file(summary, output_directory):
         folder,
         name="id",
         hdus=[
-            af.FITSFit.ModelData,
-            af.FITSFit.ResidualMap,
+            FITSFit.ModelData,
+            FITSFit.ResidualMap,
         ],
     )
     assert list(folder.glob("*"))
@@ -37,8 +49,8 @@ def test_list_of_names(summary, output_directory):
         output_directory,
         ["one", "two"],
         [
-            af.FITSFit.ModelData,
-            af.FITSFit.ResidualMap,
+            FITSFit.ModelData,
+            FITSFit.ResidualMap,
         ],
     )
     assert set([path.name for path in Path(output_directory).glob("*.fits")]) == set([
