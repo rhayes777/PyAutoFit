@@ -51,6 +51,7 @@ class AggregateFITS:
     def _hdus(
         result: SearchOutput,
         hdus: List[Enum],
+        extname_prefix = None
     ) -> "List[fits.ImageHDU]":
         """
         Extract the HDUs from a given fits for a given search.
@@ -72,6 +73,10 @@ class AggregateFITS:
         for hdu in hdus:
             source = result.value(subplot_filename(hdu))
             source_hdu = source[source.index_of(hdu.value)]
+
+            if extname_prefix is not None:
+                source_hdu.header["EXTNAME"] = f"{extname_prefix.upper()}_{source_hdu.header['EXTNAME']}"
+
             row.append(
                 fits.ImageHDU(
                     data=source_hdu.data,
@@ -80,7 +85,7 @@ class AggregateFITS:
             )
         return row
 
-    def extract_fits(self, hdus: List[Enum]) -> "fits.HDUList":
+    def extract_fits(self, hdus: List[Enum], extname_prefix_list = None) -> "fits.HDUList":
         """
         Extract the HDUs from the fits files for every search in the aggregator.
 
@@ -98,8 +103,8 @@ class AggregateFITS:
         from astropy.io import fits
 
         output = [fits.PrimaryHDU()]
-        for result in self.aggregator:
-            output.extend(self._hdus(result, hdus))
+        for i, result in enumerate(self.aggregator):
+            output.extend(self._hdus(result, hdus, extname_prefix_list[i]))
 
         return fits.HDUList(output)
 
