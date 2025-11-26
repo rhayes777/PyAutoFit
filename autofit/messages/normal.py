@@ -40,7 +40,13 @@ class NormalMessage(AbstractMessage):
         This ensures normalization of the exponential-family distribution.
         """
         eta1, eta2 = self.natural_parameters
-        return -(eta1**2) / 4 / eta2 - np.log(-2 * eta2) / 2
+
+        if isinstance(eta1, (np.ndarray, np.float64)):
+            return -(eta1**2) / 4 / eta2 - np.log(-2 * eta2) / 2
+
+        import jax.numpy as jnp
+
+        return -(eta1**2) / 4 / eta2 - jnp.log(-2 * eta2) / 2
 
     log_base_measure = -0.5 * np.log(2 * np.pi)
     _support = ((-np.inf, np.inf),)
@@ -73,8 +79,9 @@ class NormalMessage(AbstractMessage):
         id_
             An optional unique identifier used to track the message in larger probabilistic graphs or models.
         """
-        if (np.array(sigma) < 0).any():
-            raise exc.MessageException("Sigma cannot be negative")
+        if isinstance(sigma, (float, int, np.ndarray)):
+            if (np.array(sigma) < 0).any():
+                raise exc.MessageException("Sigma cannot be negative")
 
         super().__init__(
             mean,
@@ -158,7 +165,13 @@ class NormalMessage(AbstractMessage):
             η₂ = -1 / (2σ²)
         """
         precision = 1 / sigma**2
-        return np.array([mu * precision, -precision / 2])
+
+        if isinstance(mu, (np.ndarray, np.float64)):
+            return np.array([mu * precision, -precision / 2])
+
+        import jax.numpy as jnp
+
+        return jnp.array([mu * precision, -precision / 2])
 
     @staticmethod
     def invert_natural_parameters(natural_parameters : np.ndarray) -> Tuple[float, float]:
@@ -197,7 +210,13 @@ class NormalMessage(AbstractMessage):
         -------
         The sufficient statistics [x, x²].
         """
-        return np.array([x, x**2])
+
+        if isinstance(x, (np.ndarray, np.float64)):
+            return np.array([x, x**2])
+
+        import jax.numpy as jnp
+
+        return jnp.array([x, x**2])
 
     @classmethod
     def invert_sufficient_statistics(cls, suff_stats: Tuple[float, float]) -> np.ndarray:

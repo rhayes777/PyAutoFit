@@ -23,7 +23,11 @@ class MessageInterface(ABC):
 
     @property
     def shape(self) -> Tuple[int, ...]:
-        return self.broadcast.shape
+
+        if self.broadcast is not None:
+            return self.broadcast.shape
+
+        return ()
 
     @property
     def size(self) -> int:
@@ -47,6 +51,7 @@ class MessageInterface(ABC):
 
     def _broadcast_natural_parameters(self, x):
         shape = np.shape(x)
+        print(shape, self.shape)
         if shape == self.shape:
             return self.natural_parameters
         elif shape[1:] == self.shape:
@@ -78,8 +83,15 @@ class MessageInterface(ABC):
 
     @classmethod
     def natural_logpdf(cls, eta, t, log_base, log_partition):
-        eta_t = np.multiply(eta, t).sum(0)
-        return np.nan_to_num(log_base + eta_t - log_partition, nan=-np.inf)
+
+        if isinstance(eta, (np.ndarray, np.float64)):
+            eta_t = np.multiply(eta, t).sum(0)
+            return np.nan_to_num(log_base + eta_t - log_partition, nan=-np.inf)
+
+        import jax.numpy as jnp
+
+        eta_t = jnp.multiply(eta, t).sum(0)
+        return jnp.nan_to_num(log_base + eta_t - log_partition, nan=-jnp.inf)
 
     def numerical_logpdf_gradient(
         self, x: np.ndarray, eps: float = 1e-6

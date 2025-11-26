@@ -52,10 +52,21 @@ class AbstractMessage(MessageInterface, ABC):
 
         self.id = next(self.ids) if id_ is None else id_
         self.log_norm = log_norm
-        self._broadcast = np.broadcast(*parameters)
+
+        self._broadcast = None
+        self._broadcast_jnp = None
+
+        if isinstance(parameters[0], (np.float64, float, int)):
+            self._broadcast = np.broadcast(*parameters)
+        else:
+            import jax.numpy as jnp
+            self._broadcast_jnp = jnp.broadcast_arrays(*parameters)
 
         if self.shape:
-            self.parameters = tuple(np.asanyarray(p) for p in parameters)
+            if isinstance(parameters[0], (np.float64, float, int)):
+                self.parameters = tuple(np.asanyarray(p) for p in parameters)
+            else:
+                self.parameters = tuple(jnp.asarray(p) for p in parameters)
         else:
             self.parameters = tuple(parameters)
 
