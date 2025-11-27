@@ -159,8 +159,17 @@ class Fitness:
         # Get instance from model
         instance = self.model.instance_from_vector(vector=parameters)
 
-        # Evaluate log likelihood (must be side-effect free and exception-free)
-        log_likelihood = self.analysis.log_likelihood_function(instance=instance)
+        if self._xp.__name__.startswith("jax"):
+
+            # Evaluate log likelihood (must be side-effect free and exception-free)
+            log_likelihood = self.analysis.log_likelihood_function(instance=instance)
+
+        else:
+
+            try:
+                log_likelihood = self.analysis.log_likelihood_function(instance=instance)
+            except exc.FitException:
+                return self.resample_figure_of_merit
 
         # Penalize NaNs in the log-likelihood
         log_likelihood = self._xp.where(self._xp.isnan(log_likelihood), self.resample_figure_of_merit, log_likelihood)
