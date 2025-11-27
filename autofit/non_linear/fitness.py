@@ -297,7 +297,7 @@ class Fitness:
             best_parameters = parameters[best_idx]
             total_updates = log_likelihood.shape[0]
 
-        except (AttributeError, IndexError):
+        except (AttributeError, IndexError, TypeError):
 
             best_log_likelihood = log_likelihood
             best_parameters = parameters
