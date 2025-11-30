@@ -1342,7 +1342,7 @@ class AbstractPriorModel(AbstractModel):
         return self._instance_for_arguments(
             arguments,
             ignore_assertions=ignore_assertions,
-            xpx=p
+            xp=xp
         )
 
     def path_for_name(self, name: str) -> Tuple[str, ...]:

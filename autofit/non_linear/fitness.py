@@ -157,7 +157,7 @@ class Fitness:
         The figure of merit returned to the non-linear search, which is either the log likelihood or log posterior.
         """
         # Get instance from model
-        instance = self.model.instance_from_vector(vector=parameters)
+        instance = self.model.instance_from_vector(vector=parameters, xp=self._xp)
 
         if self._xp.__name__.startswith("jax"):
 
@@ -227,7 +227,7 @@ class Fitness:
         if self.fom_is_log_likelihood:
             log_likelihood = figure_of_merit
         else:
-            log_prior_list = self._xp.array(self.model.log_prior_list_from_vector(vector=parameters))
+            log_prior_list = self._xp.array(self.model.log_prior_list_from_vector(vector=parameters, xp=self._xp))
             log_likelihood = figure_of_merit - self._xp.sum(log_prior_list)
 
         self.manage_quick_update(parameters=parameters, log_likelihood=log_likelihood)
@@ -237,8 +237,8 @@ class Fitness:
 
         if self.store_history:
 
-            self.parameters_history_list.append(parameters)
-            self.log_likelihood_history_list.append(log_likelihood)
+            self.parameters_history_list.append(np.array(parameters))
+            self.log_likelihood_history_list.append(np.array(log_likelihood))
 
         return figure_of_merit
 

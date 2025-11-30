@@ -14,7 +14,6 @@ class GaussianPrior(Prior):
         mean: float,
         sigma: float,
         id_: Optional[int] = None,
-        _xp=np
     ):
         """
         A Gaussian prior defined by a normal distribution.
@@ -48,11 +47,11 @@ class GaussianPrior(Prior):
         >>> prior = GaussianPrior(mean=1.0, sigma=2.0)
         >>> physical_value = prior.value_for(unit=0.5)  # Returns ~1.0 (mean)
         """
+
         super().__init__(
             message=NormalMessage(
                 mean=mean,
                 sigma=sigma,
-                xp=_xp
             ),
             id_=id_,
         )

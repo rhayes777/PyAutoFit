@@ -1,4 +1,5 @@
 from abc import ABC
+import numpy as np
 from typing import Optional, Dict
 
 from autofit.mapper.prior.arithmetic.compound import CompoundPrior, Compound

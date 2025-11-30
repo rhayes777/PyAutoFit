@@ -1,3 +1,5 @@
+import numpy as np
+
 from collections.abc import Iterable
 
 from autofit.mapper.model import ModelInstance, assert_not_frozen
@@ -229,6 +231,7 @@ class Collection(AbstractPriorModel):
                 value = value.instance_for_arguments(
                     arguments,
                     ignore_assertions=ignore_assertions,
+                    xp=xp
                 )
             elif isinstance(value, Prior):
                 value = arguments[value]
