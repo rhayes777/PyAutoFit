@@ -34,7 +34,7 @@ def transform(func):
     """
 
     @functools.wraps(func)
-    def wrapper(self, x, xp):
+    def wrapper(self, x, xp=np):
         x = self._transform(x)
         return func(self, x, xp)
 
@@ -225,8 +225,8 @@ class TransformedMessage(MessageInterface):
         return self.base_message.invert_natural_parameters(natural_parameters)
 
     @transform
-    def cdf(self, x):
-        return self.base_message.cdf(x)
+    def cdf(self, x, xp=np):
+        return self.base_message.cdf(x, xp=xp)
 
     def log_partition(self, xp=np) -> np.ndarray:
         return self.base_message.log_partition(xp=xp)

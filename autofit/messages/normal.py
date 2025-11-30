@@ -111,7 +111,7 @@ class NormalMessage(AbstractMessage):
         )
         self.mean, self.sigma = self.parameters
 
-    def cdf(self, x : Union[float, np.ndarray]) -> Union[float, np.ndarray]:
+    def cdf(self, x : Union[float, np.ndarray], xp=np) -> Union[float, np.ndarray]:
         """
         Compute the cumulative distribution function (CDF) of the Gaussian distribution
         at a given value or array of values `x`.
