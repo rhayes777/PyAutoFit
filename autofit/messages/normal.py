@@ -401,7 +401,7 @@ class NormalMessage(AbstractMessage):
 
         return self.mean + (self.sigma * np.sqrt(2) * inv)
 
-    def log_prior_from_value(self, value: float) -> float:
+    def log_prior_from_value(self, value: float, xp=np) -> float:
         """
         Compute the log prior probability of a given physical value under this Gaussian prior.
 
