@@ -83,19 +83,8 @@ class MessageInterface(ABC):
 
     @classmethod
     def natural_logpdf(cls, eta, t, log_base, log_partition, xp=np):
-
-        try:
-            eta = eta()
-        except TypeError:
-            pass
-
-        try:
-            log_partition_in = log_partition(xp=xp)
-        except TypeError:
-            log_partition_in = log_partition
-
         eta_t = xp.multiply(eta, t).sum(0)
-        return xp.nan_to_num(log_base + eta_t - log_partition_in, nan=-xp.inf)
+        return xp.nan_to_num(log_base + eta_t - log_partition, nan=-xp.inf)
 
     def numerical_logpdf_gradient(
         self, x: np.ndarray, eps: float = 1e-6

@@ -158,7 +158,7 @@ class TransformedMessage(MessageInterface):
         return self.base_message.kl(dist.base_message)
 
     def natural_parameters(self, xp=np) -> np.ndarray:
-        return self.base_message.natural_parameters
+        return self.base_message.natural_parameters(xp=xp)
 
     @inverse_transform
     def sample(self, n_samples: Optional[int] = None):
@@ -229,7 +229,7 @@ class TransformedMessage(MessageInterface):
         return self.base_message.cdf(x)
 
     def log_partition(self, xp=np) -> np.ndarray:
-        return self.base_message.log_partition
+        return self.base_message.log_partition(xp=xp)
 
     def invert_sufficient_statistics(self, sufficient_statistics):
         return self.base_message.invert_sufficient_statistics(sufficient_statistics)
