@@ -422,7 +422,7 @@ class TruncatedNormalMessage(AbstractMessage):
         x_standard = norm.ppf(truncated_cdf)
         return self.mean + self.sigma * x_standard
 
-    def log_prior_from_value(self, value: float) -> float:
+    def log_prior_from_value(self, value: float, xp=np) -> float:
         """
         Compute the log prior probability of a given physical value under this truncated Gaussian prior.
 
@@ -446,11 +446,11 @@ class TruncatedNormalMessage(AbstractMessage):
         Z = norm.cdf(b) - norm.cdf(a)
 
         z = (value -self.mean) / self.sigma
-        log_pdf = -0.5 * z ** 2 - np.log(self.sigma) - 0.5 * np.log(2 * np.pi)
-        log_trunc_pdf = log_pdf - np.log(Z)
+        log_pdf = -0.5 * z ** 2 - xp.log(self.sigma) - 0.5 * xp.log(2 * xp.pi)
+        log_trunc_pdf = log_pdf - xp.log(Z)
 
         in_bounds = (self.lower_limit <= value) & (value <= self.upper_limit)
-        return np.where(in_bounds, log_trunc_pdf, -np.inf)
+        return xp.where(in_bounds, log_trunc_pdf, -xp.inf)
 
     def __str__(self):
         """

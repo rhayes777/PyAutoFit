@@ -179,7 +179,7 @@ class Fitness:
             figure_of_merit = log_likelihood
         else:
             # Ensure prior list is compatible with JAX (must return a JAX array, not list)
-            log_prior_array = self._xp.array(self.model.log_prior_list_from_vector(vector=parameters))
+            log_prior_array = self._xp.array(self.model.log_prior_list_from_vector(vector=parameters, xp=self._xp))
             figure_of_merit = log_likelihood + self._xp.sum(log_prior_array)
 
         # Convert to chi-squared scale if requested

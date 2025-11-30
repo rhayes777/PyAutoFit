@@ -64,20 +64,34 @@ class Column(AbstractColumn):
         result = {}
 
         if ValueType.Median in self.value_types:
-            result[""] = row.median_pdf_sample_kwargs[self.path]
+            try:
+                result[""] = row.median_pdf_sample_kwargs[self.path]
+            except KeyError:
+                result[""] = None
 
         if ValueType.MaxLogLikelihood in self.value_types:
-            result["max_lh"] = row.max_likelihood_kwargs[self.path]
+            try:
+                result["max_lh"] = row.max_likelihood_kwargs[self.path]
+            except KeyError:
+                result["max_lh"] = None
 
         if ValueType.ValuesAt1Sigma in self.value_types:
-            lower, upper = row.values_at_sigma_1_kwargs[self.path]
-            result["lower_1_sigma"] = lower
-            result["upper_1_sigma"] = upper
+            try:
+                lower, upper = row.values_at_sigma_1_kwargs[self.path]
+                result["lower_1_sigma"] = lower
+                result["upper_1_sigma"] = upper
+            except KeyError:
+                result["lower_1_sigma"] = None
+                result["upper_1_sigma"] = None
 
         if ValueType.ValuesAt3Sigma in self.value_types:
-            lower, upper = row.values_at_sigma_3_kwargs[self.path]
-            result["lower_3_sigma"] = lower
-            result["upper_3_sigma"] = upper
+            try:
+                lower, upper = row.values_at_sigma_3_kwargs[self.path]
+                result["lower_3_sigma"] = lower
+                result["upper_3_sigma"] = upper
+            except KeyError:
+                result["lower_3_sigma"] = None
+                result["upper_3_sigma"] = None
 
         return result
 
