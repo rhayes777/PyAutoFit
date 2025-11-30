@@ -45,17 +45,24 @@ class AbstractMessage(MessageInterface, ABC):
         lower_limit=-math.inf,
         upper_limit=math.inf,
         id_=None,
+        _xp=np
     ):
+
+        xp=_xp
 
         self.lower_limit = float(lower_limit)
         self.upper_limit = float(upper_limit)
 
         self.id = next(self.ids) if id_ is None else id_
         self.log_norm = log_norm
-        self._broadcast = np.broadcast(*parameters)
+
+        if xp is np:
+            self._broadcast = np.broadcast(*parameters)
+        else:
+            self._broadcast = _xp.broadcast_arrays(*parameters)
 
         if self.shape:
-            self.parameters = tuple(np.asanyarray(p) for p in parameters)
+            self.parameters = tuple(xp.aarray(p) for p in parameters)
         else:
             self.parameters = tuple(parameters)
 

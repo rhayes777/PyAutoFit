@@ -25,18 +25,24 @@ def is_nan(value):
 
 def assert_sigma_non_negative(sigma, xp=np):
 
-    sigma_arr = xp.asarray(sigma)
-    is_negative = xp.any(sigma_arr < 0)
+    is_negative = sigma < 0
 
-    # Convert to Python bool safely:
-    try:
-        flag = bool(is_negative)
-    except Exception:
-        # JAX tracers need explicit .item()
-        flag = bool(is_negative.item())
-
-    if flag:
-        raise exc.MessageException("Sigma cannot be negative")
+    if xp.__name__.startswith("jax"):
+        import jax
+        # JAX path: cannot convert to Python bool
+        # Raise using JAX control flow:
+        return jax.lax.cond(
+            is_negative,
+            lambda _: (_ for _ in ()).throw(
+                ValueError("Sigma cannot be negative")
+            ),
+            lambda _: None,
+            operand=None,
+        )
+    else:
+        # NumPy path: normal boolean works
+        if bool(is_negative):
+            raise ValueError("Sigma cannot be negative")
 
 class NormalMessage(AbstractMessage):
     @cached_property
@@ -93,21 +99,14 @@ class NormalMessage(AbstractMessage):
             import jax.numpy as jnp
             xp = jnp
 
-
-        print(type(mean))
-        print(type(mean))
-        print(xp)
-        print(xp)
-        print(xp)
-        print(xp)
-
-        assert_sigma_non_negative(sigma, xp=xp)
+        # assert_sigma_non_negative(sigma, xp=xp)
 
         super().__init__(
             mean,
             sigma,
             log_norm=log_norm,
             id_=id_,
+            _xp=xp
         )
         self.mean, self.sigma = self.parameters
 

@@ -23,6 +23,11 @@ class MessageInterface(ABC):
 
     @property
     def shape(self) -> Tuple[int, ...]:
+
+        # JAX behaviour
+        if isinstance(self.broadcast, list):
+            return ()
+
         return self.broadcast.shape
 
     @property
