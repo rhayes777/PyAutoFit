@@ -36,7 +36,7 @@ class Analysis(ABC):
         self, use_jax : bool = False, **kwargs
     ):
 
-        self.use_jax = use_jax
+        self._use_jax = use_jax
         self.kwargs = kwargs
 
     def __getattr__(self, item: str):
@@ -63,7 +63,7 @@ class Analysis(ABC):
 
     @property
     def _xp(self):
-        if self.use_jax:
+        if self._use_jax:
             import jax.numpy as jnp
             return jnp
         return np
