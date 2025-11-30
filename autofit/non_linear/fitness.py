@@ -134,7 +134,7 @@ class Fitness:
 
     @property
     def _xp(self):
-        if self.analysis.use_jax:
+        if self.analysis._use_jax:
             import jax.numpy as jnp
             return jnp
         return np

@@ -127,7 +127,7 @@ class Nautilus(abstract_nest.AbstractNest):
         if (
             self.config_dict.get("force_x1_cpu")
             or self.kwargs.get("force_x1_cpu")
-            or analysis.use_jax
+            or analysis._use_jax
         ):
 
             fitness = Fitness(
