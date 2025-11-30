@@ -20,7 +20,7 @@ class AbstractDeclarativeFactor(Analysis, ABC):
     _plates: Tuple[Plate, ...] = ()
 
     def __init__(self, include_prior_factors=False, use_jax : bool = False):
-        self.include_prior_factors = include_prior_factors
+        self._include_prior_factors = include_prior_factors
 
         super().__init__(use_jax=use_jax)
 
@@ -63,7 +63,7 @@ class AbstractDeclarativeFactor(Analysis, ABC):
             for prior in factor.prior_model.priors:
                 counter[prior] += 1
         return [
-            (prior, count + 1 if self.include_prior_factors else count)
+            (prior, count + 1 if self._include_prior_factors else count)
             for prior, count in counter.items()
         ]
 
@@ -96,7 +96,7 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         The complete graph made by combining all factors and priors
         """
         factors = [model for model in self.model_factors]
-        if self.include_prior_factors:
+        if self._include_prior_factors:
             factors += self.prior_factors
         # noinspection PyTypeChecker
         return DeclarativeFactorGraph(factors)

@@ -53,9 +53,7 @@ model                                                                           
 1
     drawn_prior                                                                 UniformPrior [1], lower_limit = 0.0, upper_limit = 1.0
 2 - 3
-    one                                                                         UniformPrior [0], lower_limit = 0.0, upper_limit = 1.0
-factor
-    include_prior_factors                                                       True"""
+    one                                                                         UniformPrior [0], lower_limit = 0.0, upper_limit = 1.0"""
     )
 
 
