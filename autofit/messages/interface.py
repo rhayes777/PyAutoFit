@@ -45,9 +45,11 @@ class MessageInterface(ABC):
         return np.exp(self.logpdf(x))
 
     def logpdf(self, x: Union[np.ndarray, float], xp=np) -> np.ndarray:
+
         eta = self._broadcast_natural_parameters(x, xp=xp)
         t = self.to_canonical_form(x, xp=xp)
-        log_base = self.calc_log_base_measure(x)
+        log_base = self.calc_log_base_measure(x, xp=xp)
+
         return self.natural_logpdf(eta, t, log_base, self.log_partition(xp=xp), xp=xp)
 
     def _broadcast_natural_parameters(self, x, xp=np):
@@ -72,7 +74,7 @@ class MessageInterface(ABC):
         pass
 
     @classmethod
-    def calc_log_base_measure(cls, x):
+    def calc_log_base_measure(cls, x, xp=np):
         return cls.log_base_measure
 
     @abstractmethod
@@ -81,8 +83,19 @@ class MessageInterface(ABC):
 
     @classmethod
     def natural_logpdf(cls, eta, t, log_base, log_partition, xp=np):
+
+        try:
+            eta = eta()
+        except TypeError:
+            pass
+
+        try:
+            log_partition_in = log_partition(xp=xp)
+        except TypeError:
+            log_partition_in = log_partition
+
         eta_t = xp.multiply(eta, t).sum(0)
-        return xp.nan_to_num(log_base + eta_t - log_partition, nan=-xp.inf)
+        return xp.nan_to_num(log_base + eta_t - log_partition_in, nan=-xp.inf)
 
     def numerical_logpdf_gradient(
         self, x: np.ndarray, eps: float = 1e-6
@@ -184,7 +197,7 @@ class MessageInterface(ABC):
         pass
 
     def check_finite(self) -> np.ndarray:
-        return np.isfinite(self.natural_parameters).all(0)
+        return np.isfinite(self.natural_parameters()).all(0)
 
     def check_valid(self) -> np.ndarray:
         return self.check_finite() & self.check_support()
@@ -204,11 +217,11 @@ class MessageInterface(ABC):
         """
         new_params = sum(
             (
-                dist.natural_parameters
+                dist.natural_parameters()
                 for dist in self._iter_dists(dists)
                 if isinstance(dist, MessageInterface)
             ),
-            self.natural_parameters,
+            self.natural_parameters(),
         )
         return self.from_natural_parameters(
             new_params,
@@ -220,7 +233,7 @@ class MessageInterface(ABC):
         of this distribution with another distribution of the same
         type"""
         log_norm = self.log_norm - other.log_norm
-        new_params = self.natural_parameters - other.natural_parameters
+        new_params = self.natural_parameters() - other.natural_parameters()
         return self.from_natural_parameters(
             new_params,
             log_norm=log_norm,

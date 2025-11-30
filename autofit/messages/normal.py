@@ -93,7 +93,8 @@ class NormalMessage(AbstractMessage):
         id_
             An optional unique identifier used to track the message in larger probabilistic graphs or models.
         """
-        if isinstance(mean, (np.ndarray, float, int)):
+
+        if isinstance(mean, (np.ndarray, float, int, list)):
             xp = np
         else:
             import jax.numpy as jnp
@@ -470,7 +471,7 @@ class NormalMessage(AbstractMessage):
         A natural form Gaussian with zeroed parameters but same configuration.
         """
         return NaturalNormal.from_natural_parameters(
-            self.natural_parameters * 0.0, **self._init_kwargs
+            self.natural_parameters() * 0.0, **self._init_kwargs
         )
 
     def zeros_like(self) -> "AbstractMessage":
@@ -556,7 +557,7 @@ class NaturalNormal(NormalMessage):
         return np.nan_to_num(-self.parameters[0] / self.parameters[1] / 2)
 
     @staticmethod
-    def calc_natural_parameters(eta1: float, eta2: float) -> np.ndarray:
+    def calc_natural_parameters(eta1: float, eta2: float, xp=np) -> np.ndarray:
         """
         Return the natural parameters in array form (identity function for this class).
 
@@ -567,7 +568,7 @@ class NaturalNormal(NormalMessage):
         eta2
             The second natural parameter.
         """
-        return np.array([eta1, eta2])
+        return xp.array([eta1, eta2])
 
     def natural_parameters(self, xp=np) -> np.ndarray:
         """

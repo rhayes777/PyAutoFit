@@ -34,9 +34,9 @@ def transform(func):
     """
 
     @functools.wraps(func)
-    def wrapper(self, x):
+    def wrapper(self, x, xp):
         x = self._transform(x)
-        return func(self, x)
+        return func(self, x, xp)
 
     return wrapper
 
@@ -239,8 +239,8 @@ class TransformedMessage(MessageInterface):
         return self.base_message.value_for(unit)
 
     @transform
-    def calc_log_base_measure(self, x) -> np.ndarray:
-        return self.base_message.calc_log_base_measure(x)
+    def calc_log_base_measure(self, x, xp=np) -> np.ndarray:
+        return self.base_message.calc_log_base_measure(x, xp=xp)
 
     @transform
     def to_canonical_form(self, x, xp=np) -> np.ndarray:

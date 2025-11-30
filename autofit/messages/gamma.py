@@ -40,8 +40,8 @@ class GammaMessage(AbstractMessage):
         return self.calc_natural_parameters(self.alpha, self.beta, xp=xp)
 
     @staticmethod
-    def calc_natural_parameters(alpha, beta):
-        return np.array([alpha - 1, -beta])
+    def calc_natural_parameters(alpha, beta, xp=np):
+        return xp.array([alpha - 1, -beta])
 
     @staticmethod
     def invert_natural_parameters(natural_parameters):
@@ -97,13 +97,13 @@ class GammaMessage(AbstractMessage):
 
     def logpdf_gradient(self, x):
         logl = self.logpdf(x)
-        eta1 = self.natural_parameters[0]
+        eta1 = self.natural_parameters()[0]
         gradl = eta1 / x - self.beta
         return logl, gradl
 
     def logpdf_gradient_hessian(self, x):
         logl = self.logpdf(x)
-        eta1 = self.natural_parameters[0]
+        eta1 = self.natural_parameters()[0]
         gradl = eta1 / x
         hessl = -gradl / x
         gradl -= self.beta

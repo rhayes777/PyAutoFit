@@ -56,6 +56,7 @@ class AbstractMessage(MessageInterface, ABC):
         self.id = next(self.ids) if id_ is None else id_
         self.log_norm = log_norm
 
+
         if xp is np:
             self._broadcast = np.broadcast(*parameters)
         else:
@@ -222,7 +223,7 @@ class AbstractMessage(MessageInterface, ABC):
             )
 
     def __pow__(self, other: Real) -> "AbstractMessage":
-        natural = self.natural_parameters
+        natural = self.natural_parameters()
         new_params = other * natural
         log_norm = other * self.log_norm
         new = self.from_natural_parameters(
@@ -313,12 +314,12 @@ class AbstractMessage(MessageInterface, ABC):
         ]
 
         # Calculate log product of message normalisation
-        log_norm = self.log_base_measure - self.log_partition
-        log_norm += sum(dist.log_base_measure - dist.log_partition for dist in dists)
+        log_norm = self.log_base_measure - self.log_partition()
+        log_norm += sum(dist.log_base_measure - dist.log_partition() for dist in dists)
 
         # Calculate log normalisation of product of messages
         prod_dist = self.sum_natural_parameters(*dists)
-        log_norm -= prod_dist.log_base_measure - prod_dist.log_partition
+        log_norm -= prod_dist.log_base_measure - prod_dist.log_partition()
 
         return log_norm
 

@@ -161,7 +161,7 @@ class TruncatedNormalMessage(AbstractMessage):
         return self.calc_natural_parameters(self.mean, self.sigma, xp=xp)
 
     @staticmethod
-    def calc_natural_parameters(mu : Union[float, np.ndarray], sigma : Union[float, np.ndarray]) -> np.ndarray:
+    def calc_natural_parameters(mu : Union[float, np.ndarray], sigma : Union[float, np.ndarray], xp=np) -> np.ndarray:
         """
         Convert standard parameters of a Gaussian distribution (mean and standard deviation)
         into natural parameters used in its exponential family representation.
@@ -189,7 +189,7 @@ class TruncatedNormalMessage(AbstractMessage):
             η₂ = -1 / (2σ²)
         """
         precision = 1 / sigma**2
-        return np.array([mu * precision, -precision / 2])
+        return xp.array([mu * precision, -precision / 2])
 
     @staticmethod
     def invert_natural_parameters(natural_parameters : np.ndarray) -> Tuple[float, float]:
@@ -493,7 +493,7 @@ class TruncatedNormalMessage(AbstractMessage):
         A natural form Gaussian with zeroed parameters but same configuration.
         """
         return TruncatedNaturalNormal.from_natural_parameters(
-            self.natural_parameters * 0.0, **self._init_kwargs
+            self.natural_parameters() * 0.0, **self._init_kwargs
         )
 
     def zeros_like(self) -> "AbstractMessage":
@@ -617,10 +617,11 @@ class TruncatedNaturalNormal(TruncatedNormalMessage):
 
     @staticmethod
     def calc_natural_parameters(
-            eta1: float,
-            eta2: float,
-            lower_limit: float = -np.inf,
-            upper_limit: float = np.inf
+        eta1: float,
+        eta2: float,
+        lower_limit: float = -np.inf,
+        upper_limit: float = np.inf,
+        xp=np
     ) -> np.ndarray:
         """
         Return the natural parameters in array form (identity function for this class).
@@ -635,7 +636,7 @@ class TruncatedNaturalNormal(TruncatedNormalMessage):
         eta2
             The second natural parameter.
         """
-        return np.array([eta1, eta2])
+        return xp.array([eta1, eta2])
 
     def natural_parameters(self, xp=np) -> np.ndarray:
         """

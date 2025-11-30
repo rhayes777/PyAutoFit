@@ -201,7 +201,8 @@ class BetaMessage(AbstractMessage):
     @staticmethod
     def calc_natural_parameters(
             alpha: Union[float, np.ndarray],
-            beta: Union[float, np.ndarray]
+            beta: Union[float, np.ndarray],
+            xp=np
     ) -> np.ndarray:
         """
         Calculate the natural parameters of a Beta distribution from alpha and beta.
@@ -217,7 +218,7 @@ class BetaMessage(AbstractMessage):
         -------
         Natural parameters [alpha - 1, beta - 1].
         """
-        return np.array([alpha - 1, beta - 1])
+        return xp.array([alpha - 1, beta - 1])
 
     @staticmethod
     def invert_natural_parameters(
