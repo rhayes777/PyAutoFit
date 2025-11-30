@@ -24,7 +24,7 @@ class ComparisonAssertion(CompoundPrior, Compound, ABC):
 
 
 class GreaterThanLessThanAssertion(ComparisonAssertion):
-    def _instance_for_arguments(self, arguments, ignore_assertions=False):
+    def _instance_for_arguments(self, arguments, ignore_assertions=False, xp=np):
         """
         Assert that the value in the dictionary associated with the lower
         prior is lower than the value associated with the greater prior.
@@ -55,6 +55,7 @@ class GreaterThanLessThanEqualAssertion(ComparisonAssertion):
         self,
         arguments,
         ignore_assertions=False,
+        xp=np,
     ):
         """
         Assert that the value in the dictionary associated with the lower
@@ -90,6 +91,7 @@ class CompoundAssertion(AbstractPriorModel, Compound):
         self,
         arguments,
         ignore_assertions=False,
+        xp=np,
     ):
         return self.assertion_1.instance_for_arguments(
             arguments,

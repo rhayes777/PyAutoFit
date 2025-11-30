@@ -745,7 +745,7 @@ class AbstractPriorModel(AbstractModel):
         """
         return self.vector_from_unit_vector([0.5] * len(self.unique_prior_tuples))
 
-    def instance_from_vector(self, vector, ignore_assertions: bool = False):
+    def instance_from_vector(self, vector, ignore_assertions: bool = False, xp=np):
         """
         Returns a ModelInstance, which has an attribute and class instance corresponding
         to every `Model` attributed to this instance.
@@ -778,6 +778,7 @@ class AbstractPriorModel(AbstractModel):
         return self.instance_for_arguments(
             arguments,
             ignore_assertions=ignore_assertions,
+            xp=xp
         )
 
     def has(self, cls: Union[Type, Tuple[Type, ...]]) -> bool:
@@ -1309,6 +1310,7 @@ class AbstractPriorModel(AbstractModel):
         self,
         arguments: Dict[Prior, float],
         ignore_assertions: bool = False,
+        xp=np,
     ):
         raise NotImplementedError()
 
@@ -1316,6 +1318,7 @@ class AbstractPriorModel(AbstractModel):
         self,
         arguments: Dict[Prior, float],
         ignore_assertions: bool = False,
+        xp=np,
     ):
         """
         Returns an instance of the model for a set of arguments
@@ -1339,6 +1342,7 @@ class AbstractPriorModel(AbstractModel):
         return self._instance_for_arguments(
             arguments,
             ignore_assertions=ignore_assertions,
+            xpx=p
         )
 
     def path_for_name(self, name: str) -> Tuple[str, ...]:

@@ -1,3 +1,4 @@
+import numpy as np
 from typing import Optional
 
 from autofit.messages.normal import NormalMessage
@@ -13,6 +14,7 @@ class GaussianPrior(Prior):
         mean: float,
         sigma: float,
         id_: Optional[int] = None,
+        _xp=np
     ):
         """
         A Gaussian prior defined by a normal distribution.
@@ -50,6 +52,7 @@ class GaussianPrior(Prior):
             message=NormalMessage(
                 mean=mean,
                 sigma=sigma,
+                xp=_xp
             ),
             id_=id_,
         )

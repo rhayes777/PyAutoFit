@@ -23,6 +23,19 @@ def is_nan(value):
         is_nan_ = is_nan_.all()
     return is_nan_
 
+def assert_sigma_non_negative(sigma, xp=np):
+    sigma_arr = xp.asarray(sigma)
+    is_negative = xp.any(sigma_arr < 0)
+
+    # Convert to Python bool safely:
+    try:
+        flag = bool(is_negative)
+    except Exception:
+        # JAX tracers need explicit .item()
+        flag = bool(is_negative.item())
+
+    if flag:
+        raise exc.MessageException("Sigma cannot be negative")
 
 class NormalMessage(AbstractMessage):
     @cached_property
@@ -52,6 +65,7 @@ class NormalMessage(AbstractMessage):
         sigma : Union[float, np.ndarray],
         log_norm : Optional[float] = 0.0,
         id_ : Optional[Hashable] = None,
+        xp=np
     ):
         """
         A Gaussian (Normal) message representing a probability distribution over a continuous variable.
@@ -73,8 +87,7 @@ class NormalMessage(AbstractMessage):
         id_
             An optional unique identifier used to track the message in larger probabilistic graphs or models.
         """
-        if (np.array(sigma) < 0).any():
-            raise exc.MessageException("Sigma cannot be negative")
+        assert_sigma_non_negative(sigma, xp=xp)
 
         super().__init__(
             mean,

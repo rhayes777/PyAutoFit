@@ -212,6 +212,7 @@ class SumPrior(CompoundPrior):
         self,
         arguments,
         ignore_assertions=False,
+        xp=np,
     ):
         return self.left_for_arguments(
             arguments,
@@ -237,6 +238,7 @@ class MultiplePrior(CompoundPrior):
         self,
         arguments,
         ignore_assertions=False,
+        xp=np,
     ):
         return self.left_for_arguments(
             arguments,
@@ -256,6 +258,7 @@ class DivisionPrior(CompoundPrior):
         self,
         arguments,
         ignore_assertions=False,
+        xp=np,
     ):
         return self.left_for_arguments(
             arguments,
@@ -275,6 +278,7 @@ class FloorDivPrior(CompoundPrior):
         self,
         arguments,
         ignore_assertions=False,
+        xp=np,
     ):
         return self.left_for_arguments(
             arguments,
@@ -294,6 +298,7 @@ class ModPrior(CompoundPrior):
         self,
         arguments,
         ignore_assertions=False,
+        xp=np,
     ):
         return self.left_for_arguments(
             arguments,
@@ -313,6 +318,7 @@ class PowerPrior(CompoundPrior):
         self,
         arguments,
         ignore_assertions=False,
+        xp=np,
     ):
         return self.left_for_arguments(
             arguments,
@@ -396,6 +402,7 @@ class NegativePrior(ModifiedPrior):
         self,
         arguments,
         ignore_assertions=False,
+        xp=np,
     ):
         return -self.prior.instance_for_arguments(
             arguments,
@@ -412,6 +419,7 @@ class AbsolutePrior(ModifiedPrior):
         self,
         arguments,
         ignore_assertions=False,
+        xp=np,
     ):
         return abs(
             self.prior.instance_for_arguments(
@@ -430,6 +438,7 @@ class Log(ModifiedPrior):
         self,
         arguments,
         ignore_assertions=False,
+        xp=np,
     ):
         return np.log(
             self.prior.instance_for_arguments(
@@ -448,6 +457,7 @@ class Log10(ModifiedPrior):
         self,
         arguments,
         ignore_assertions=False,
+        xp=np,
     ):
         return np.log10(
             self.prior.instance_for_arguments(

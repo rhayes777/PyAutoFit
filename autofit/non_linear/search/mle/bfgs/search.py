@@ -227,6 +227,9 @@ class AbstractBFGS(AbstractMLE):
 
         weight_list = len(log_likelihood_list) * [1.0]
 
+        print(log_likelihood_list)
+        print(parameter_lists)
+
         sample_list = Sample.from_lists(
             model=model,
             parameter_lists=parameter_lists,

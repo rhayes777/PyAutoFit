@@ -208,6 +208,7 @@ class Collection(AbstractPriorModel):
         self,
         arguments,
         ignore_assertions=False,
+        xp=np,
     ):
         """
         Parameters

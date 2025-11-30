@@ -459,6 +459,7 @@ class Model(AbstractPriorModel):
         self,
         arguments: {ModelObject: object},
         ignore_assertions=False,
+        xp=np,
     ):
         """
         Returns an instance of the associated class for a set of arguments

@@ -317,7 +317,7 @@ class Fitness:
 
             logger.info("Performing quick update of maximum log likelihood fit image and model.results")
 
-            instance = self.model.instance_from_vector(vector=self.quick_update_max_lh_parameters)
+            instance = self.model.instance_from_vector(vector=self.quick_update_max_lh_parameters, xp=self._xp)
 
             try:
                 self.analysis.perform_quick_update(self.paths, instance)
