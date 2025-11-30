@@ -157,8 +157,7 @@ class TransformedMessage(MessageInterface):
     def kl(self, dist):
         return self.base_message.kl(dist.base_message)
 
-    @property
-    def natural_parameters(self):
+    def natural_parameters(self, xp=np) -> np.ndarray:
         return self.base_message.natural_parameters
 
     @inverse_transform
@@ -245,8 +244,8 @@ class TransformedMessage(MessageInterface):
         return self.base_message.calc_log_base_measure(x)
 
     @transform
-    def to_canonical_form(self, x) -> np.ndarray:
-        return self.base_message.to_canonical_form(x)
+    def to_canonical_form(self, x, xp=np) -> np.ndarray:
+        return self.base_message.to_canonical_form(x, xp=xp)
 
     @property
     @inverse_transform

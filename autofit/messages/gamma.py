@@ -36,9 +36,8 @@ class GammaMessage(AbstractMessage):
     def value_for(self, unit: float) -> float:
         raise NotImplemented()
 
-    @cached_property
-    def natural_parameters(self):
-        return self.calc_natural_parameters(self.alpha, self.beta)
+    def natural_parameters(self, xp=np) -> np.ndarray:
+        return self.calc_natural_parameters(self.alpha, self.beta, xp=xp)
 
     @staticmethod
     def calc_natural_parameters(alpha, beta):
@@ -50,8 +49,8 @@ class GammaMessage(AbstractMessage):
         return eta1 + 1, -eta2
 
     @staticmethod
-    def to_canonical_form(x):
-        return np.array([np.log(x), x])
+    def to_canonical_form(x, xp=np):
+        return xp.array([np.log(x), x])
 
     @classmethod
     def invert_sufficient_statistics(cls, suff_stats):

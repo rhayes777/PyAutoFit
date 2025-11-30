@@ -25,8 +25,7 @@ class FixedMessage(AbstractMessage):
     def value_for(self, unit: float) -> float:
         raise NotImplemented()
 
-    @cached_property
-    def natural_parameters(self) -> Tuple[np.ndarray, ...]:
+    def natural_parameters(self, xp=np) -> Tuple[np.ndarray, ...]:
         return self.parameters
 
     @staticmethod
@@ -35,7 +34,7 @@ class FixedMessage(AbstractMessage):
         return natural_parameters,
 
     @staticmethod
-    def to_canonical_form(x: np.ndarray) -> np.ndarray:
+    def to_canonical_form(x: np.ndarray, xp=np) -> np.ndarray:
         return x
 
     @cached_property

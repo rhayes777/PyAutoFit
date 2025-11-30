@@ -141,8 +141,7 @@ class TruncatedNormalMessage(AbstractMessage):
         b = (self.upper_limit - self.mean) / self.sigma
         return truncnorm.ppf(x, a=a, b=b, loc=self.mean, scale=self.sigma)
 
-    @cached_property
-    def natural_parameters(self) -> np.ndarray:
+    def natural_parameters(self, xp=np) -> np.ndarray:
         """
         The pseudo-natural (canonical) parameters of a truncated Gaussian distribution.
 
@@ -159,7 +158,7 @@ class TruncatedNormalMessage(AbstractMessage):
         -------
         A NumPy array containing the pseudo-natural parameters [η₁, η₂].
         """
-        return self.calc_natural_parameters(self.mean, self.sigma)
+        return self.calc_natural_parameters(self.mean, self.sigma, xp=xp)
 
     @staticmethod
     def calc_natural_parameters(mu : Union[float, np.ndarray], sigma : Union[float, np.ndarray]) -> np.ndarray:
@@ -217,7 +216,7 @@ class TruncatedNormalMessage(AbstractMessage):
         return mu, sigma
 
     @staticmethod
-    def to_canonical_form(x : Union[float, np.ndarray]) -> np.ndarray:
+    def to_canonical_form(x : Union[float, np.ndarray], xp=np) -> np.ndarray:
         """
         Convert a scalar input `x` to its sufficient statistics for the Gaussian exponential family.
 
@@ -234,7 +233,7 @@ class TruncatedNormalMessage(AbstractMessage):
         -------
         The sufficient statistics [x, x²].
         """
-        return np.array([x, x**2])
+        return xp.array([x, x**2])
 
     @classmethod
     def invert_sufficient_statistics(cls, suff_stats: Tuple[float, float]) -> np.ndarray:
@@ -638,12 +637,11 @@ class TruncatedNaturalNormal(TruncatedNormalMessage):
         """
         return np.array([eta1, eta2])
 
-    @cached_property
-    def natural_parameters(self) -> np.ndarray:
+    def natural_parameters(self, xp=np) -> np.ndarray:
         """
         Return the natural parameters of this distribution.
         """
-        return self.calc_natural_parameters(*self.parameters, self.lower_limit, self.upper_limit)
+        return self.calc_natural_parameters(*self.parameters, self.lower_limit, self.upper_limit, xp=xp)
 
     @classmethod
     def invert_sufficient_statistics(

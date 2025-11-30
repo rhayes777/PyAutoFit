@@ -44,32 +44,31 @@ class MessageInterface(ABC):
     def pdf(self, x: np.ndarray) -> np.ndarray:
         return np.exp(self.logpdf(x))
 
-    def logpdf(self, x: Union[np.ndarray, float]) -> np.ndarray:
-        eta = self._broadcast_natural_parameters(x)
-        t = self.to_canonical_form(x)
+    def logpdf(self, x: Union[np.ndarray, float], xp=np) -> np.ndarray:
+        eta = self._broadcast_natural_parameters(x, xp=xp)
+        t = self.to_canonical_form(x, xp=xp)
         log_base = self.calc_log_base_measure(x)
         return self.natural_logpdf(eta, t, log_base, self.log_partition)
 
-    def _broadcast_natural_parameters(self, x):
-        shape = np.shape(x)
+    def _broadcast_natural_parameters(self, x, xp=np):
+        shape = xp.shape(x)
         if shape == self.shape:
-            return self.natural_parameters
+            return self.natural_parameters(xp=xp)
         elif shape[1:] == self.shape:
-            return self.natural_parameters[:, None, ...]
+            return self.natural_parameters(xp=xp)[:, None, ...]
         else:
             raise ValueError(
                 f"shape of passed value {shape} does not "
                 f"match message shape {self.shape}"
             )
 
-    @cached_property
     @abstractmethod
-    def natural_parameters(self):
+    def natural_parameters(self, xp=np) -> np.ndarray:
         pass
 
     @staticmethod
     @abstractmethod
-    def to_canonical_form(x: Union[np.ndarray, float]) -> np.ndarray:
+    def to_canonical_form(x: Union[np.ndarray, float], xp=np) -> np.ndarray:
         pass
 
     @classmethod

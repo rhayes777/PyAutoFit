@@ -184,8 +184,7 @@ class BetaMessage(AbstractMessage):
 
         return betaln(*self.parameters)
 
-    @cached_property
-    def natural_parameters(self) -> np.ndarray:
+    def natural_parameters(self, xp=np) -> np.ndarray:
         """
         Compute the natural parameters of the Beta distribution.
 
@@ -196,7 +195,8 @@ class BetaMessage(AbstractMessage):
         """
         return self.calc_natural_parameters(
             self.alpha,
-            self.beta
+            self.beta,
+            xp=xp
         )
 
     @staticmethod
@@ -258,7 +258,7 @@ class BetaMessage(AbstractMessage):
         return cls.calc_natural_parameters(a, b)
 
     @classmethod
-    def to_canonical_form(cls, x: np.ndarray) -> np.ndarray:
+    def to_canonical_form(cls, x: np.ndarray, xp=np) -> np.ndarray:
         """
         Convert a value x in (0,1) to the canonical sufficient statistics for Beta.
 
@@ -271,7 +271,7 @@ class BetaMessage(AbstractMessage):
         -------
         Canonical sufficient statistics [log(x), log(1 - x)].
         """
-        return np.array([np.log(x), np.log1p(-x)])
+        return xp.array([xp.log(x), xp.log1p(-x)])
 
     @cached_property
     def mean(self) -> Union[np.ndarray, float]:
