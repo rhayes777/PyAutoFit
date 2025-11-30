@@ -57,6 +57,7 @@ class Array(AbstractPriorModel):
         self,
         arguments: Dict[Prior, float],
         ignore_assertions: bool = False,
+        xp=np,
     ) -> np.ndarray:
         """
         Create an array where the prior at each index is replaced with the

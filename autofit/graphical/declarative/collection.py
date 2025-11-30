@@ -42,7 +42,7 @@ class FactorGraphModel(AbstractDeclarativeFactor):
     def tree_flatten(self):
         return (
             (self._model_factors,),
-            (self._name, self.include_prior_factors),
+            (self._name, self._include_prior_factors),
         )
 
     @classmethod

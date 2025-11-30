@@ -146,7 +146,7 @@ class AbstractDynesty(AbstractNest, ABC):
                         "parallel"
                     ].get("force_x1_cpu")
                     or self.kwargs.get("force_x1_cpu")
-                    or analysis.use_jax
+                    or analysis._use_jax
                 ):
                     raise RuntimeError
 

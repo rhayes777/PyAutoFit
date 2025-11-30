@@ -42,7 +42,7 @@ class AbstractModelFactor(FactorKW, AbstractDeclarativeFactor, ABC):
             factor, **prior_variable_dict,
             name=name or namer(self.__class__.__name__),
         )
-        self.include_prior_factors = include_prior_factors
+        self._include_prior_factors = include_prior_factors
 
     @property
     def info(self) -> str:

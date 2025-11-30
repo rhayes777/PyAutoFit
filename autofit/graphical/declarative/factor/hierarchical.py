@@ -8,6 +8,7 @@ from autofit.mapper.variable import Plate
 from autofit.messages import NormalMessage
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.tools.namer import namer
+
 from .abstract import AbstractModelFactor
 
 
@@ -19,6 +20,7 @@ class HierarchicalFactor(Model):
         distribution: Type[Prior],
         optimiser=None,
         name: Optional[str] = None,
+        use_jax : bool = False,
         **kwargs,
     ):
         """
@@ -70,6 +72,7 @@ class HierarchicalFactor(Model):
         self._name = name or namer(self.__class__.__name__)
         self._factors = list()
         self.optimiser = optimiser
+        self._use_jax = use_jax
 
     @property
     def name(self):
@@ -144,7 +147,7 @@ class Factor:
 
 class _HierarchicalFactor(AbstractModelFactor):
     def __init__(
-        self, distribution_model: HierarchicalFactor, drawn_prior: Prior, use_jax : bool = False
+        self, distribution_model: HierarchicalFactor, drawn_prior: Prior,
     ):
         """
         A factor that links a variable to a parameterised distribution.
@@ -159,7 +162,7 @@ class _HierarchicalFactor(AbstractModelFactor):
         """
         self.distribution_model = distribution_model
         self.drawn_prior = drawn_prior
-        self.use_jax = use_jax
+        self._use_jax = distribution_model._use_jax
 
         prior_variable_dict = {prior.name: prior for prior in distribution_model.priors}
 
@@ -188,7 +191,7 @@ class _HierarchicalFactor(AbstractModelFactor):
         return self.drawn_prior
 
     def log_likelihood_function(self, instance):
-        return instance.distribution_model.message(instance.drawn_prior)
+        return instance.distribution_model.message(instance.drawn_prior, xp=self._xp)
 
     @property
     def priors(self) -> Set[Prior]:

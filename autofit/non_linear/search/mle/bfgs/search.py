@@ -145,7 +145,7 @@ class AbstractBFGS(AbstractMLE):
                 config_dict_options["maxiter"] = iterations
 
                 search_internal = optimize.minimize(
-                    fun=fitness.call_wrap,
+                    fun=fitness._jit,
                     x0=x0,
                     method=self.method,
                     options=config_dict_options,
@@ -207,7 +207,6 @@ class AbstractBFGS(AbstractMLE):
 
         x0 = search_internal.x
         total_iterations = search_internal.nit
-
 
         if self.should_plot_start_point:
 

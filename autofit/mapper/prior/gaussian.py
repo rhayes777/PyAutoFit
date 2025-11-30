@@ -1,3 +1,4 @@
+import numpy as np
 from typing import Optional
 
 from autofit.messages.normal import NormalMessage
@@ -46,6 +47,7 @@ class GaussianPrior(Prior):
         >>> prior = GaussianPrior(mean=1.0, sigma=2.0)
         >>> physical_value = prior.value_for(unit=0.5)  # Returns ~1.0 (mean)
         """
+
         super().__init__(
             message=NormalMessage(
                 mean=mean,

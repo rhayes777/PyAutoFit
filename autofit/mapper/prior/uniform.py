@@ -1,3 +1,4 @@
+import numpy as np
 from typing import Optional, Tuple
 
 from autofit.messages.normal import UniformNormalMessage
@@ -128,7 +129,7 @@ class UniformPrior(Prior):
             round(super().value_for(unit), 14)
         )
 
-    def log_prior_from_value(self, value):
+    def log_prior_from_value(self, value, xp=np):
         """
         Returns the log prior of a physical value, so the log likelihood of a model evaluation can be converted to a
         posterior as log_prior + log_likelihood.

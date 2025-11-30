@@ -134,7 +134,7 @@ class Fitness:
 
     @property
     def _xp(self):
-        if self.analysis.use_jax:
+        if self.analysis._use_jax:
             import jax.numpy as jnp
             return jnp
         return np
@@ -157,7 +157,7 @@ class Fitness:
         The figure of merit returned to the non-linear search, which is either the log likelihood or log posterior.
         """
         # Get instance from model
-        instance = self.model.instance_from_vector(vector=parameters)
+        instance = self.model.instance_from_vector(vector=parameters, xp=self._xp)
 
         if self._xp.__name__.startswith("jax"):
 
@@ -179,7 +179,7 @@ class Fitness:
             figure_of_merit = log_likelihood
         else:
             # Ensure prior list is compatible with JAX (must return a JAX array, not list)
-            log_prior_array = self._xp.array(self.model.log_prior_list_from_vector(vector=parameters))
+            log_prior_array = self._xp.array(self.model.log_prior_list_from_vector(vector=parameters, xp=self._xp))
             figure_of_merit = log_likelihood + self._xp.sum(log_prior_array)
 
         # Convert to chi-squared scale if requested
@@ -227,7 +227,7 @@ class Fitness:
         if self.fom_is_log_likelihood:
             log_likelihood = figure_of_merit
         else:
-            log_prior_list = self._xp.array(self.model.log_prior_list_from_vector(vector=parameters))
+            log_prior_list = self._xp.array(self.model.log_prior_list_from_vector(vector=parameters, xp=self._xp))
             log_likelihood = figure_of_merit - self._xp.sum(log_prior_list)
 
         self.manage_quick_update(parameters=parameters, log_likelihood=log_likelihood)
@@ -237,8 +237,8 @@ class Fitness:
 
         if self.store_history:
 
-            self.parameters_history_list.append(parameters)
-            self.log_likelihood_history_list.append(log_likelihood)
+            self.parameters_history_list.append(np.array(parameters))
+            self.log_likelihood_history_list.append(np.array(log_likelihood))
 
         return figure_of_merit
 
@@ -317,7 +317,7 @@ class Fitness:
 
             logger.info("Performing quick update of maximum log likelihood fit image and model.results")
 
-            instance = self.model.instance_from_vector(vector=self.quick_update_max_lh_parameters)
+            instance = self.model.instance_from_vector(vector=self.quick_update_max_lh_parameters, xp=self._xp)
 
             try:
                 self.analysis.perform_quick_update(self.paths, instance)

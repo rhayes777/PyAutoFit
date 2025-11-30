@@ -133,7 +133,7 @@ class LogGaussianPrior(Prior):
     def parameter_string(self) -> str:
         return f"mean = {self.mean}, sigma = {self.sigma}"
 
-    def log_prior_from_value(self, value):
+    def log_prior_from_value(self, value, xp=np):
         if value <= 0:
             return float("-inf")
 

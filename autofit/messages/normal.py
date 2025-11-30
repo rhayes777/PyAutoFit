@@ -23,10 +23,30 @@ def is_nan(value):
         is_nan_ = is_nan_.all()
     return is_nan_
 
+def assert_sigma_non_negative(sigma, xp=np):
+
+    is_negative = sigma < 0
+
+    if xp.__name__.startswith("jax"):
+        import jax
+        # JAX path: cannot convert to Python bool
+        # Raise using JAX control flow:
+        return jax.lax.cond(
+            is_negative,
+            lambda _: (_ for _ in ()).throw(
+                ValueError("Sigma cannot be negative")
+            ),
+            lambda _: None,
+            operand=None,
+        )
+    else:
+        # NumPy path: normal boolean works
+        if bool(is_negative):
+            raise ValueError("Sigma cannot be negative")
 
 class NormalMessage(AbstractMessage):
-    @cached_property
-    def log_partition(self):
+
+    def log_partition(self, xp=np):
         """
         Compute the log-partition function (also called log-normalizer or cumulant function)
         for the normal distribution in its natural (canonical) parameterization.
@@ -39,8 +59,8 @@ class NormalMessage(AbstractMessage):
            A(η) = η₁² / (-4η₂) - 0.5 * log(-2η₂)
         This ensures normalization of the exponential-family distribution.
         """
-        eta1, eta2 = self.natural_parameters
-        return -(eta1**2) / 4 / eta2 - np.log(-2 * eta2) / 2
+        eta1, eta2 = self.natural_parameters(xp=xp)
+        return -(eta1**2) / 4 / eta2 - xp.log(-2 * eta2) / 2
 
     log_base_measure = -0.5 * np.log(2 * np.pi)
     _support = ((-np.inf, np.inf),)
@@ -73,18 +93,25 @@ class NormalMessage(AbstractMessage):
         id_
             An optional unique identifier used to track the message in larger probabilistic graphs or models.
         """
-        if (np.array(sigma) < 0).any():
-            raise exc.MessageException("Sigma cannot be negative")
+
+        if isinstance(mean, (np.ndarray, float, int, list)):
+            xp = np
+        else:
+            import jax.numpy as jnp
+            xp = jnp
+
+        # assert_sigma_non_negative(sigma, xp=xp)
 
         super().__init__(
             mean,
             sigma,
             log_norm=log_norm,
             id_=id_,
+            _xp=xp
         )
         self.mean, self.sigma = self.parameters
 
-    def cdf(self, x : Union[float, np.ndarray]) -> Union[float, np.ndarray]:
+    def cdf(self, x : Union[float, np.ndarray], xp=np) -> Union[float, np.ndarray]:
         """
         Compute the cumulative distribution function (CDF) of the Gaussian distribution
         at a given value or array of values `x`.
@@ -122,8 +149,7 @@ class NormalMessage(AbstractMessage):
 
         return norm.ppf(x, loc=self.mean, scale=self.sigma)
 
-    @cached_property
-    def natural_parameters(self) -> np.ndarray:
+    def natural_parameters(self, xp=np) -> np.ndarray:
         """
         The natural (canonical) parameters of the Gaussian distribution in exponential-family form.
 
@@ -136,10 +162,10 @@ class NormalMessage(AbstractMessage):
         -------
         A NumPy array containing the two natural parameters [η₁, η₂].
         """
-        return self.calc_natural_parameters(self.mean, self.sigma)
+        return self.calc_natural_parameters(self.mean, self.sigma, xp=xp)
 
     @staticmethod
-    def calc_natural_parameters(mu : Union[float, np.ndarray], sigma : Union[float, np.ndarray]) -> np.ndarray:
+    def calc_natural_parameters(mu : Union[float, np.ndarray], sigma : Union[float, np.ndarray], xp=np) -> np.ndarray:
         """
         Convert standard parameters of a Gaussian distribution (mean and standard deviation)
         into natural parameters used in its exponential family representation.
@@ -158,7 +184,7 @@ class NormalMessage(AbstractMessage):
             η₂ = -1 / (2σ²)
         """
         precision = 1 / sigma**2
-        return np.array([mu * precision, -precision / 2])
+        return xp.array([mu * precision, -precision / 2])
 
     @staticmethod
     def invert_natural_parameters(natural_parameters : np.ndarray) -> Tuple[float, float]:
@@ -181,7 +207,7 @@ class NormalMessage(AbstractMessage):
         return mu, sigma
 
     @staticmethod
-    def to_canonical_form(x : Union[float, np.ndarray]) -> np.ndarray:
+    def to_canonical_form(x : Union[float, np.ndarray], xp=np) -> np.ndarray:
         """
         Convert a scalar input `x` to its sufficient statistics for the Gaussian exponential family.
 
@@ -197,7 +223,7 @@ class NormalMessage(AbstractMessage):
         -------
         The sufficient statistics [x, x²].
         """
-        return np.array([x, x**2])
+        return xp.array([x, x**2])
 
     @classmethod
     def invert_sufficient_statistics(cls, suff_stats: Tuple[float, float]) -> np.ndarray:
@@ -401,7 +427,7 @@ class NormalMessage(AbstractMessage):
 
         return self.mean + (self.sigma * np.sqrt(2) * inv)
 
-    def log_prior_from_value(self, value: float) -> float:
+    def log_prior_from_value(self, value: float, xp=np) -> float:
         """
         Compute the log prior probability of a given physical value under this Gaussian prior.
 
@@ -445,7 +471,7 @@ class NormalMessage(AbstractMessage):
         A natural form Gaussian with zeroed parameters but same configuration.
         """
         return NaturalNormal.from_natural_parameters(
-            self.natural_parameters * 0.0, **self._init_kwargs
+            self.natural_parameters() * 0.0, **self._init_kwargs
         )
 
     def zeros_like(self) -> "AbstractMessage":
@@ -531,7 +557,7 @@ class NaturalNormal(NormalMessage):
         return np.nan_to_num(-self.parameters[0] / self.parameters[1] / 2)
 
     @staticmethod
-    def calc_natural_parameters(eta1: float, eta2: float) -> np.ndarray:
+    def calc_natural_parameters(eta1: float, eta2: float, xp=np) -> np.ndarray:
         """
         Return the natural parameters in array form (identity function for this class).
 
@@ -542,14 +568,13 @@ class NaturalNormal(NormalMessage):
         eta2
             The second natural parameter.
         """
-        return np.array([eta1, eta2])
+        return xp.array([eta1, eta2])
 
-    @cached_property
-    def natural_parameters(self) -> np.ndarray:
+    def natural_parameters(self, xp=np) -> np.ndarray:
         """
         Return the natural parameters of this distribution.
         """
-        return self.calc_natural_parameters(*self.parameters)
+        return self.calc_natural_parameters(*self.parameters, xp=xp)
 
     @classmethod
     def invert_sufficient_statistics(cls, suff_stats: Tuple[float, float]) -> np.ndarray:

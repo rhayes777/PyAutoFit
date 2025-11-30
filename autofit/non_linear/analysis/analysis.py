@@ -36,7 +36,7 @@ class Analysis(ABC):
         self, use_jax : bool = False, **kwargs
     ):
 
-        self.use_jax = use_jax
+        self._use_jax = use_jax
         self.kwargs = kwargs
 
     def __getattr__(self, item: str):
@@ -63,7 +63,7 @@ class Analysis(ABC):
 
     @property
     def _xp(self):
-        if self.use_jax:
+        if self._use_jax:
             import jax.numpy as jnp
             return jnp
         return np
@@ -109,7 +109,7 @@ class Analysis(ABC):
 
             compute_latent_for_model = functools.partial(self.compute_latent_variables, model=samples.model)
 
-            if self.use_jax:
+            if self._use_jax:
                 import jax
                 start = time.time()
                 logger.info("JAX: Applying vmap and jit to likelihood function for latent variables -- may take a few seconds.")
@@ -130,7 +130,7 @@ class Analysis(ABC):
                 # batched JAX call on this chunk
                 latent_values_batch = batched_compute_latent(batch)
 
-                if self.use_jax:
+                if self._use_jax:
                     import jax.numpy as jnp
                     latent_values_batch = jnp.stack(latent_values_batch, axis=-1)  # (batch, n_latents)
                     mask = jnp.all(jnp.isfinite(latent_values_batch), axis=0)

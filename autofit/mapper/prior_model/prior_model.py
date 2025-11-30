@@ -2,6 +2,7 @@ import collections.abc
 import copy
 import inspect
 import logging
+import numpy as np
 import typing
 from typing import *
 
@@ -420,36 +421,6 @@ class Model(AbstractPriorModel):
 
         self.__getattribute__(item)
 
-    # def __getattr__(self, item):
-    #
-    #     try:
-    #         if (
-    #             "_" in item
-    #             and item not in ("_is_frozen", "tuple_prior_tuples")
-    #             and not item.startswith("_")
-    #         ):
-    #             return getattr(
-    #                 [v for k, v in self.tuple_prior_tuples if item.split("_")[0] == k][
-    #                     0
-    #                 ],
-    #                 item,
-    #             )
-    #
-    #     except IndexError:
-    #         pass
-    #
-    #     try:
-    #         return getattr(
-    #             self.instance_for_arguments(
-    #                 {prior: prior for prior in self.priors},
-    #             ),
-    #             item,
-    #         )
-    #     except (AttributeError, TypeError):
-    #         pass
-    #
-    #     self.__getattribute__(item)
-
     @property
     def is_deferred_arguments(self):
         return len(self.direct_deferred_tuples) > 0
@@ -459,6 +430,7 @@ class Model(AbstractPriorModel):
         self,
         arguments: {ModelObject: object},
         ignore_assertions=False,
+        xp=np,
     ):
         """
         Returns an instance of the associated class for a set of arguments
@@ -490,6 +462,7 @@ class Model(AbstractPriorModel):
             ] = prior_model.instance_for_arguments(
                 arguments,
                 ignore_assertions=ignore_assertions,
+                xp=xp
             )
 
         prior_arguments = dict()
@@ -532,6 +505,7 @@ class Model(AbstractPriorModel):
                     value = value.instance_for_arguments(
                         arguments,
                         ignore_assertions=ignore_assertions,
+                        xp=xp
                     )
                 elif isinstance(value, Constant):
                     value = value.value

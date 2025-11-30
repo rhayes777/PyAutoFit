@@ -34,9 +34,9 @@ def transform(func):
     """
 
     @functools.wraps(func)
-    def wrapper(self, x):
+    def wrapper(self, x, xp=np):
         x = self._transform(x)
-        return func(self, x)
+        return func(self, x, xp)
 
     return wrapper
 
@@ -157,9 +157,8 @@ class TransformedMessage(MessageInterface):
     def kl(self, dist):
         return self.base_message.kl(dist.base_message)
 
-    @property
-    def natural_parameters(self):
-        return self.base_message.natural_parameters
+    def natural_parameters(self, xp=np) -> np.ndarray:
+        return self.base_message.natural_parameters(xp=xp)
 
     @inverse_transform
     def sample(self, n_samples: Optional[int] = None):
@@ -226,12 +225,11 @@ class TransformedMessage(MessageInterface):
         return self.base_message.invert_natural_parameters(natural_parameters)
 
     @transform
-    def cdf(self, x):
-        return self.base_message.cdf(x)
+    def cdf(self, x, xp=np):
+        return self.base_message.cdf(x, xp=xp)
 
-    @property
-    def log_partition(self) -> np.ndarray:
-        return self.base_message.log_partition
+    def log_partition(self, xp=np) -> np.ndarray:
+        return self.base_message.log_partition(xp=xp)
 
     def invert_sufficient_statistics(self, sufficient_statistics):
         return self.base_message.invert_sufficient_statistics(sufficient_statistics)
@@ -241,12 +239,12 @@ class TransformedMessage(MessageInterface):
         return self.base_message.value_for(unit)
 
     @transform
-    def calc_log_base_measure(self, x) -> np.ndarray:
-        return self.base_message.calc_log_base_measure(x)
+    def calc_log_base_measure(self, x, xp=np) -> np.ndarray:
+        return self.base_message.calc_log_base_measure(x, xp=xp)
 
     @transform
-    def to_canonical_form(self, x) -> np.ndarray:
-        return self.base_message.to_canonical_form(x)
+    def to_canonical_form(self, x, xp=np) -> np.ndarray:
+        return self.base_message.to_canonical_form(x, xp=xp)
 
     @property
     @inverse_transform

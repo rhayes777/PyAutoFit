@@ -25,8 +25,8 @@ def is_nan(value):
 
 
 class TruncatedNormalMessage(AbstractMessage):
-    @cached_property
-    def log_partition(self) -> float:
+
+    def log_partition(self, xp=np) -> float:
         """
         Compute the log-partition function (normalizer) of the truncated Gaussian.
 
@@ -46,7 +46,7 @@ class TruncatedNormalMessage(AbstractMessage):
         a = (self.lower_limit - self.mean) / self.sigma
         b = (self.upper_limit - self.mean) / self.sigma
         Z = norm.cdf(b) - norm.cdf(a)
-        return np.log(Z) if Z > 0 else -np.inf
+        return xp.log(Z) if Z > 0 else -xp.inf
 
     log_base_measure = -0.5 * np.log(2 * np.pi)
 
@@ -96,7 +96,7 @@ class TruncatedNormalMessage(AbstractMessage):
 
         self.mean, self.sigma, self.lower_limit, self.upper_limit = self.parameters
 
-    def cdf(self, x: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
+    def cdf(self, x: Union[float, np.ndarray], xp=np) -> Union[float, np.ndarray]:
         """
         Compute the cumulative distribution function (CDF) of the truncated Gaussian distribution
         at a given value or array of values `x`.
@@ -141,8 +141,7 @@ class TruncatedNormalMessage(AbstractMessage):
         b = (self.upper_limit - self.mean) / self.sigma
         return truncnorm.ppf(x, a=a, b=b, loc=self.mean, scale=self.sigma)
 
-    @cached_property
-    def natural_parameters(self) -> np.ndarray:
+    def natural_parameters(self, xp=np) -> np.ndarray:
         """
         The pseudo-natural (canonical) parameters of a truncated Gaussian distribution.
 
@@ -159,10 +158,10 @@ class TruncatedNormalMessage(AbstractMessage):
         -------
         A NumPy array containing the pseudo-natural parameters [η₁, η₂].
         """
-        return self.calc_natural_parameters(self.mean, self.sigma)
+        return self.calc_natural_parameters(self.mean, self.sigma, xp=xp)
 
     @staticmethod
-    def calc_natural_parameters(mu : Union[float, np.ndarray], sigma : Union[float, np.ndarray]) -> np.ndarray:
+    def calc_natural_parameters(mu : Union[float, np.ndarray], sigma : Union[float, np.ndarray], xp=np) -> np.ndarray:
         """
         Convert standard parameters of a Gaussian distribution (mean and standard deviation)
         into natural parameters used in its exponential family representation.
@@ -190,7 +189,7 @@ class TruncatedNormalMessage(AbstractMessage):
             η₂ = -1 / (2σ²)
         """
         precision = 1 / sigma**2
-        return np.array([mu * precision, -precision / 2])
+        return xp.array([mu * precision, -precision / 2])
 
     @staticmethod
     def invert_natural_parameters(natural_parameters : np.ndarray) -> Tuple[float, float]:
@@ -217,7 +216,7 @@ class TruncatedNormalMessage(AbstractMessage):
         return mu, sigma
 
     @staticmethod
-    def to_canonical_form(x : Union[float, np.ndarray]) -> np.ndarray:
+    def to_canonical_form(x : Union[float, np.ndarray], xp=np) -> np.ndarray:
         """
         Convert a scalar input `x` to its sufficient statistics for the Gaussian exponential family.
 
@@ -234,7 +233,7 @@ class TruncatedNormalMessage(AbstractMessage):
         -------
         The sufficient statistics [x, x²].
         """
-        return np.array([x, x**2])
+        return xp.array([x, x**2])
 
     @classmethod
     def invert_sufficient_statistics(cls, suff_stats: Tuple[float, float]) -> np.ndarray:
@@ -422,7 +421,7 @@ class TruncatedNormalMessage(AbstractMessage):
         x_standard = norm.ppf(truncated_cdf)
         return self.mean + self.sigma * x_standard
 
-    def log_prior_from_value(self, value: float) -> float:
+    def log_prior_from_value(self, value: float, xp=np) -> float:
         """
         Compute the log prior probability of a given physical value under this truncated Gaussian prior.
 
@@ -439,18 +438,31 @@ class TruncatedNormalMessage(AbstractMessage):
         -------
         The log prior probability of the given value, or -inf if outside truncation bounds.
         """
-        from scipy.stats import norm
 
+        if xp.__name__.startswith("jax"):
+            import jax.scipy.stats as jstats
+            norm = jstats.norm
+        else:
+            from scipy.stats import norm
+
+        # Normalization term (truncation)
         a = (self.lower_limit - self.mean) / self.sigma
         b = (self.upper_limit - self.mean) / self.sigma
         Z = norm.cdf(b) - norm.cdf(a)
 
-        z = (value -self.mean) / self.sigma
-        log_pdf = -0.5 * z ** 2 - np.log(self.sigma) - 0.5 * np.log(2 * np.pi)
-        log_trunc_pdf = log_pdf - np.log(Z)
+        # Log pdf
+        z = (value - self.mean) / self.sigma
+        log_pdf = (
+                -0.5 * z ** 2
+                - xp.log(self.sigma)
+                - 0.5 * xp.log(2.0 * xp.pi)
+        )
+        log_trunc_pdf = log_pdf - xp.log(Z)
 
+        # Truncation mask (must be xp.where for JAX)
         in_bounds = (self.lower_limit <= value) & (value <= self.upper_limit)
-        return np.where(in_bounds, log_trunc_pdf, -np.inf)
+
+        return xp.where(in_bounds, log_trunc_pdf, -xp.inf)
 
     def __str__(self):
         """
@@ -481,7 +493,7 @@ class TruncatedNormalMessage(AbstractMessage):
         A natural form Gaussian with zeroed parameters but same configuration.
         """
         return TruncatedNaturalNormal.from_natural_parameters(
-            self.natural_parameters * 0.0, **self._init_kwargs
+            self.natural_parameters() * 0.0, **self._init_kwargs
         )
 
     def zeros_like(self) -> "AbstractMessage":
@@ -605,10 +617,11 @@ class TruncatedNaturalNormal(TruncatedNormalMessage):
 
     @staticmethod
     def calc_natural_parameters(
-            eta1: float,
-            eta2: float,
-            lower_limit: float = -np.inf,
-            upper_limit: float = np.inf
+        eta1: float,
+        eta2: float,
+        lower_limit: float = -np.inf,
+        upper_limit: float = np.inf,
+        xp=np
     ) -> np.ndarray:
         """
         Return the natural parameters in array form (identity function for this class).
@@ -623,14 +636,13 @@ class TruncatedNaturalNormal(TruncatedNormalMessage):
         eta2
             The second natural parameter.
         """
-        return np.array([eta1, eta2])
+        return xp.array([eta1, eta2])
 
-    @cached_property
-    def natural_parameters(self) -> np.ndarray:
+    def natural_parameters(self, xp=np) -> np.ndarray:
         """
         Return the natural parameters of this distribution.
         """
-        return self.calc_natural_parameters(*self.parameters, self.lower_limit, self.upper_limit)
+        return self.calc_natural_parameters(*self.parameters, self.lower_limit, self.upper_limit, xp=xp)
 
     @classmethod
     def invert_sufficient_statistics(

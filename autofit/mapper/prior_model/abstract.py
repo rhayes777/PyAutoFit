@@ -745,7 +745,7 @@ class AbstractPriorModel(AbstractModel):
         """
         return self.vector_from_unit_vector([0.5] * len(self.unique_prior_tuples))
 
-    def instance_from_vector(self, vector, ignore_assertions: bool = False):
+    def instance_from_vector(self, vector, ignore_assertions: bool = False, xp=np):
         """
         Returns a ModelInstance, which has an attribute and class instance corresponding
         to every `Model` attributed to this instance.
@@ -778,6 +778,7 @@ class AbstractPriorModel(AbstractModel):
         return self.instance_for_arguments(
             arguments,
             ignore_assertions=ignore_assertions,
+            xp=xp
         )
 
     def has(self, cls: Union[Type, Tuple[Type, ...]]) -> bool:
@@ -1078,6 +1079,7 @@ class AbstractPriorModel(AbstractModel):
     def log_prior_list_from_vector(
         self,
         vector: [float],
+        xp=np,
     ):
         """
         Compute the log priors of every parameter in a vector, using the Prior of every parameter.
@@ -1094,7 +1096,7 @@ class AbstractPriorModel(AbstractModel):
         return list(
             map(
                 lambda prior_tuple, value: prior_tuple.prior.log_prior_from_value(
-                    value=value
+                    value=value, xp=xp
                 ),
                 self.prior_tuples_ordered_by_id,
                 vector,
@@ -1308,6 +1310,7 @@ class AbstractPriorModel(AbstractModel):
         self,
         arguments: Dict[Prior, float],
         ignore_assertions: bool = False,
+        xp=np,
     ):
         raise NotImplementedError()
 
@@ -1315,6 +1318,7 @@ class AbstractPriorModel(AbstractModel):
         self,
         arguments: Dict[Prior, float],
         ignore_assertions: bool = False,
+        xp=np,
     ):
         """
         Returns an instance of the model for a set of arguments
@@ -1338,6 +1342,7 @@ class AbstractPriorModel(AbstractModel):
         return self._instance_for_arguments(
             arguments,
             ignore_assertions=ignore_assertions,
+            xp=xp
         )
 
     def path_for_name(self, name: str) -> Tuple[str, ...]:

@@ -6,11 +6,11 @@ from autofit.messages.utils import invpsilog
 
 
 class GammaMessage(AbstractMessage):
-    @property
-    def log_partition(self):
+
+    def log_partition(self, xp=np):
         from scipy import special
 
-        alpha, beta = GammaMessage.invert_natural_parameters(self.natural_parameters)
+        alpha, beta = GammaMessage.invert_natural_parameters(self.natural_parameters(xp=xp))
         return special.gammaln(alpha) - alpha * np.log(beta)
 
     log_base_measure = 0.0
@@ -36,13 +36,12 @@ class GammaMessage(AbstractMessage):
     def value_for(self, unit: float) -> float:
         raise NotImplemented()
 
-    @cached_property
-    def natural_parameters(self):
-        return self.calc_natural_parameters(self.alpha, self.beta)
+    def natural_parameters(self, xp=np) -> np.ndarray:
+        return self.calc_natural_parameters(self.alpha, self.beta, xp=xp)
 
     @staticmethod
-    def calc_natural_parameters(alpha, beta):
-        return np.array([alpha - 1, -beta])
+    def calc_natural_parameters(alpha, beta, xp=np):
+        return xp.array([alpha - 1, -beta])
 
     @staticmethod
     def invert_natural_parameters(natural_parameters):
@@ -50,8 +49,8 @@ class GammaMessage(AbstractMessage):
         return eta1 + 1, -eta2
 
     @staticmethod
-    def to_canonical_form(x):
-        return np.array([np.log(x), x])
+    def to_canonical_form(x, xp=np):
+        return xp.array([np.log(x), x])
 
     @classmethod
     def invert_sufficient_statistics(cls, suff_stats):
@@ -98,13 +97,13 @@ class GammaMessage(AbstractMessage):
 
     def logpdf_gradient(self, x):
         logl = self.logpdf(x)
-        eta1 = self.natural_parameters[0]
+        eta1 = self.natural_parameters()[0]
         gradl = eta1 / x - self.beta
         return logl, gradl
 
     def logpdf_gradient_hessian(self, x):
         logl = self.logpdf(x)
-        eta1 = self.natural_parameters[0]
+        eta1 = self.natural_parameters()[0]
         gradl = eta1 / x
         hessl = -gradl / x
         gradl -= self.beta
