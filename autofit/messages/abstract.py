@@ -62,7 +62,7 @@ class AbstractMessage(MessageInterface, ABC):
             self._broadcast = _xp.broadcast_arrays(*parameters)
 
         if self.shape:
-            self.parameters = tuple(xp.aarray(p) for p in parameters)
+            self.parameters = tuple(xp.asarray(p) for p in parameters)
         else:
             self.parameters = tuple(parameters)
 

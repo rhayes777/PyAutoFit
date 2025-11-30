@@ -6,11 +6,11 @@ from autofit.messages.utils import invpsilog
 
 
 class GammaMessage(AbstractMessage):
-    @property
-    def log_partition(self):
+
+    def log_partition(self, xp=np):
         from scipy import special
 
-        alpha, beta = GammaMessage.invert_natural_parameters(self.natural_parameters)
+        alpha, beta = GammaMessage.invert_natural_parameters(self.natural_parameters(xp=xp))
         return special.gammaln(alpha) - alpha * np.log(beta)
 
     log_base_measure = 0.0

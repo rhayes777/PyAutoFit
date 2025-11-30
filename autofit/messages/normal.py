@@ -45,8 +45,8 @@ def assert_sigma_non_negative(sigma, xp=np):
             raise ValueError("Sigma cannot be negative")
 
 class NormalMessage(AbstractMessage):
-    @cached_property
-    def log_partition(self):
+
+    def log_partition(self, xp=np):
         """
         Compute the log-partition function (also called log-normalizer or cumulant function)
         for the normal distribution in its natural (canonical) parameterization.
@@ -59,8 +59,8 @@ class NormalMessage(AbstractMessage):
            A(η) = η₁² / (-4η₂) - 0.5 * log(-2η₂)
         This ensures normalization of the exponential-family distribution.
         """
-        eta1, eta2 = self.natural_parameters
-        return -(eta1**2) / 4 / eta2 - np.log(-2 * eta2) / 2
+        eta1, eta2 = self.natural_parameters(xp=xp)
+        return -(eta1**2) / 4 / eta2 - xp.log(-2 * eta2) / 2
 
     log_base_measure = -0.5 * np.log(2 * np.pi)
     _support = ((-np.inf, np.inf),)

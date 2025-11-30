@@ -37,8 +37,7 @@ class FixedMessage(AbstractMessage):
     def to_canonical_form(x: np.ndarray, xp=np) -> np.ndarray:
         return x
 
-    @cached_property
-    def log_partition(self) -> np.ndarray:
+    def log_partition(self, xp=np) -> np.ndarray:
         return 0.
 
     @classmethod

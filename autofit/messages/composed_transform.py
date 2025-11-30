@@ -228,8 +228,7 @@ class TransformedMessage(MessageInterface):
     def cdf(self, x):
         return self.base_message.cdf(x)
 
-    @property
-    def log_partition(self) -> np.ndarray:
+    def log_partition(self, xp=np) -> np.ndarray:
         return self.base_message.log_partition
 
     def invert_sufficient_statistics(self, sufficient_statistics):

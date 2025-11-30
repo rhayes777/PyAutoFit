@@ -48,7 +48,7 @@ class MessageInterface(ABC):
         eta = self._broadcast_natural_parameters(x, xp=xp)
         t = self.to_canonical_form(x, xp=xp)
         log_base = self.calc_log_base_measure(x)
-        return self.natural_logpdf(eta, t, log_base, self.log_partition)
+        return self.natural_logpdf(eta, t, log_base, self.log_partition(xp=xp), xp=xp)
 
     def _broadcast_natural_parameters(self, x, xp=np):
         shape = xp.shape(x)
@@ -75,15 +75,14 @@ class MessageInterface(ABC):
     def calc_log_base_measure(cls, x):
         return cls.log_base_measure
 
-    @cached_property
     @abstractmethod
-    def log_partition(self) -> np.ndarray:
+    def log_partition(self, xp=np) -> np.ndarray:
         pass
 
     @classmethod
-    def natural_logpdf(cls, eta, t, log_base, log_partition):
-        eta_t = np.multiply(eta, t).sum(0)
-        return np.nan_to_num(log_base + eta_t - log_partition, nan=-np.inf)
+    def natural_logpdf(cls, eta, t, log_base, log_partition, xp=np):
+        eta_t = xp.multiply(eta, t).sum(0)
+        return xp.nan_to_num(log_base + eta_t - log_partition, nan=-xp.inf)
 
     def numerical_logpdf_gradient(
         self, x: np.ndarray, eps: float = 1e-6

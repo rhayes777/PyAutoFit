@@ -171,8 +171,7 @@ class BetaMessage(AbstractMessage):
         """
         raise NotImplemented()
 
-    @cached_property
-    def log_partition(self) -> np.ndarray:
+    def log_partition(self, xp=np) -> np.ndarray:
         """
         Compute the log partition function (log normalization constant) of the Beta distribution.
 

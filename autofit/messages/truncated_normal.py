@@ -25,8 +25,8 @@ def is_nan(value):
 
 
 class TruncatedNormalMessage(AbstractMessage):
-    @cached_property
-    def log_partition(self) -> float:
+
+    def log_partition(self, xp=np) -> float:
         """
         Compute the log-partition function (normalizer) of the truncated Gaussian.
 
@@ -46,7 +46,7 @@ class TruncatedNormalMessage(AbstractMessage):
         a = (self.lower_limit - self.mean) / self.sigma
         b = (self.upper_limit - self.mean) / self.sigma
         Z = norm.cdf(b) - norm.cdf(a)
-        return np.log(Z) if Z > 0 else -np.inf
+        return xp.log(Z) if Z > 0 else -xp.inf
 
     log_base_measure = -0.5 * np.log(2 * np.pi)
 
