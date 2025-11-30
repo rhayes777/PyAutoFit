@@ -92,6 +92,7 @@ class AbstractBFGS(AbstractMLE):
             fom_is_log_likelihood=False,
             resample_figure_of_merit=-np.inf,
             convert_to_chi_squared=True,
+            use_jax_vmap=True,
             store_history=self.should_plot_start_point
         )
 
@@ -145,7 +146,7 @@ class AbstractBFGS(AbstractMLE):
                 config_dict_options["maxiter"] = iterations
 
                 search_internal = optimize.minimize(
-                    fun=fitness._jit,
+                    fun=fitness.call_wrap,
                     x0=x0,
                     method=self.method,
                     options=config_dict_options,

@@ -439,17 +439,30 @@ class TruncatedNormalMessage(AbstractMessage):
         -------
         The log prior probability of the given value, or -inf if outside truncation bounds.
         """
-        from scipy.stats import norm
 
+        if xp.__name__.startswith("jax"):
+            import jax.scipy.stats as jstats
+            norm = jstats.norm
+        else:
+            from scipy.stats import norm
+
+        # Normalization term (truncation)
         a = (self.lower_limit - self.mean) / self.sigma
         b = (self.upper_limit - self.mean) / self.sigma
         Z = norm.cdf(b) - norm.cdf(a)
 
-        z = (value -self.mean) / self.sigma
-        log_pdf = -0.5 * z ** 2 - xp.log(self.sigma) - 0.5 * xp.log(2 * xp.pi)
+        # Log pdf
+        z = (value - self.mean) / self.sigma
+        log_pdf = (
+                -0.5 * z ** 2
+                - xp.log(self.sigma)
+                - 0.5 * xp.log(2.0 * xp.pi)
+        )
         log_trunc_pdf = log_pdf - xp.log(Z)
 
+        # Truncation mask (must be xp.where for JAX)
         in_bounds = (self.lower_limit <= value) & (value <= self.upper_limit)
+
         return xp.where(in_bounds, log_trunc_pdf, -xp.inf)
 
     def __str__(self):
