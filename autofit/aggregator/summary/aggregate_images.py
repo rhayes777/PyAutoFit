@@ -24,32 +24,11 @@ def subplot_filename(subplot: Enum) -> str:
     )
 
 
-class SubplotFit(Enum):
-    """
-    The subplots that can be extracted from the subplot_fit image.
-
-    The values correspond to the position of the subplot in the 4x3 grid.
-    """
-
-    Data = (0, 0)
-    DataSourceScaled = (1, 0)
-    SignalToNoiseMap = (2, 0)
-    ModelData = (3, 0)
-    LensLightModelData = (0, 1)
-    LensLightSubtractedImage = (1, 1)
-    SourceModelData = (2, 1)
-    SourcePlaneZoomed = (3, 1)
-    NormalizedResidualMap = (0, 2)
-    NormalizedResidualMapOneSigma = (1, 2)
-    ChiSquaredMap = (2, 2)
-    SourcePlaneNoZoom = (3, 2)
-
-
 class SubplotFitImage:
     def __init__(
         self,
         image: Image.Image,
-        suplot_type: Type[SubplotFit] = SubplotFit,
+        suplot_type,
     ):
         """
         The subplot_fit image associated with one fit.
@@ -173,7 +152,7 @@ class AggregateImages:
         self,
         folder: Path,
         name: Union[str, List[str]],
-        subplots: List[Union[SubplotFit, List[Image.Image], Callable]],
+        subplots: List[Union[List[Image.Image], Callable]],
         subplot_width: Optional[int] = sys.maxsize,
     ):
         """
@@ -226,7 +205,7 @@ class AggregateImages:
     def _matrix_for_result(
         i: int,
         result: SearchOutput,
-        subplots: List[Union[SubplotFit, List[Image.Image], Callable]],
+        subplots: List[Union[List[Image.Image], Callable]],
         subplot_width: int = sys.maxsize,
     ) -> List[List[Image.Image]]:
         """
@@ -272,7 +251,8 @@ class AggregateImages:
                 _images[subplot_type] = SubplotFitImage(
                     result.image(
                         subplot_filename(subplot_),
-                    )
+                    ),
+                    subplot_type
                 )
             return _images[subplot_type]
 
