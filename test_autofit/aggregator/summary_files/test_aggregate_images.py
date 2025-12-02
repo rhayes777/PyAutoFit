@@ -6,8 +6,27 @@ from pathlib import Path
 from PIL import Image
 
 from autofit.aggregator import Aggregator
-from autofit.aggregator.summary.aggregate_images import AggregateImages, SubplotFit
+from autofit.aggregator.summary.aggregate_images import AggregateImages
 
+class SubplotFit(Enum):
+    """
+    The subplots that can be extracted from the subplot_fit image.
+
+    The values correspond to the position of the subplot in the 4x3 grid.
+    """
+
+    Data = (0, 0)
+    DataSourceScaled = (1, 0)
+    SignalToNoiseMap = (2, 0)
+    ModelData = (3, 0)
+    LensLightModelData = (0, 1)
+    LensLightSubtractedImage = (1, 1)
+    SourceModelData = (2, 1)
+    SourcePlaneZoomed = (3, 1)
+    NormalizedResidualMap = (0, 2)
+    NormalizedResidualMapOneSigma = (1, 2)
+    ChiSquaredMap = (2, 2)
+    SourcePlaneNoZoom = (3, 2)
 
 @pytest.fixture
 def aggregate(aggregator):
@@ -167,7 +186,7 @@ def test_custom_subplot_fit(aggregate):
             SubplotFit.Data,
         ]
     )
-    assert result.size == (61, 120)
+    assert result.size == (244, 362)
 
 
 def test_bad_aggregator():
