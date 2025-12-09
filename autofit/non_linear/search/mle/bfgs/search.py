@@ -136,21 +136,32 @@ class AbstractBFGS(AbstractMLE):
         maxiter = self.config_dict_options.get("maxiter", 1e8)
 
         while total_iterations < maxiter:
-            iterations_remaining = maxiter - total_iterations
 
+            iterations_remaining = maxiter - total_iterations
             iterations = min(self.iterations_per_full_update, iterations_remaining)
 
             if iterations > 0:
                 config_dict_options = self.config_dict_options
                 config_dict_options["maxiter"] = iterations
 
-                search_internal = optimize.minimize(
-                    fun=fitness._jit,
-                    x0=x0,
-                    method=self.method,
-                    options=config_dict_options,
-                    **self.config_dict_search
-                )
+                if analysis._use_jax:
+
+                    search_internal = optimize.minimize(
+                        fun=fitness._jit,
+                        x0=x0,
+                        method=self.method,
+                        options=config_dict_options,
+                        **self.config_dict_search
+                    )
+                else:
+
+                    search_internal = optimize.minimize(
+                        fun=fitness.__call__,
+                        x0=x0,
+                        method=self.method,
+                        options=config_dict_options,
+                        **self.config_dict_search
+                    )
 
                 total_iterations += search_internal.nit
 

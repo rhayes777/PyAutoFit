@@ -173,6 +173,7 @@ class Fitness:
 
         # Penalize NaNs in the log-likelihood
         log_likelihood = self._xp.where(self._xp.isnan(log_likelihood), self.resample_figure_of_merit, log_likelihood)
+        log_likelihood = self._xp.where(self._xp.isinf(log_likelihood), self.resample_figure_of_merit, log_likelihood)
 
         # Determine final figure of merit
         if self.fom_is_log_likelihood:
@@ -222,18 +223,15 @@ class Fitness:
         figure_of_merit = self._call(parameters)
 
         if self.convert_to_chi_squared:
-            figure_of_merit *= -0.5
-
-        if self.fom_is_log_likelihood:
-            log_likelihood = figure_of_merit
+            log_likelihood = -0.5 * figure_of_merit
         else:
+            log_likelihood = figure_of_merit
+
+        if not self.fom_is_log_likelihood:
             log_prior_list = self._xp.array(self.model.log_prior_list_from_vector(vector=parameters, xp=self._xp))
-            log_likelihood = figure_of_merit - self._xp.sum(log_prior_list)
+            log_likelihood -= self._xp.sum(log_prior_list)
 
         self.manage_quick_update(parameters=parameters, log_likelihood=log_likelihood)
-
-        if self.convert_to_chi_squared:
-            log_likelihood *= -2.0
 
         if self.store_history:
 
