@@ -228,8 +228,8 @@ class Fitness:
             log_likelihood = figure_of_merit
 
         if not self.fom_is_log_likelihood:
-            log_prior_list = self._xp.array(self.model.log_prior_list_from_vector(vector=parameters, xp=self._xp))
-            log_likelihood -= self._xp.sum(log_prior_list)
+            log_prior_list = np.array(self.model.log_prior_list_from_vector(vector=parameters, xp=np))
+            log_likelihood -= np.sum(log_prior_list)
 
         self.manage_quick_update(parameters=parameters, log_likelihood=log_likelihood)
 
