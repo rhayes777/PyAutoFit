@@ -2,7 +2,28 @@ from functools import wraps
 
 
 class RecursionPromise:
-    pass
+    """
+    A placeholder standing in for an object that is still being computed.
+
+    ``used`` records whether this placeholder was ever handed back to a caller.
+    The only way to obtain one is a cache hit in
+    :meth:`DynamicRecursionCache.__call__`'s wrapper, which sets the flag, so a
+    promise with ``used is False`` was never seen by any code outside the
+    wrapper that created it. No object in the result can then hold a reference
+    to it, and the ``replace_promise`` traversal below is provably a no-op --
+    one that still walks (and ``setattr``s its way through) every object
+    reachable from the result, over a graph that grows with the model.
+
+    ``__slots__`` is load-bearing twice over: it keeps the flag off the
+    instance ``__dict__``, and it means ``replace_promise`` takes its
+    ``AttributeError`` branch immediately on a promise that *is* live rather
+    than iterating a dict of its own.
+    """
+
+    __slots__ = ("used",)
+
+    def __init__(self):
+        self.used = False
 
 
 def replace_promise(promise: RecursionPromise, obj, true_value, seen_objects=None):
@@ -77,11 +98,19 @@ class DynamicRecursionCache:
             item_id = id(item)
 
             if item_id in self.cache:
-                return self.cache[item_id]
+                recursion_promise = self.cache[item_id]
+                # The promise escapes here and only here, so this is the one
+                # place that can put it inside the result being built.
+                recursion_promise.used = True
+                return recursion_promise
+
             recursion_promise = RecursionPromise()
             self.cache[item_id] = recursion_promise
             result = func(item, *args, **kwargs)
-            result = replace_promise(recursion_promise, result, result)
+
+            if recursion_promise.used:
+                result = replace_promise(recursion_promise, result, result)
+
             del self.cache[item_id]
             return result
 
