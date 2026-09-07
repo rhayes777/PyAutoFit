@@ -146,6 +146,7 @@ def factor_step(factor_approx, optimiser, model_approx=None):
             updated=status.updated,
             flag=status.flag,
             result=status.result,
+            changed=status.changed,
         )
 
     except (
@@ -167,6 +168,7 @@ def factor_step(factor_approx, optimiser, model_approx=None):
             messages=(f"Factor: {factor} experienced error {e}",),
             updated=False,
             flag=StatusFlag.EXCEPTION,
+            changed=None,
         )
         new_model_dist = factor_approx.model_dist
 
@@ -249,6 +251,25 @@ class EPOptimiser:
         self._factors_raised: Set[Factor] = set()
         self._factors_skipped: Set[Factor] = set()
         self._factors_updated: Set[Factor] = set()
+        # The same question one level down: per factor, which of its variables
+        # were ever compared, and which of them ever moved. A variable in
+        # `seen` but never in `changed` reverted on every projection, so the
+        # posterior reported for it is the message it started with — even when
+        # the factor as a whole updated. See `_stale_factor_warnings`.
+        #
+        # Keyed by factor *name*, not factor: a `HierarchicalFactor` decomposes
+        # into one `_HierarchicalFactor` per drawn variable, each constructed
+        # with `name=distribution_model.name`, so the members of one logical
+        # factor share a name and nothing else does (`namer` gives distinct
+        # factors distinct names). Keying by name is therefore the parent
+        # identity, without the EP core having to know about the declarative
+        # layer — and a variable is stale for the group only if *no* member
+        # ever moved it.
+        self._variables_seen: Dict[str, set] = {}
+        self._variables_changed: Dict[str, set] = {}
+        # How many updates carried a per-variable mask for each group — the
+        # denominator the per-variable warning quotes.
+        self._factor_sweeps: Dict[str, int] = {}
 
         self.visualiser = None
         if paths is None:
@@ -371,6 +392,20 @@ class EPOptimiser:
         True if this factor has now failed enough consecutive sweeps that the
         run should stop early.
         """
+        # Per-variable bookkeeping, one level below `status.updated`: which of
+        # this factor's variables were compared by this update, and which of
+        # them actually moved — accumulated per factor *name*, so a decomposed
+        # factor's per-dataset members count as one group. A raise never
+        # carries a mask (the update never reached the projection), so this is
+        # a no-op on that path.
+        if status.changed is not None:
+            group = factor.name
+            self._variables_seen.setdefault(group, set()).update(status.changed.keys())
+            self._variables_changed.setdefault(group, set()).update(
+                variable for variable, changed in status.changed.items() if changed
+            )
+            self._factor_sweeps[group] = self._factor_sweeps.get(group, 0) + 1
+
         if raised:
             self._factors_raised.add(factor)
             count = self._consecutive_failures.get(factor, 0) + 1
@@ -426,22 +461,61 @@ class EPOptimiser:
         update was skipped (failed line search, bad projection), at least once
         and *never once* updated. A factor that failed intermittently but landed
         at least one update has a real message and is not reported.
+
+        The factor-level test cannot see a *partial* revert. On a hierarchical
+        graph every projection may be `BAD_PROJECTION` with one variable — the
+        parent scatter — reverted in each one, while the factor's mean and its
+        per-dataset variables update: the factor counts as updated, so no line
+        is emitted, yet the scatter's reported posterior is the hyper-prior it
+        started with. That is the #1405 stale-scatter state this warning exists
+        to catch, so a second pass reports every (factor, variable) pair whose
+        variable never once changed.
+
+        That pass works on *groups*, not individual factors: a
+        `HierarchicalFactor` decomposes into one factor per drawn variable, all
+        sharing its name, and the parent scatter's message is the product of
+        every member's. One member moving it is enough for the reported
+        posterior to be a posterior, so a variable is only named when no member
+        of its group ever moved it. A group is skipped only when every one of
+        its factors is already named at factor level above.
         """
         stale = (self._factors_raised | self._factors_skipped) - self._factors_updated
-        if not stale:
-            return []
 
-        names = ", ".join(sorted(factor.name for factor in stale))
-        return [
-            f"STALE FACTORS: {names} never completed a single update — their "
-            f"optimisers raised or their updates were skipped on every sweep. "
-            f"The mean field returned for "
-            f"them is the prior the fit started with, not a posterior. Do not "
-            f"read those values as a result. Note that EP may also report "
-            f"convergence in this state: with no factor updating, the KL step "
-            f"between sweeps is zero, which is indistinguishable from having "
-            f"converged."
-        ]
+        warnings = []
+        if stale:
+            names = ", ".join(sorted(factor.name for factor in stale))
+            warnings.append(
+                f"STALE FACTORS: {names} never completed a single update — their "
+                f"optimisers raised or their updates were skipped on every sweep. "
+                f"The mean field returned for "
+                f"them is the prior the fit started with, not a posterior. Do not "
+                f"read those values as a result. Note that EP may also report "
+                f"convergence in this state: with no factor updating, the KL step "
+                f"between sweeps is zero, which is indistinguishable from having "
+                f"converged."
+            )
+
+        for group in sorted(self._variables_seen):
+            members = {
+                factor for factor in self.factor_optimisers if factor.name == group
+            }
+            if members and members <= stale:
+                # Every factor in the group is already reported at factor
+                # level; naming each of its variables again only repeats it.
+                continue
+            stale_variables = self._variables_seen[group] - self._variables_changed.get(
+                group, set()
+            )
+            n_updates = self._factor_sweeps.get(group, 0)
+            for variable in sorted(stale_variables, key=lambda v: v.name):
+                warnings.append(
+                    f"STALE FACTORS: variable '{variable.name}' of {group} "
+                    f"never changed across {n_updates} updates (reverted on "
+                    f"every projection of that factor); its reported posterior "
+                    f"is the message it started with"
+                )
+
+        return warnings
 
     def _warn_stale_factors(self):
         """
@@ -499,6 +573,9 @@ class EPOptimiser:
         self._factors_raised = set()
         self._factors_skipped = set()
         self._factors_updated = set()
+        self._variables_seen = {}
+        self._variables_changed = {}
+        self._factor_sweeps = {}
 
         for _ in range(max_steps):
             _should_log = should_log()
@@ -685,6 +762,9 @@ class ParallelEPOptimiser(EPOptimiser):
         self._factors_raised = set()
         self._factors_skipped = set()
         self._factors_updated = set()
+        self._variables_seen = {}
+        self._variables_changed = {}
+        self._factor_sweeps = {}
 
         for _ in range(max_steps):
             _should_log = should_log()

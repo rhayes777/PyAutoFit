@@ -25,7 +25,8 @@ Outputs written to the EP output folder by ``EPOptimiser`` when paths
 are enabled:
 
 - ``ep_history.csv`` — one row per factor update:
-  ``step, factor, success, updated, flag, log_evidence, kl_divergence``
+  ``step, factor, success, updated, flag, log_evidence, kl_divergence,
+  reverted_variables``
 - ``mean_field_history.csv`` — one row per (factor update, variable):
   ``step, factor, variable, mean, std``
 - ``mean_field_evolution.png`` — per-variable mean ± std vs update.
@@ -138,6 +139,21 @@ class EPDiagnostics:
         else:
             kl = float("nan")
 
+        # The variables this update did *not* move. `updated` is the
+        # factor-level summary — True as soon as anything moved — so a
+        # variable reverted on every projection is invisible in it; this
+        # column is what lets a referee script tally that per variable.
+        if status.changed is not None:
+            reverted_variables = ";".join(
+                sorted(
+                    variable.name
+                    for variable, changed in status.changed.items()
+                    if not changed
+                )
+            )
+        else:
+            reverted_variables = ""
+
         self.factor_rows.append(
             {
                 "step": self._step,
@@ -147,6 +163,7 @@ class EPDiagnostics:
                 "flag": status.flag.name,
                 "log_evidence": log_evidence,
                 "kl_divergence": kl,
+                "reverted_variables": reverted_variables,
             }
         )
 

@@ -283,6 +283,7 @@ class Status:
     updated: bool = True
     flag: StatusFlag = StatusFlag.SUCCESS
     result: Optional[Result] = None
+    changed: Optional[VariableData] = None
 
     def __init__(
             self,
@@ -291,14 +292,33 @@ class Status:
             updated: bool = True,
             flag: StatusFlag = StatusFlag.SUCCESS,
             result: Optional[Result] = None,
+            changed: Optional[VariableData] = None,
     ):
+        """
+        Parameters
+        ----------
+        changed
+            Per-variable mask of whether this factor update actually moved
+            each of the factor's messages, as
+            ``MeanField.check_changed`` computes it. ``updated`` is the
+            factor-level summary of the same thing (did *anything* move);
+            this is the per-variable resolution the (factor, variable)
+            staleness warning needs, so that a variable reverted on every
+            projection is named even when its factor's other variables
+            update. ``None`` when the update carried no comparison — no
+            previous message to compare against, or a status that never
+            reached the mean-field projection.
+        """
         self.success = success
         self.messages = messages
         self.updated = updated
         self.flag = flag
         self.result = result
+        self.changed = changed
 
     def __iter__(self):
+        # `changed` is deliberately absent: the 4-tuple unpack in
+        # `MeanField.update_factor_mean_field` depends on this arity.
         return iter((self.success, self.messages, self.updated, self.flag))
 
     def __bool__(self):
@@ -318,6 +338,7 @@ class Status:
             messages=self.messages,
             updated=self.updated,
             flag=self.flag,
+            changed=self.changed,
         )
 
 

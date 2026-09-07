@@ -230,6 +230,15 @@ mean field from a run that logged failures. A factor that failed
 intermittently but landed at least one update is not stale and is not
 reported.
 
+Staleness is also reported **per variable**: a variable that reverts on
+every projection while its factor's other variables move leaves the
+factor "updated" and unreported at factor level, yet its own posterior is
+still the message it started with — the hierarchical-scatter case of
+§3.5 — so `run` names each such (factor, variable) pair in the same
+**STALE FACTORS** block. `ep_history.csv` carries the raw signal as a
+`reverted_variables` column, one semicolon-separated list of the
+variables each update did not move.
+
 ### 3.5 Caveat — a hierarchical *scatter* cannot be projected by its mode
 
 For a hierarchical factor `N(xᵢ | μ, σ)` the tilted density in `σ` is

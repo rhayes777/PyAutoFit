@@ -501,6 +501,13 @@ class MeanField(Collection, Dict[Variable, AbstractMessage], Factor):
         """
         success, messages, _, flag = status
         updated = False
+        # Per-variable mask of what this update actually moved, carried on the
+        # returned Status for the (factor, variable) staleness warning. It is
+        # computed on both branches below, against the *final* factor_dist —
+        # after `update_invalid` on the invalid branch, since it is exactly a
+        # variable whose every parameter was reverted that must read as
+        # unchanged. None when there is nothing to compare against.
+        changed = None
         if not status.success and last_dist is not None:
             # The optimiser did not succeed (failed line search, bad Hessian,
             # exception): keep the previous message rather than projecting a
@@ -514,6 +521,7 @@ class MeanField(Collection, Dict[Variable, AbstractMessage], Factor):
                     updated=False,
                     flag=flag,
                     result=status.result,
+                    changed=status.changed,
                 ),
             )
         try:
@@ -570,6 +578,11 @@ class MeanField(Collection, Dict[Variable, AbstractMessage], Factor):
                 flag = StatusFlag.BAD_PROJECTION
             else:
                 updated = True
+                changed = (
+                    factor_dist.check_changed(last_dist)
+                    if last_dist is not None
+                    else None
+                )
 
         except exc.MessageException as e:
             logger.exception(e)
@@ -583,6 +596,7 @@ class MeanField(Collection, Dict[Variable, AbstractMessage], Factor):
                 updated=updated,
                 flag=flag,
                 result=status.result,
+                changed=changed,
             ),
         )
 
