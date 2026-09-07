@@ -301,3 +301,103 @@ def test_nan_likelihoods_cannot_raise_the_identical_merit_exception():
 
     assert not np.allclose(np.nan, [np.nan, np.nan])
     assert "always returning `nan`" not in IDENTICAL_FIGURES_OF_MERIT_MESSAGE
+
+
+class OverWideFit(AbstractFactorOptimiser):
+    """
+    A factor fit that comes back wider than its cavity in every variable — the
+    shape a near-singular or noisy finite-difference Hessian produces. The
+    quotient `q* / cavity` then has negative precision, so `update_invalid`
+    reverts every parameter and the factor's message never moves.
+    """
+
+    def optimise(self, factor_approx, status=graph.Status()):
+        model_dist = graph.MeanField(
+            {
+                v: NormalMessage(float(m.mean), float(m.sigma) * 3.0)
+                for v, m in factor_approx.cavity_dist.items()
+            }
+        )
+        return model_dist, graph.Status(success=True, messages=(), updated=True)
+
+
+def test_fully_reverted_projection_reports_no_update():
+    """
+    `check_valid` after `update_invalid` is true by construction — the reverted
+    parameters come from a valid message — so it measured validity, not change,
+    and a projection that reverted everything claimed `updated=True`
+    (PyAutoFit#1571).
+    """
+    x, y = Variable("x"), Variable("y")
+    q_star = graph.MeanField({x: NormalMessage(0.0, 2.0), y: NormalMessage(1.0, 4.0)})
+    cavity = graph.MeanField({x: NormalMessage(0.0, 1.0), y: NormalMessage(1.0, 1.0)})
+    last = graph.MeanField({x: NormalMessage(0.5, 3.0), y: NormalMessage(2.0, 5.0)})
+
+    new, status = q_star.update_factor_mean_field(
+        cavity_dist=cavity,
+        last_dist=last,
+        delta=1.0,
+        status=graph.Status(success=True, flag=StatusFlag.SUCCESS),
+    )
+
+    assert status.flag is StatusFlag.BAD_PROJECTION
+    assert status.updated is False
+    assert any("every parameter reverted" in m for m in status.messages)
+    for v in (x, y):
+        assert tuple(new[v].parameters) == tuple(last[v].parameters)
+
+
+def test_partially_reverted_projection_still_reports_an_update():
+    """
+    The narrow half: only a *full* revert is a skipped update. A projection that
+    moves one variable and reverts another has really updated.
+    """
+    x, y = Variable("x"), Variable("y")
+    # x's projection is valid (tighter than the cavity), y's is not
+    q_star = graph.MeanField({x: NormalMessage(0.0, 0.5), y: NormalMessage(1.0, 4.0)})
+    cavity = graph.MeanField({x: NormalMessage(0.0, 1.0), y: NormalMessage(1.0, 1.0)})
+    last = graph.MeanField({x: NormalMessage(0.5, 3.0), y: NormalMessage(2.0, 5.0)})
+
+    new, status = q_star.update_factor_mean_field(
+        cavity_dist=cavity,
+        last_dist=last,
+        delta=1.0,
+        status=graph.Status(success=True, flag=StatusFlag.SUCCESS),
+    )
+
+    assert status.updated is True
+    assert tuple(new[x].parameters) != tuple(last[x].parameters)
+    assert tuple(new[y].parameters) == tuple(last[y].parameters)
+
+
+def test_always_reverting_factor_is_counted_as_skipped_and_warned_about(tmp_path):
+    """
+    End to end: a factor whose projection is rejected every sweep returns its
+    starting message, so it belongs in `factors skipped` and must be named by
+    the STALE FACTORS warning — which it was not while `status.updated` came
+    back True.
+    """
+    model_approx, factor_graph, prior, likelihood = make_shared_variable_approx()
+    (x,) = [v for v in model_approx.mean_field if v.name == "x"]
+    start = tuple(model_approx.factor_mean_field[likelihood][x].parameters)
+
+    optimiser = graph.EPOptimiser(
+        factor_graph,
+        factor_optimisers={prior: ExactFactorFit(), likelihood: OverWideFit()},
+        ep_history=EPHistory(kl_tol=None),
+        paths=DirectoryPaths(name="full_revert", path_prefix=str(tmp_path)),
+    )
+
+    result = optimiser.run(model_approx, max_steps=4, max_consecutive_failures=100)
+
+    # the factor's message never moved off the one it started with
+    assert tuple(result.factor_mean_field[likelihood][x].parameters) == start
+
+    assert likelihood in optimiser._factors_skipped
+    assert likelihood not in optimiser._factors_updated
+
+    warnings = optimiser._stale_factor_warnings()
+    assert len(warnings) == 1 and likelihood.name in warnings[0]
+
+    written = (optimiser.output_path / "ep_diagnostics.results").read_text()
+    assert "STALE FACTORS" in written and likelihood.name in written

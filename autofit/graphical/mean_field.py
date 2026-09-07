@@ -370,6 +370,26 @@ class MeanField(Collection, Dict[Variable, AbstractMessage], Factor):
     def check_valid(self):
         return VariableData((v, m.check_valid()) for v, m in self.items())
 
+    def check_changed(self, other: "MeanField") -> VariableData:
+        """
+        Per variable, whether this mean field's message differs from `other`'s.
+
+        Messages are compared on their natural parameters — the one
+        parameterisation every family exposes, `TransformedMessage` included,
+        and the one `update_invalid` copies from. The comparison is exact:
+        a reverted parameter is taken bit-for-bit out of the previous message,
+        so a tolerance would only let a genuine — if tiny — update read as no
+        change. A variable `other` does not carry counts as changed.
+        """
+        changed = {}
+        for v, m in self.items():
+            m2 = other.get(v) if other is not None else None
+            changed[v] = not is_message(m2) or not np.array_equal(
+                m.natural_parameters(), m2.natural_parameters()
+            )
+
+        return VariableData(changed)
+
     def project_mode(self, res: OptResult):
         return self.from_mode_covariance(res.mode, res.hess_inv, res.log_norm)
 
@@ -523,21 +543,28 @@ class MeanField(Collection, Dict[Variable, AbstractMessage], Factor):
                 ]
                 messages += self._reverted_variable_messages(reverted, cavity_dist)
                 factor_dist = factor_dist.update_invalid(last_dist)
-                # May want to check another way
-                # e.g. factor_dist.check_valid().sum() / factor_dist.check_valid().size
-                valid = factor_dist.check_valid()
-                if valid.any():
+                # Whether anything *moved*, not whether the result is valid:
+                # `check_valid` after the revert is true by construction, since
+                # the reverted parameters come from a valid message, so it used
+                # to report a fully reverted projection as an update and hide it
+                # from the STALE FACTORS warning (PyAutoFit#1571).
+                changed = factor_dist.check_changed(last_dist)
+                if changed.any():
                     updated = True
-                    n_valid = valid.sum()
-                    n_total = valid.size
+                    n_changed = changed.sum()
+                    n_total = changed.size
                     logger.debug(
                         "meanfield with variables: %r ,"
-                        "partially updated %d parameters "
+                        "partially updated %d variables "
                         "out of %d total, %.0%%",
                         tuple(self.variables),
-                        n_valid,
+                        n_changed,
                         n_total,
-                        n_valid / n_total,
+                        n_changed / n_total,
+                    )
+                else:
+                    messages += (
+                        "factor update skipped: every parameter reverted",
                     )
 
                 flag = StatusFlag.BAD_PROJECTION
