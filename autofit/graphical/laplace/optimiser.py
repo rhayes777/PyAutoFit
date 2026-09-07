@@ -1,4 +1,5 @@
 import logging
+from operator import attrgetter
 from typing import Optional, Dict, Tuple, Any, Union
 
 import numpy as np
@@ -8,7 +9,7 @@ from autofit.graphical.expectation_propagation.optimiser import AbstractFactorOp
 from autofit.graphical.factor_graphs.factor import Factor
 from autofit.graphical.laplace import newton
 from autofit.graphical.mean_field import MeanField, FactorApproximation
-from autofit.graphical.utils import Status, StatusFlag
+from autofit.graphical.utils import FlattenArrays, Status, StatusFlag
 from autofit.mapper.variable_operator import VariableData, VariableFullOperator
 
 FactorApprox = Union[EPMeanField, FactorApproximation, Factor]
@@ -163,6 +164,29 @@ class LaplaceOptimiser(AbstractFactorOptimiser):
         kws = {**self.default_kws, **kwargs}
         return newton.optimise_quasi_newton(state, old_state, **kws)
 
+    def fd_steps(
+        self, state: newton.OptimisationState, mean_field: MeanField
+    ) -> VariableData:
+        """
+        The central-difference step for each free parameter: a fixed fraction
+        `fd_step` of the mean field's standard deviation, floored at
+        `fd_min_step`. Shared by every finite difference this optimiser takes,
+        so the mode Hessian and the deterministic Jacobian are differenced on
+        the same scale.
+        """
+        # `variance` rather than `std`: TransformedMessage exposes only the former
+        variance = MeanField.variance.fget(mean_field)
+        return VariableData(
+            {
+                v: np.maximum(
+                    self.fd_step
+                    * np.sqrt(np.abs(np.asanyarray(variance[v], dtype=float))),
+                    self.fd_min_step,
+                )
+                for v in state.parameters
+            }
+        )
+
     def make_mode_hessian(
         self, state: newton.OptimisationState, mean_field: MeanField
     ) -> Tuple[Optional[VariableFullOperator], str]:
@@ -173,19 +197,9 @@ class LaplaceOptimiser(AbstractFactorOptimiser):
         Returns ``(operator, "")`` or ``(None, reason)`` when the Hessian is not
         finite or not negative definite.
         """
-        # `variance` rather than `std`: TransformedMessage exposes only the former
-        variance = MeanField.variance.fget(mean_field)
-        step = VariableData(
-            {
-                v: np.maximum(
-                    self.fd_step
-                    * np.sqrt(np.abs(np.asanyarray(variance[v], dtype=float))),
-                    self.fd_min_step,
-                )
-                for v in state.parameters
-            }
+        H, shapes = newton.finite_difference_hessian(
+            state, self.fd_steps(state, mean_field)
         )
-        H, shapes = newton.finite_difference_hessian(state, step)
         if not np.all(np.isfinite(H)):
             return None, "non-finite Hessian at mode (mode on a limit / outside support)"
         try:
@@ -197,6 +211,63 @@ class LaplaceOptimiser(AbstractFactorOptimiser):
                 None,
                 f"tilted log-density not concave at mode (min eig {min_eig:.3g})",
             )
+
+    def make_deterministic_hessian(
+        self,
+        state: newton.OptimisationState,
+        hessian: VariableFullOperator,
+        mean_field: MeanField,
+    ) -> VariableFullOperator:
+        """
+        The precision of the factor's deterministic outputs implied by the free
+        variables' mode covariance, ``diag(J Sigma J.T) ** -1``.
+
+        `J` is the central-difference Jacobian of the factor's deterministic
+        outputs with respect to the free parameters, differenced on the same
+        steps as the mode Hessian (`fd_steps`); ``Sigma`` is the inverse of
+        `hessian`.
+
+        Only the diagonal is written. ``J Sigma J.T`` is rank deficient whenever
+        there are more deterministic outputs than free parameters — the common
+        case, e.g. a regression factor with 50 outputs and 3 parameters — so the
+        full block is not a valid precision, and `MeanField.from_mode` reads only
+        the per-variable marginals in any case. A deterministic output the free
+        parameters do not move (an all-zero Jacobian row, so zero or non-finite
+        variance) keeps the cavity curvature it came in with, rather than being
+        handed an infinite precision.
+        """
+        deterministic = state.value.deterministic_values
+        det_variables = sorted(deterministic.keys(), key=attrgetter("id"))
+        det_shapes = FlattenArrays(
+            {v: np.shape(deterministic[v]) for v in det_variables}
+        )
+
+        shapes = hessian.param_shapes
+        x = shapes.flatten(state.parameters)
+        step = shapes.flatten(self.fd_steps(state, mean_field))
+
+        jacobian = np.empty((det_shapes.splits[-1], x.size))
+        for i in range(x.size):
+            offset = np.zeros(x.size)
+            offset[i] = step[i]
+            plus = state.update(
+                parameters=shapes.unflatten(x + offset)
+            ).value.deterministic_values
+            minus = state.update(
+                parameters=shapes.unflatten(x - offset)
+            ).value.deterministic_values
+            jacobian[:, i] = (
+                det_shapes.flatten(plus) - det_shapes.flatten(minus)
+            ) / (2 * step[i])
+
+        covariance = hessian.inv().operator.to_dense()
+        variance = np.einsum("ij,jk,ik->i", jacobian, covariance, jacobian)
+
+        moved = np.isfinite(variance) & (variance > 0)
+        cavity = det_shapes.flatten(state.det_hessian.diagonal())
+        precision = np.where(moved, 1.0 / np.where(moved, variance, 1.0), cavity)
+
+        return VariableFullOperator.from_diagonal(det_shapes.unflatten(precision))
 
     def optimise_approx(
         self,
@@ -235,6 +306,15 @@ class LaplaceOptimiser(AbstractFactorOptimiser):
                     ),
                 )
             next_state.hessian = hessian
+            if next_state.det_hessian is not None:
+                # The fd branch never reaches `newton.quasi_deterministic_update`
+                # (that runs in the line search and in `refine_state`, both of
+                # which live in the `else` below), so without this the
+                # deterministic variables would be projected at the cavity
+                # precision `prepare_state` built — PyAutoFit#1570.
+                next_state.det_hessian = self.make_deterministic_hessian(
+                    next_state, hessian, mean_field
+                )
         else:
             if self.hessian == "fd":
                 logger.info(
