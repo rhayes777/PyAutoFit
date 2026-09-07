@@ -8,7 +8,7 @@ from typing import *
 
 from autonerves.class_path import get_class_path
 from autonerves.exc import ConfigException
-from autofit.mapper.model import assert_not_frozen
+from autofit.mapper.model import ModelInstance, assert_not_frozen
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior.constant import Constant
@@ -532,6 +532,20 @@ class Model(AbstractPriorModel):
 
         if self.is_deferred_arguments:
             return DeferredInstance(self.cls, constructor_arguments)
+
+        if (
+            inspect.isclass(self.cls)
+            and issubclass(self.cls, Prior)
+            and any(
+                isinstance(value, tuple) for value in constructor_arguments.values()
+            )
+        ):
+            # A Prior's constructor only takes scalars, so a tuple here can only be an
+            # (lower, upper) bounds pair from errors_at_sigma / values_at_sigma. Every
+            # other model class simply stores such a pair as an attribute, so store it
+            # as an attribute here too instead of building a message from it. Scalar
+            # arguments (median_pdf, max_log_likelihood) still construct the real prior.
+            return ModelInstance(constructor_arguments)
 
         if not inspect.isclass(self.cls):
             result = object.__new__(inspect._findclass(self.cls))
