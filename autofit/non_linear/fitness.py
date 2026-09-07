@@ -580,6 +580,12 @@ class Fitness:
           `self.iterations_per_quick_update`.
         - If the `analysis` class does not implement
           `perform_quick_update`, the update is silently skipped.
+        - If the current maximum log likelihood parameters cannot be turned
+          into a model instance (e.g. they are outside a model component's
+          physical domain), the visual is skipped with a logged warning and
+          the search continues -- a quick update never terminates a fit. The
+          `model.results` text, which is formatted from the parameter vector
+          alone, is still written.
         - This mechanism is intended for fast, coarse visualization only,
           not detailed science-quality outputs.
         """
@@ -616,25 +622,49 @@ class Fitness:
 
             logger.info("Performing quick update of maximum log likelihood fit image and model.results")
 
-            instance = self.model.instance_from_vector(vector=self.quick_update_max_lh_parameters, xp=self._xp)
-
-            if self._background_quick_update is not None:
-                self._background_quick_update.submit(
-                    self.analysis, self.paths, instance,
+            # A quick update is a convenience render, so nothing inside it may end
+            # the search. The max-likelihood vector a sampler is carrying is not
+            # guaranteed to map to a physical instance: PyAutoGalaxy raises
+            # `ModelParameterException` (a `ValueError` / `af.exc.FitException`)
+            # straight out of a profile constructor, and an out-of-disk `ell_comps`
+            # unwound through this call and killed a 36 h Nautilus run at its very
+            # first quick update (PyAutoFit#1567). `Exception` is caught rather than
+            # `FitException` alone so the synchronous path is as protected as the
+            # background worker (`BackgroundQuickUpdate._process_pending`).
+            try:
+                instance = self.model.instance_from_vector(
+                    vector=self.quick_update_max_lh_parameters, xp=self._xp
                 )
-            else:
-                try:
-                    self.analysis.perform_quick_update(self.paths, instance)
-                except NotImplementedError:
-                    pass
+            except Exception:
+                logger.exception(
+                    "Quick update skipped: the current maximum log likelihood "
+                    "parameters do not map to a valid model instance. The search "
+                    "continues; the model.results text is still written."
+                )
+                instance = None
+
+            if instance is not None:
+                if self._background_quick_update is not None:
+                    self._background_quick_update.submit(
+                        self.analysis, self.paths, instance,
+                    )
                 else:
-                    if self._live_display is not None:
-                        try:
-                            self._live_display.update(self.paths)
-                        except Exception:
-                            logger.exception(
-                                "Live display update raised an exception (ignored)."
-                            )
+                    try:
+                        self.analysis.perform_quick_update(self.paths, instance)
+                    except NotImplementedError:
+                        pass
+                    except Exception:
+                        logger.exception(
+                            "Quick update visual raised an exception (ignored)."
+                        )
+                    else:
+                        if self._live_display is not None:
+                            try:
+                                self._live_display.update(self.paths)
+                            except Exception:
+                                logger.exception(
+                                    "Live display update raised an exception (ignored)."
+                                )
 
             # Searches hand their parameters over in whatever type they hold them:
             # ndarray (Nautilus), JAX array, or a plain Python list (Dynesty's
