@@ -7,7 +7,9 @@ import numpy as np
 import pytest
 
 import autofit as af
-from autofit.mapper.operator import DiagonalMatrix
+from autofit.mapper.operator import DiagonalMatrix, MatrixOperator
+from autofit.messages import MultiLogitNormalMessage
+from autofit.messages.transform import multinomial_logit_transform
 from autofit.mapper.variable import Variable
 from autofit.mapper.variable_operator import VariableFullOperator
 
@@ -80,3 +82,56 @@ def test__two_transform_stack_one_d_matches_zero_d():
 
     assert one_d.variance == pytest.approx([0.04])
     assert zero_d.variance == pytest.approx(0.04)
+
+
+@pytest.fixture(name="multi_logit_mode")
+def make_multi_logit_mode():
+    # Two simplex components, comfortably inside 0 < sum(p) < 1.
+    return np.array([0.3, 0.4])
+
+
+def _delta_method_variance(mode, covariance):
+    """``diag(J Sigma J.T)``, with J by central differences of the transform itself."""
+    step = 1e-6
+    jacobian = np.zeros((mode.size, mode.size))
+    for i in range(mode.size):
+        offset = np.zeros(mode.size)
+        offset[i] = step
+        jacobian[:, i] = (
+            multinomial_logit_transform.transform(mode + offset)
+            - multinomial_logit_transform.transform(mode - offset)
+        ) / (2 * step)
+
+    return np.diag(jacobian @ covariance @ jacobian.T)
+
+
+@pytest.mark.parametrize(
+    "covariance, diagonal",
+    [
+        (np.diag([0.02, 0.03]), np.array([0.02, 0.03])),
+        (np.array([[0.02, 0.008], [0.008, 0.03]]), None),
+    ],
+    ids=["diagonal_covariance", "coupled_covariance"],
+)
+def test__coupled_jacobian_keeps_the_full_covariance(
+    multi_logit_mode, covariance, diagonal
+):
+    # MultinomialLogitTransform's Jacobian is a coupled ShermanMorrison operator,
+    # and ``jac.quad`` contracts a 1-D argument as ``J(J.T v)``. Diagonalising an
+    # operator covariance first (PyAutoFit#1569) therefore returned [2.3611, 2.1875]
+    # for every operator input, against [1.2222, 1.2431] for the equivalent array.
+    forms = [covariance, MatrixOperator(covariance)]
+    if diagonal is not None:
+        forms.append(DiagonalMatrix(diagonal))
+
+    variances = [
+        MultiLogitNormalMessage.from_mode(multi_logit_mode, form).base_message.variance
+        for form in forms
+    ]
+
+    for variance in variances[1:]:
+        assert variance == pytest.approx(variances[0], rel=1.0e-6)
+
+    assert variances[0] == pytest.approx(
+        _delta_method_variance(multi_logit_mode, covariance), rel=1.0e-4
+    )

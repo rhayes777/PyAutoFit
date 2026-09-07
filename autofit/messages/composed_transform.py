@@ -436,8 +436,8 @@ class TransformedMessage(MessageInterface):
         way, ``jac.quad`` being the inverse of the ``invquad`` composition
         that ``variance`` applies base -> physical. A ``LinearOperator``
         covariance (the 0-d or n-d ``DiagonalMatrix`` the Laplace optimiser
-        hands over) is reduced to its diagonal first, which is all the base
-        ``from_mode`` reads.
+        hands over) is densified first when there are transforms to apply,
+        and reduced to its diagonal when there are none.
 
         Physical-space ``lower_limit`` / ``upper_limit`` kwargs are dropped:
         the base message lives in base space and keeps its own support
@@ -446,7 +446,16 @@ class TransformedMessage(MessageInterface):
         from autofit.mapper.operator import LinearOperator
 
         if isinstance(covariance, LinearOperator):
-            covariance = covariance.diagonal()
+            # A Jacobian may be coupled (``MultinomialLogitTransform`` returns a
+            # ``ShermanMorrison`` operator), and ``jac.quad`` contracts a 1-D
+            # argument as a vector, ``J(J.T v)``, not as ``diag(v)``. Handing it
+            # the diagonal would therefore lose the off-diagonal ``J S J.T`` mass
+            # that belongs on the diagonal, so keep the dense matrix whenever
+            # there is a transform to push through. With no transform the base
+            # message reads only the marginals, so the diagonal is enough.
+            covariance = (
+                covariance.to_dense() if self.transforms else covariance.diagonal()
+            )
         covariance = np.asanyarray(covariance)
 
         kwargs.pop("lower_limit", None)
