@@ -207,10 +207,13 @@ projection succeeds but dividing out the cavity is invalid for *some*
 variables (their marginal precision is below the cavity's), only those
 variables revert to the previous message (`update_invalid`) and the
 status names each of them with both precisions; the others update, so
-the step is flagged `BAD_PROJECTION` but still counts as an update. A
-skipped update does not count towards `max_consecutive_failures` (only
-raises do), but a factor that is skipped on every sweep never updates,
-and the **STALE FACTORS** warning covers that case too.
+the step is flagged `BAD_PROJECTION` but still counts as an update. When
+*every* variable reverts, nothing moved: that is a skipped update rather
+than an update, so a factor whose projection is rejected on every sweep
+is named stale instead of passing silently. A skipped update does not
+count towards `max_consecutive_failures` (only raises do), but a factor
+that is skipped on every sweep never updates, and the **STALE FACTORS**
+warning covers that case too.
 
 The result is still returned in that state — a partly-failed graph may
 still hold converged messages worth having — but never quietly. If
@@ -242,7 +245,8 @@ the exact 6.6 ± 2.9, inside the exact 5–95 % interval, where it used to
 read 2e-4 ± 0). The parent **mean** and the per-dataset variables are
 recovered. This is a property of projecting by the mode, not of the
 implementation: a hand-rolled EP with the same Gaussian family
-reproduces the collapse under a Laplace projection and recovers the
+reproduces the stale-factor state under a Laplace projection (every
+site update rejected, the scatter returned at its prior) and recovers the
 closed form under moment matching
 (`autofit_workspace_test/scripts/graphical/analytic_ep_minimal.py`,
 autofit_workspace_test#91).
