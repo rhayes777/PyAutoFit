@@ -7,6 +7,7 @@ import pickle
 
 import numpy as np
 import pytest
+from scipy import stats
 
 from autofit import graphical as graph
 from autofit.graphical.laplace import newton
@@ -220,3 +221,58 @@ def test__quasi_hessian_refinement_chains_secants():
 def test__hessian_option_validated():
     with pytest.raises(ValueError):
         LaplaceOptimiser(hessian="exact")
+
+
+def _deterministic_ep_run(hessian):
+    """
+    z = 2x with a Gaussian prior and likelihood on x, so the posterior is
+    analytic: Var(x) = 1 / (1/1^2 + 1/0.5^2) = 0.2 and Var(z) = 4 Var(x) = 0.8.
+    The deterministic variable starts far wider than that, at N(0, 10), so a
+    projection that never refreshes it is visible in the returned variance.
+    """
+    x_, z_ = Variable("x"), Variable("z")
+
+    def prior(x):
+        return float(stats.norm(0.0, 1.0).logpdf(x).sum())
+
+    def likelihood(x):
+        return float(stats.norm(0.0, 0.5).logpdf(x).sum())
+
+    def double(x):
+        return 2.0 * x
+
+    model = (
+        graph.Factor(prior, x_)
+        * graph.Factor(likelihood, x_)
+        * graph.Factor(double, x_, factor_out=z_)
+    )
+    approx = graph.EPMeanField.from_approx_dists(
+        model, {x_: NormalMessage(0.0, 10.0), z_: NormalMessage(0.0, 10.0)}
+    )
+
+    np.random.seed(1)
+    optimiser = graph.EPOptimiser(
+        approx.factor_graph,
+        default_optimiser=LaplaceOptimiser(hessian=hessian),
+    )
+    mean_field = optimiser.run(approx, max_steps=10).mean_field
+    return mean_field, x_, z_, optimiser
+
+
+@pytest.mark.parametrize("hessian", ["fd", "quasi"])
+def test__deterministic_variance_follows_the_free_variable(hessian):
+    # The fd branch used to write only the free-variable Hessian, leaving the
+    # deterministic variable at the cavity precision `prepare_state` built: it
+    # returned Var(z) = 100, its starting variance, with success (PyAutoFit#1570).
+    mean_field, x_, z_, optimiser = _deterministic_ep_run(hessian)
+
+    assert float(mean_field[x_].variance) == pytest.approx(0.2, rel=1.0e-2)
+    assert float(mean_field[z_].variance) == pytest.approx(0.8, rel=1.0e-2)
+    # the free variable's own factors report success throughout, which is why a
+    # deterministic variable left at its cavity covariance was silent
+    assert all(
+        status.success
+        for factor, history in optimiser.ep_history.history.items()
+        for _, status in history.history
+        if not factor.deterministic_variables
+    )
