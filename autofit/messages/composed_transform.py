@@ -134,10 +134,27 @@ class TransformedMessage(MessageInterface):
         self.lower_limit = lower_limit
         self.upper_limit = upper_limit
 
-        x0, x1 = zip(*base_message._support)
+    @functools.cached_property
+    def _support(self) -> Tuple[Tuple[float, float], ...]:
+        """
+        The transformed message's support in *physical* space: the base
+        message's support pushed through ``_inverse_transform``.
+
+        Computed lazily and cached in ``__dict__`` under this same name (a
+        ``cached_property`` is a non-data descriptor, so the cached value
+        shadows it thereafter). Deferred because ``phi_transform``'s inverse
+        is ``scipy.special.ndtri``: computing this eagerly in ``__init__``
+        made the module-level ``UniformNormalMessage`` literal in
+        ``autofit.messages.normal`` pull ``scipy.special`` — ~0.18s — into
+        every ``import autofit``, for a value almost no process reads
+        (census O2). Old pickles that carry a
+        ``_support`` entry in their state restore it into ``__dict__``
+        unchanged, which is exactly where the cache lives.
+        """
+        x0, x1 = zip(*self.base_message._support)
         z0 = self._inverse_transform(np.array(x0))
         z1 = self._inverse_transform(np.array(x1))
-        self._support = tuple(zip(z0, z1))
+        return tuple(zip(z0, z1))
 
     log_normalisation = AbstractMessage.log_normalisation
 
