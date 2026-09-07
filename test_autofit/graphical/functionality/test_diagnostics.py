@@ -41,6 +41,7 @@ def test_snapshot_records_rows():
         "flag",
         "log_evidence",
         "kl_divergence",
+        "reverted_variables",
     }
     for row in factor_rows:
         assert set(row.keys()) == expected_columns
@@ -85,6 +86,7 @@ def test_csv_outputs_written(tmp_path):
             "flag",
             "log_evidence",
             "kl_divergence",
+            "reverted_variables",
         ]
         ep_rows = list(reader)
     assert len(ep_rows) == len(opt.diagnostics.factor_rows)

@@ -12,6 +12,7 @@ that reproduced this on the release leg (PyAutoFit#1405): two factors connected 
 one shared variable, no `HierarchicalFactor` involved.
 """
 
+import csv
 import logging
 
 import numpy as np
@@ -401,3 +402,266 @@ def test_always_reverting_factor_is_counted_as_skipped_and_warned_about(tmp_path
 
     written = (optimiser.output_path / "ep_diagnostics.results").read_text()
     assert "STALE FACTORS" in written and likelihood.name in written
+
+
+def make_two_variable_approx():
+    """
+    Two variables joined by one factor, each with its own prior — the smallest
+    graph on which a factor can revert *one* of its variables on every
+    projection while the other updates (the partial revert of PyAutoFit#1575).
+    """
+    x, y = Variable("x"), Variable("y")
+
+    def joint(x, y):
+        return -0.5 * (np.sum((x - 3.0) ** 2) + np.sum((y - 2.0) ** 2))
+
+    prior_x = NormalMessage(1.0, 2.0).as_factor(x, name="prior_x")
+    prior_y = NormalMessage(1.0, 2.0).as_factor(y, name="prior_y")
+    likelihood = graph.Factor(joint, x, y, name="like_xy")
+
+    factor_graph = graph.FactorGraph([prior_x, prior_y, likelihood])
+    model_approx = graph.EPMeanField.from_approx_dists(
+        factor_graph,
+        {x: NormalMessage(0.0, 10.0), y: NormalMessage(0.0, 10.0)},
+    )
+    return model_approx, factor_graph, prior_x, prior_y, likelihood
+
+
+class PartialRevertFit(AbstractFactorOptimiser):
+    """
+    A factor fit that is valid in one variable and over-wide in another, on
+    every sweep: the quotient `q* / cavity` has positive precision for the
+    first (so it updates) and negative precision for the second (so
+    `update_invalid` reverts every one of its parameters and its message never
+    moves). This is the hierarchical scatter's shape — the factor updates, one
+    of its variables never does.
+    """
+
+    def __init__(self, reverting: str):
+        super().__init__()
+        self.reverting = reverting
+
+    def optimise(self, factor_approx, status=graph.Status()):
+        model_dist = graph.MeanField(
+            {
+                v: NormalMessage(
+                    float(m.mean),
+                    float(m.sigma) * (3.0 if v.name == self.reverting else 0.5),
+                )
+                for v, m in factor_approx.cavity_dist.items()
+            }
+        )
+        return model_dist, graph.Status(success=True, messages=(), updated=True)
+
+
+def test_partial_revert_names_the_stale_variable_not_the_factor(tmp_path):
+    """
+    The gap #1574 left. A factor that reverts one variable on every projection
+    and updates the others is `updated`, so no factor-level STALE FACTORS line
+    is emitted — yet the reverted variable's reported posterior is the message
+    it started with. The warning must name the (factor, variable) pair.
+    """
+    model_approx, factor_graph, prior_x, prior_y, likelihood = (
+        make_two_variable_approx()
+    )
+    (y,) = [v for v in model_approx.mean_field if v.name == "y"]
+    start = tuple(model_approx.factor_mean_field[likelihood][y].parameters)
+
+    optimiser = graph.EPOptimiser(
+        factor_graph,
+        factor_optimisers={
+            prior_x: ExactFactorFit(),
+            prior_y: ExactFactorFit(),
+            likelihood: PartialRevertFit(reverting="y"),
+        },
+        ep_history=EPHistory(kl_tol=None),
+        paths=DirectoryPaths(name="partial_revert", path_prefix=str(tmp_path)),
+    )
+
+    result = optimiser.run(model_approx, max_steps=4, max_consecutive_failures=100)
+
+    # the factor did update -- so the factor-level test cannot see this
+    assert likelihood in optimiser._factors_updated
+
+    # ... but y's message never moved off the one it started with
+    assert tuple(result.factor_mean_field[likelihood][y].parameters) == start
+
+    assert optimiser._variables_seen[likelihood.name] == {
+        v for v in likelihood.variables
+    }
+    assert y not in optimiser._variables_changed[likelihood.name]
+
+    warnings = optimiser._stale_factor_warnings()
+    y_lines = [w for w in warnings if "variable 'y'" in w]
+    assert len(y_lines) == 1
+    assert "STALE FACTORS" in y_lines[0]
+    assert likelihood.name in y_lines[0]
+    assert not [w for w in warnings if "variable 'x'" in w]
+
+    diagnostics = (optimiser.output_path / "ep_diagnostics.results").read_text()
+    assert "WARNINGS" in diagnostics
+    assert y_lines[0] in diagnostics
+
+
+def test_partial_revert_is_recorded_in_ep_history_csv(tmp_path):
+    """
+    `ep_history.csv` gains a `reverted_variables` column so a workspace referee
+    can tally the per-variable signal without parsing the warning text.
+
+    The column records what each update did *not* move, which on a converging
+    graph is more than the reverted variables: once EP reaches a fixed point
+    every message stops moving, so a healthy factor's later rows list its
+    variables too. The signal a referee wants is therefore a variable that is
+    listed on *every* row for a factor -- never once absent -- which is what
+    `_stale_factor_warnings` reports.
+    """
+    model_approx, factor_graph, prior_x, prior_y, likelihood = (
+        make_two_variable_approx()
+    )
+
+    optimiser = graph.EPOptimiser(
+        factor_graph,
+        factor_optimisers={
+            prior_x: ExactFactorFit(),
+            prior_y: ExactFactorFit(),
+            likelihood: PartialRevertFit(reverting="y"),
+        },
+        ep_history=EPHistory(kl_tol=None),
+        paths=DirectoryPaths(name="partial_revert_csv", path_prefix=str(tmp_path)),
+    )
+    optimiser.run(model_approx, max_steps=4, max_consecutive_failures=100)
+
+    with open(optimiser.output_path / "ep_history.csv", newline="") as f:
+        rows = list(csv.DictReader(f))
+
+    assert "reverted_variables" in rows[0]
+
+    reverting_rows = [row for row in rows if row["factor"] == likelihood.name]
+    assert reverting_rows
+    # y is reverted on every one of the factor's projections ...
+    assert all(
+        "y" in row["reverted_variables"].split(";") for row in reverting_rows
+    )
+    # ... and on the first sweep, before the graph settles, it is the only one:
+    # x moved on that same projection, which is the partial revert the
+    # factor-level `updated` flag cannot express.
+    assert reverting_rows[0]["reverted_variables"] == "y"
+
+    exact_rows = [row for row in rows if row["factor"] == prior_x.name]
+    assert exact_rows
+    # an exact fit that moves its message records nothing as unmoved
+    assert exact_rows[0]["reverted_variables"] == ""
+    # and x is not stale: it moved at least once, so no warning names it
+    assert not [
+        w for w in optimiser._stale_factor_warnings() if "variable 'x'" in w
+    ]
+
+
+def test_factor_step_preserves_the_changed_mask_on_the_status():
+    """
+    `factor_step` rebuilds the `Status` it returns (to fold in caught
+    warnings), so every field it does not name is silently dropped. The
+    per-variable mask has to survive that reconstruction or the optimiser's
+    bookkeeping never sees it.
+    """
+    from autofit.graphical.expectation_propagation.optimiser import factor_step
+    from autofit.mapper.variable import VariableData
+
+    model_approx, _, prior_x, _, _ = make_two_variable_approx()
+    (x,) = [v for v in model_approx.mean_field if v.name == "x"]
+    mask = VariableData({x: False})
+
+    class MaskCarryingFit(AbstractFactorOptimiser):
+        def optimise(self, factor_approx, status=graph.Status()):
+            return factor_approx.model_dist, graph.Status(
+                success=True, updated=True, changed=mask
+            )
+
+    _, status = factor_step(
+        model_approx.factor_approximation(prior_x), MaskCarryingFit()
+    )
+
+    assert status.changed is mask
+
+
+def _grouped_optimiser(tmp_path, name, reverting_first, reverting_second):
+    """
+    A graph with two factors that share one name, each joined to the same
+    shared variable `s` and to its own drawn variable — the shape a
+    `HierarchicalFactor` takes once it decomposes into one factor per drawn
+    variable (each member built with `name=distribution_model.name`, `s`
+    standing in for the parent scatter). Each member gets a
+    `PartialRevertFit`, so the test controls exactly which variable it moves;
+    a `reverting` name matching nothing means the member moves everything.
+    """
+    s, x1, x2 = Variable("s"), Variable("x1"), Variable("x2")
+
+    def first_density(s, x1):
+        return -0.5 * (np.sum((s - 2.0) ** 2) + np.sum((x1 - 3.0) ** 2))
+
+    def second_density(s, x2):
+        return -0.5 * (np.sum((s - 2.0) ** 2) + np.sum((x2 - 3.0) ** 2))
+
+    priors = [
+        NormalMessage(1.0, 2.0).as_factor(v, name=f"prior_{v.name}")
+        for v in (s, x1, x2)
+    ]
+    # distinct functions, so the two factors are distinct objects (`Factor`
+    # equality is on the function and its arguments) that nonetheless share a
+    # name, exactly as a decomposed hierarchical factor's members do
+    first = graph.Factor(first_density, s, x1, name=name)
+    second = graph.Factor(second_density, s, x2, name=name)
+
+    factor_graph = graph.FactorGraph(priors + [first, second])
+    model_approx = graph.EPMeanField.from_approx_dists(
+        factor_graph,
+        {v: NormalMessage(0.0, 10.0) for v in (s, x1, x2)},
+    )
+
+    optimisers = {prior: ExactFactorFit() for prior in priors}
+    optimisers[first] = PartialRevertFit(reverting=reverting_first)
+    optimisers[second] = PartialRevertFit(reverting=reverting_second)
+
+    optimiser = graph.EPOptimiser(
+        factor_graph,
+        factor_optimisers=optimisers,
+        ep_history=EPHistory(kl_tol=None),
+        paths=DirectoryPaths(name=f"group_{name}", path_prefix=str(tmp_path)),
+    )
+    optimiser.run(model_approx, max_steps=4, max_consecutive_failures=100)
+    return optimiser
+
+
+def test_one_member_of_a_group_moving_a_variable_clears_the_group(tmp_path):
+    """
+    A `HierarchicalFactor` decomposes into one factor per drawn variable, all
+    sharing its name, and the parent scatter's message is the product of every
+    member's. One member moving it is enough for the reported value to be a
+    posterior, so the pair must be tracked per group, not per member —
+    otherwise every healthy hierarchical run is flagged.
+    """
+    optimiser = _grouped_optimiser(
+        tmp_path, "group_mixed", reverting_first="s", reverting_second="none"
+    )
+
+    # the first member reverts the shared variable on every projection; the
+    # second moves it, so the group's message for it is a posterior
+    warnings = optimiser._stale_factor_warnings()
+    assert warnings == []
+
+
+def test_a_group_no_member_of_which_moves_a_variable_is_named_once(tmp_path):
+    """
+    The other half: when *no* member of the group ever moves the variable, its
+    posterior really is the message it started with — one line, naming the
+    group, not one line per member.
+    """
+    optimiser = _grouped_optimiser(
+        tmp_path, "group_stale", reverting_first="s", reverting_second="s"
+    )
+
+    warnings = optimiser._stale_factor_warnings()
+    assert len(warnings) == 1
+    assert "STALE FACTORS" in warnings[0]
+    assert "variable 's' of group_stale" in warnings[0]
+    assert "updates (reverted on every projection of that factor)" in warnings[0]
