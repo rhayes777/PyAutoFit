@@ -2,21 +2,27 @@
 Class-declared model constraints, evaluated as traced values.
 
 This is the differentiable sibling of :meth:`AbstractPriorModel.add_assertion`.
-Assertions are attached to a *model instance* by the user and signal failure by
-raising :class:`FitException`; that works on the NumPy path, where
-:class:`Fitness` catches the exception and returns the resample sentinel, but it
-cannot work under JAX. A ``raise`` needs a concrete boolean, and inside a trace
-the condition is a tracer — attempting it gives ``TracerBoolConversionError``.
-That is why guards such as ``autogalaxy.profiles.validate.validate_ell_comps``
-return early for non-concrete scalars rather than raising: the escape hatch is
-load-bearing, or every jitted likelihood would crash instead of sampling.
+Assertions are attached to a *model instance* by the user. On the NumPy path they
+signal failure by raising :class:`FitException`, which :class:`Fitness` catches,
+returning the resample sentinel. A ``raise`` cannot happen inside a JAX trace — it
+needs a concrete boolean, and the condition there is a tracer, which gives
+``TracerBoolConversionError`` — so under JAX the assertion is instead evaluated as
+a **traced boolean** and applied by :class:`Fitness` as an ``xp.where`` penalty
+that maps a violating model to the resample sentinel. Assertions therefore survive
+``jit`` and ``vmap``, but as a *value-only* rejection: reverse-mode
+differentiates both branches of that ``where``, so the penalty carries no usable
+gradient back into the valid region. This is also why guards such as
+``autogalaxy.profiles.validate.validate_ell_comps`` return early for non-concrete
+scalars rather than raising: the escape hatch is load-bearing, or every jitted
+likelihood would crash instead of sampling.
 
 A model constraint differs in exactly two ways:
 
 - it is declared **on the class**, so every model built from that class carries
   it without the user remembering to attach anything;
-- it is evaluated as a **traced non-negative violation measure** rather than
-  raising, so it survives ``jit``, ``vmap`` and ``grad``.
+- it is evaluated as a **traced non-negative violation measure** rather than a
+  boolean, so it survives ``jit``, ``vmap`` and ``grad`` — a magnitude carries a
+  gradient back into the valid region where the assertion ``where`` cannot.
 
 Declaring one
 -------------

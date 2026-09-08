@@ -43,10 +43,12 @@ class GreaterThanLessThanAssertion(ComparisonAssertion):
         lower = self.left_for_arguments(
             arguments,
             ignore_assertions=ignore_assertions,
+            xp=xp,
         )
         greater = self.right_for_arguments(
             arguments,
             ignore_assertions=ignore_assertions,
+            xp=xp,
         )
         return lower < greater
 
@@ -75,9 +77,11 @@ class GreaterThanLessThanEqualAssertion(ComparisonAssertion):
         return self.left_for_arguments(
             arguments,
             ignore_assertions=ignore_assertions,
+            xp=xp,
         ) <= self.right_for_arguments(
             arguments,
             ignore_assertions=ignore_assertions,
+            xp=xp,
         )
 
 
@@ -94,12 +98,25 @@ class CompoundAssertion(AbstractPriorModel, Compound):
         ignore_assertions=False,
         xp=np,
     ):
-        return self.assertion_1.instance_for_arguments(
-            arguments,
-            ignore_assertions,
-        ) and self.assertion_2.instance_for_arguments(
-            arguments,
-            ignore_assertions,
+        """
+        Both sub-assertions must hold.
+
+        Combined with ``xp.logical_and`` rather than a Python ``and``: under ``jax.jit`` /
+        ``jax.vmap`` each sub-assertion is a tracer, and ``and`` would coerce it to a Python
+        bool and raise ``TracerBoolConversionError``. On numpy this returns an ``np.bool_``,
+        which `AbstractPriorModel.check_assertions` negates exactly as it did a Python bool.
+        """
+        return xp.logical_and(
+            self.assertion_1.instance_for_arguments(
+                arguments,
+                ignore_assertions,
+                xp=xp,
+            ),
+            self.assertion_2.instance_for_arguments(
+                arguments,
+                ignore_assertions,
+                xp=xp,
+            ),
         )
 
     def dict(self) -> dict:

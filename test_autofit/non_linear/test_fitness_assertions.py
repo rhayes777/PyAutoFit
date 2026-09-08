@@ -1,4 +1,5 @@
 import logging
+import pickle
 
 import numpy as np
 import pytest
@@ -35,6 +36,90 @@ def test_fitness_returns_resample_fom_on_assertion_failure():
     # centre_0 = 20 > centre_1 = 10  → assertion satisfied, real FOM returned
     satisfying = [20.0, 1.0, 1.0, 10.0, 1.0, 1.0]
     assert fitness.call(satisfying) != fitness.resample_figure_of_merit
+
+
+def test_numpy_path_is_unchanged_by_the_traced_assertion_penalty():
+    """
+    The traced penalty is JAX-only: on numpy the `FitException` raised by `instance_from_vector`
+    is still what produces `resample_figure_of_merit`, and the `xp.where` added for JAX must not
+    run here at all. `_apply_assertions_traced` is nonetheless `True` — it is a property of the
+    *model*, decided once in `__init__` so it is a compile-time constant under `jax.jit` — so
+    this pins that the flag being set does not perturb a numpy fit.
+    """
+    gaussian_0 = af.Model(af.ex.Gaussian)
+    gaussian_1 = af.Model(af.ex.Gaussian)
+    model = af.Collection(gaussian_0=gaussian_0, gaussian_1=gaussian_1)
+    model.add_assertion(model.gaussian_0.centre > model.gaussian_1.centre)
+
+    data = np.ones(20)
+    noise_map = np.ones(20) * 0.1
+    analysis = af.ex.Analysis(data=data, noise_map=noise_map)
+
+    fitness = Fitness(model=model, analysis=analysis)
+
+    assert fitness._is_jax is False
+    assert fitness._apply_assertions_traced is True
+
+    violating = [10.0, 1.0, 1.0, 20.0, 1.0, 1.0]
+    assert fitness.call(violating) == fitness.resample_figure_of_merit
+
+    satisfying = [20.0, 1.0, 1.0, 10.0, 1.0, 1.0]
+    instance = model.instance_from_vector(satisfying)
+    assert fitness.call(satisfying) == pytest.approx(
+        analysis.log_likelihood_function(instance=instance)
+    )
+
+
+def test_apply_assertions_traced_is_false_without_assertions():
+    """
+    With nothing attached the `where` would be a no-op, so it is not emitted at all — one fewer
+    traced operation in every likelihood evaluation of the (overwhelmingly common) unconstrained
+    model.
+    """
+    data = np.ones(20)
+    noise_map = np.ones(20) * 0.1
+    fitness = Fitness(
+        model=af.Model(af.ex.Gaussian),
+        analysis=af.ex.Analysis(data=data, noise_map=noise_map),
+    )
+
+    assert fitness._apply_assertions_traced is False
+
+
+def test_gathered_assertions_survive_a_pickle_roundtrip():
+    """
+    A search pickles its `Fitness` (parallel workers, resume). The gathered assertion list is
+    plain model objects, so it pickles -- and the priors inside it are the same objects as those
+    in the pickled model, since pickle preserves identity within one blob, so the restored
+    assertions still key into the restored model's arguments.
+    """
+    gaussian_0 = af.Model(af.ex.Gaussian)
+    gaussian_1 = af.Model(af.ex.Gaussian)
+    gaussian_0.add_assertion(gaussian_0.centre > gaussian_1.centre)
+    model = af.Collection(gaussian_0=gaussian_0, gaussian_1=gaussian_1)
+
+    data = np.ones(20)
+    noise_map = np.ones(20) * 0.1
+    fitness = Fitness(
+        model=model,
+        analysis=af.ex.Analysis(data=data, noise_map=noise_map),
+        resample_figure_of_merit=-1.0e99,
+    )
+
+    restored = pickle.loads(pickle.dumps(fitness))
+
+    assert restored._apply_assertions_traced is True
+    assert len(restored._traced_assertions) == 1
+    assert restored.call([10.0, 1.0, 1.0, 20.0, 1.0, 1.0]) == -1.0e99
+    assert (
+        bool(
+            restored.model.assertions_satisfied_from_vector(
+                [10.0, 1.0, 1.0, 20.0, 1.0, 1.0],
+                assertions=restored._traced_assertions,
+            )
+        )
+        is False
+    )
 
 
 def _ceiling_fitness(log_likelihood, ceiling=None, **kwargs):

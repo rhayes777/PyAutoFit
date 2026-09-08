@@ -31,6 +31,20 @@ def get_timeout_seconds():
 logger = logging.getLogger(__name__)
 timeout_seconds = get_timeout_seconds()
 
+
+def _exception_override() -> bool:
+    """
+    Whether `general.test.exception_override` is set, which disables assertion checking.
+
+    Read once per `Fitness` rather than per call: the traced assertion penalty branches on this
+    with a Python `if`, which must resolve at trace time. A config that never mentions the key
+    means no override.
+    """
+    try:
+        return bool(conf.instance["general"]["test"]["exception_override"])
+    except KeyError:
+        return False
+
 #: Ceiling used when ``general.test.log_likelihood_ceiling`` is absent from the config (e.g. a
 #: workspace whose ``general.yaml`` pre-dates the key). ``inf`` -- i.e. the guard is **off** --
 #: because the packaged default is off, and a config that never mentions the key must inherit
@@ -232,6 +246,24 @@ class Fitness:
         # traced value under `jax.jit` / `jax.vmap`, which requires the ceiling to be a compile-time
         # constant.
         self.log_likelihood_ceiling = get_log_likelihood_ceiling()
+
+        # Gathered once, statically: the walk over the model tree is a Python loop over Python
+        # objects, so it must not happen inside a trace, and there is no reason to repeat it per
+        # likelihood evaluation. `getattr` because some tests pass a stand-in for the model.
+        self._traced_assertions = (
+            model.gathered_assertions()
+            if hasattr(model, "gathered_assertions")
+            else []
+        )
+
+        # Static Python bool for the same reason: `call` uses it as a Python `if`, and that branch
+        # must be resolvable at trace time under `jax.jit` / `jax.vmap`. `False` when the model
+        # tree carries no assertions (the `where` would be a no-op) or when the test config
+        # overrides exceptions, which is what disables assertions on the numpy path too.
+        self._apply_assertions_traced = (
+            bool(self._traced_assertions) and not _exception_override()
+        )
+
         self.convert_to_chi_squared = convert_to_chi_squared
         self.store_history = store_history
 
@@ -336,6 +368,19 @@ class Fitness:
         A private method that calls the fitness function with the given parameters and additional keyword arguments.
         This method is intended for internal use only.
 
+        Model assertions (`AbstractPriorModel.add_assertion`) are enforced here too, and how
+        depends on the backend. On numpy `instance_from_vector` raises a `FitException` and the
+        `except` below returns `resample_figure_of_merit`. Under JAX a `raise` cannot happen
+        inside a trace, so the instance is built with `ignore_assertions=True` and the assertions
+        -- gathered from the whole model tree once, in `__init__`, so a child-attached assertion
+        is enforced exactly as it is on numpy -- are instead evaluated as a **traced boolean** by
+        `assertions_satisfied_from_vector` and applied with an `xp.where`, mapping a violating
+        model to `resample_figure_of_merit`. That
+        makes the JAX path exception-free as required, at the cost of the same **value-only**
+        caveat the NaN guards carry below: under `jax.grad` the `where` still differentiates the
+        rejected branch. Whether the penalty is applied at all is a static Python bool decided in
+        `__init__`, so the branch resolves at trace time under `jax.jit` / `jax.vmap`.
+
         The NaN/inf/magnitude guards below protect the **value only, never the gradient**.
 
         A model whose likelihood is NaN, inf, or larger in magnitude than `self.log_likelihood_ceiling` is mapped
@@ -379,11 +424,25 @@ class Fitness:
         """
         if self._is_jax:
 
-            # Get instance from model (must be side-effect free and exception-free under JAX)
-            instance = self.model.instance_from_vector(vector=parameters, xp=self._xp)
+            # Get instance from model. Assertions are skipped here because they signal failure by
+            # raising, which is illegal inside a trace; they are applied below as a traced value.
+            instance = self.model.instance_from_vector(
+                vector=parameters, ignore_assertions=True, xp=self._xp
+            )
 
             # Evaluate log likelihood (must be side-effect free and exception-free)
             log_likelihood = self.analysis.log_likelihood_function(instance=instance)
+
+            if self._apply_assertions_traced:
+                log_likelihood = self._xp.where(
+                    self.model.assertions_satisfied_from_vector(
+                        parameters,
+                        xp=self._xp,
+                        assertions=self._traced_assertions,
+                    ),
+                    log_likelihood,
+                    self.resample_figure_of_merit,
+                )
 
         else:
 
@@ -734,6 +793,9 @@ class Fitness:
         # Fitness objects pickled before the magnitude guard existed carry no ceiling; give them the
         # configured one rather than letting `call` raise `AttributeError` on resume.
         self.__dict__.setdefault("log_likelihood_ceiling", get_log_likelihood_ceiling())
+        # Likewise for `Fitness` objects pickled before the traced assertion penalty existed.
+        self.__dict__.setdefault("_traced_assertions", [])
+        self.__dict__.setdefault("_apply_assertions_traced", False)
         self._call = self.call
         if getattr(self, "use_jax_vmap", False):
             self._call = self._vmap
