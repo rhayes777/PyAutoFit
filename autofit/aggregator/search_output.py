@@ -196,7 +196,8 @@ class SearchOutput(AbstractSearchOutput, fit_interface.Fit):
 
     def __init__(self, directory: Path, reference: dict = None):
         """
-        Represents the output of a single search. Comprises a metadata file and other dataset files.
+        Represents the output of a single search. Comprises the ``files`` directory
+        written by the search (including ``search.json``) and other dataset files.
 
         Parameters
         ----------
@@ -212,18 +213,6 @@ class SearchOutput(AbstractSearchOutput, fit_interface.Fit):
         self.__latent_summary = None
 
         self.directory = directory
-
-        self.file_path = directory / "metadata"
-
-        try:
-            with open(self.file_path) as f:
-                self.text = f.read()
-                pairs = [
-                    line.split("=") for line in self.text.split("\n") if "=" in line
-                ]
-                self.__dict__.update({pair[0]: pair[1] for pair in pairs})
-        except FileNotFoundError:
-            pass
 
     @property
     def samples_summary(self) -> SamplesSummary:
@@ -427,11 +416,40 @@ class SearchOutput(AbstractSearchOutput, fit_interface.Fit):
         """
         return self.search.unique_tag
 
+    @property
+    def non_linear_search(self) -> Optional[str]:
+        """
+        Lower-cased class name of the search (e.g. "emcee"), read from
+        ``files/search.json``.
+
+        Legacy output folders which predate that sentinel are read from the
+        ``non_linear_search=`` line of their ``metadata`` file instead.
+        """
+        search_path = self.directory / "files" / "search.json"
+        try:
+            with open(search_path) as f:
+                class_path = json.load(f)["class_path"]
+        except (FileNotFoundError, KeyError, json.JSONDecodeError):
+            pass
+        else:
+            return class_path.rsplit(".", 1)[-1].lower()
+
+        try:
+            text = (self.directory / "metadata").read_text()
+        except FileNotFoundError:
+            return None
+        for line in text.split("\n"):
+            if "=" in line:
+                key, _, value = line.partition("=")
+                if key.strip() == "non_linear_search":
+                    return value.strip()
+        return None
+
     def __str__(self):
-        return self.text
+        return f"<SearchOutput {self.directory}>"
 
     def __repr__(self):
-        return "<PhaseOutput {}>".format(self)
+        return str(self)
 
 
 class GridSearchOutput(AbstractSearchOutput):

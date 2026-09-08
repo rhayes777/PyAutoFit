@@ -1,3 +1,4 @@
+import json
 import shutil
 import zipfile
 from pathlib import Path
@@ -34,7 +35,7 @@ def test_from_directory(scan_directory):
 def test_zip_extracted_and_loaded(zipped_directory):
     aggregator = Aggregator.from_directory(zipped_directory)
     assert len(aggregator) == 1
-    assert (zipped_directory / "search_output" / "metadata").exists()
+    assert (zipped_directory / "search_output" / "files" / "search.json").exists()
 
 
 def test_zip_not_re_extracted(zipped_directory):
@@ -76,7 +77,7 @@ def make_test_mode_directory(tmp_path):
     Mirrors the on-disk layout a search produces under test mode: the results
     live beneath an inserted ``test_mode`` segment (``output/test_mode/prefix``)
     while the caller points ``from_directory`` at the real-run location
-    (``output/prefix``), which holds no metadata.
+    (``output/prefix``), which holds no search output of its own.
     """
     source = Path(__file__).parent / "search_output"
     real_directory = tmp_path / "output" / "prefix"
@@ -99,3 +100,71 @@ def test_from_directory_no_fallback_when_not_test_mode(test_mode_directory, monk
     )
     aggregator = Aggregator.from_directory(test_mode_directory)
     assert len(aggregator) == 0
+
+
+def _write_search_json(directory: Path, class_path: str):
+    files = directory / "files"
+    files.mkdir(parents=True)
+    (files / "search.json").write_text(
+        json.dumps(
+            {
+                "type": "instance",
+                "class_path": class_path,
+                "arguments": {},
+            }
+        )
+    )
+
+
+def test_search_json_is_the_sentinel(tmp_path):
+    """
+    A directory holding ``files/search.json`` is discovered exactly once, and it
+    is the search directory itself which is returned rather than its ``files``
+    child.
+    """
+    _write_search_json(
+        tmp_path / "a",
+        "autofit.non_linear.search.nest.dynesty.search.static.DynestyStatic",
+    )
+
+    aggregator = Aggregator.from_directory(tmp_path)
+
+    assert len(aggregator) == 1
+    assert list(aggregator)[0].directory == tmp_path / "a"
+
+
+def test_files_directory_without_search_json_not_discovered(tmp_path):
+    (tmp_path / "b" / "files").mkdir(parents=True)
+    (tmp_path / "b" / "files" / "model.json").write_text("{}")
+
+    assert len(Aggregator.from_directory(tmp_path)) == 0
+
+
+def test_legacy_metadata_still_discovered(tmp_path):
+    """
+    Output folders written before ``files/search.json`` became the sentinel are
+    still aggregated via their ``metadata`` file.
+    """
+    legacy = tmp_path / "c"
+    legacy.mkdir()
+    (legacy / "metadata").write_text("name=legacy\nnon_linear_search=emcee\n")
+
+    aggregator = Aggregator.from_directory(tmp_path)
+
+    assert len(aggregator) == 1
+    output = list(aggregator)[0]
+    assert output.directory == legacy
+    assert output.non_linear_search == "emcee"
+
+
+def test_non_linear_search_from_search_json(directory):
+    aggregator = Aggregator.from_directory(directory)
+
+    assert {
+        output.directory.name
+        for output in aggregator.query(aggregator.non_linear_search == "dynestystatic")
+    } == {"search_output", "fit_1", "fit_2"}
+    assert [
+        output.directory.name
+        for output in aggregator.query(aggregator.non_linear_search == "emcee")
+    ] == ["search_output_derived"]

@@ -381,7 +381,6 @@ class DirectoryPaths(AbstractPaths):
             pass
 
         self.save_json("model", to_dict(self.model))
-        self._save_metadata(search_name=type(self.search).__name__.lower())
 
     @AbstractPaths.parent.setter
     def parent(self, parent: AbstractPaths):
@@ -468,17 +467,6 @@ class DirectoryPaths(AbstractPaths):
         from .sub_directory_paths import SubDirectoryPaths
 
         return SubDirectoryPaths(parent=self, analysis_name=analysis_name)
-
-    def _save_metadata(self, search_name):
-        """
-        Save metadata associated with the phase, such as the name of the pipeline, the
-        name of the phase and the name of the dataset being fit
-        """
-        with open_(self.output_path / "metadata", "a") as f:
-            f.write(
-                f"""name={self.name}\nnon_linear_search={search_name}
-            """
-            )
 
     def _save_model_info(self, model):
         """

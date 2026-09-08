@@ -570,11 +570,13 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 info=info,
             )
         else:
-            # Skip mode still needs the metadata + identifier files written
-            # so downstream aggregator scraping can discover the search
-            # directory. `save_all` is lightweight (a handful of JSON dumps)
-            # and skips the expensive `analysis.save_attributes` /
-            # `visualize_before_fit` calls that `pre_fit_output` would add.
+            # Skip mode still needs `save_all` to run so that
+            # `files/search.json` — the sentinel the aggregator scans for — and
+            # the identifier files exist, letting downstream aggregator
+            # scraping discover the search directory. `save_all` is lightweight
+            # (a handful of JSON dumps) and skips the expensive
+            # `analysis.save_attributes` / `visualize_before_fit` calls that
+            # `pre_fit_output` would add.
             if hasattr(self.paths, "save_all"):
                 self.paths.save_all(
                     info=info,
