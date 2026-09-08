@@ -393,11 +393,11 @@ class EPOptimiser:
         run should stop early.
         """
         # Per-variable bookkeeping, one level below `status.updated`: which of
-        # this factor's variables were compared by this update, and which of
-        # them actually moved — accumulated per factor *name*, so a decomposed
-        # factor's per-dataset members count as one group. A raise never
-        # carries a mask (the update never reached the projection), so this is
-        # a no-op on that path.
+        # this factor's variables this update covered, and for which of them
+        # the projection was *accepted* — accumulated per factor *name*, so a
+        # decomposed factor's per-dataset members count as one group. A raise
+        # never carries a mask (the update never reached the projection), so
+        # this is a no-op on that path.
         if status.changed is not None:
             group = factor.name
             self._variables_seen.setdefault(group, set()).update(status.changed.keys())

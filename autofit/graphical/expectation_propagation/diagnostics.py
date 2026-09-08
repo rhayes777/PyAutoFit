@@ -139,10 +139,11 @@ class EPDiagnostics:
         else:
             kl = float("nan")
 
-        # The variables this update did *not* move. `updated` is the
-        # factor-level summary — True as soon as anything moved — so a
-        # variable reverted on every projection is invisible in it; this
-        # column is what lets a referee script tally that per variable.
+        # The variables whose projection this update *rejected* (reverted).
+        # `updated` is the factor-level summary — True as soon as anything
+        # moved — so a variable reverted on every projection is invisible in
+        # it; this column is what lets a referee script tally that per
+        # variable.
         if status.changed is not None:
             reverted_variables = ";".join(
                 sorted(
