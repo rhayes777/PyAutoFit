@@ -63,6 +63,31 @@ class IdentifierField:
         setattr(obj, self.private, value)
 
 
+def _assertion_operands(assertion) -> list:
+    """
+    The operands of an assertion, in order.
+
+    A `CompoundAssertion` joins two assertions as `assertion_1` and `assertion_2`. Every
+    other assertion is a `CompoundPrior`, which holds its two sides in `_left` and
+    `_right`; its public aliases are named after the caller's local variables, so they
+    are not a stable component of an identifier.
+
+    Parameters
+    ----------
+    assertion
+        An assertion attached to a model.
+
+    Returns
+    -------
+    The operands of the assertion, in order.
+    """
+    if hasattr(assertion, "assertion_1"):
+        return [assertion.assertion_1, assertion.assertion_2]
+    if hasattr(assertion, "_left"):
+        return [assertion._left, assertion._right]
+    return []
+
+
 class Identifier:
     def __init__(self, obj):
         """
@@ -131,6 +156,7 @@ class Identifier:
 
                     d = {k: v for k, v in d.items() if k not in excluded_fields}
             self.add_value_to_hash_list(d)
+            self._add_assertions_to_hash_list(value)
         elif isinstance(value, dict):
             for key, value in value.items():
                 key = str(key)
@@ -149,6 +175,68 @@ class Identifier:
         elif isinstance(value, Iterable):
             for value in value:
                 self.add_value_to_hash_list(value)
+
+    def _add_assertions_to_hash_list(self, model):
+        """
+        Add the assertions attached to a model to the hash_list.
+
+        Assertions live in the underscore prefixed `_assertions` attribute, which the
+        attribute walk above skips. Without this a model carrying an ordering assertion
+        hashes identically to the same model without it, so an ordered fit is written to
+        the unordered fit's output directory and loads its completed result instead of
+        running.
+
+        Nothing at all is added for a model with no assertions, so the identifier of
+        every model which does not use them is unchanged.
+
+        Parameters
+        ----------
+        model
+            An object which may be an `AbstractPriorModel` carrying assertions.
+        """
+        assertions = getattr(model, "_assertions", None)
+        if not assertions:
+            return
+
+        self.hash_list.append("assertions")
+
+        prior_paths = {
+            id(prior): ".".join(path) for path, prior in model.path_priors_tuples
+        }
+
+        for assertion in assertions:
+            self._add_assertion_to_hash_list(assertion, prior_paths)
+
+    def _add_assertion_to_hash_list(self, assertion, prior_paths):
+        """
+        Add a single assertion to the hash_list as its class name followed by its
+        operands in order, so that `a < b` and `b < a` hash differently.
+
+        An operand which is a prior of the model is identified by its path (e.g.
+        "gaussian.sigma") rather than by its value, because two priors with identical
+        limits hash identically and a value based hash could not tell the two directions
+        apart. An operand which is itself compound (a chained assertion, or arithmetic on
+        priors) is recursed into for the same reason: its own operands are underscore
+        prefixed and would otherwise be skipped.
+
+        Parameters
+        ----------
+        assertion
+            An assertion attached to a model.
+        prior_paths
+            A map from the id of each prior in the model to its path in that model.
+        """
+        from autofit.mapper.prior.arithmetic.compound import Compound
+
+        self.hash_list.append(type(assertion).__name__)
+
+        for operand in _assertion_operands(assertion):
+            if id(operand) in prior_paths:
+                self.hash_list.append(prior_paths[id(operand)])
+            elif isinstance(operand, Compound):
+                self._add_assertion_to_hash_list(operand, prior_paths)
+            else:
+                self.add_value_to_hash_list(operand)
 
     def add_value_to_hash_list(self, value):
         if isinstance(value, property):

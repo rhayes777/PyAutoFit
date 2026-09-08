@@ -516,3 +516,118 @@ def test_drawer_identifier_ignores_clipper():
     assert Identifier(af.Drawer(clipper=af.ClipperPriorBox())) == Identifier(
         af.Drawer()
     )
+
+
+def _gaussian_with_explicit_priors():
+    """
+    A Gaussian whose priors are all given explicitly, so that its identifier does not
+    move when the test configuration's default priors are edited.
+    """
+    return af.Model(
+        af.ex.Gaussian,
+        centre=af.UniformPrior(lower_limit=0.0, upper_limit=1.0),
+        normalization=af.UniformPrior(lower_limit=0.0, upper_limit=1.0),
+        sigma=af.UniformPrior(lower_limit=0.0, upper_limit=1.0),
+    )
+
+
+def test_assertion_free_model_identifier_unchanged():
+    """
+    Tripwire: hashing assertions must not re-key the models which carry none. These are
+    the identifiers captured from `main` before assertions entered the identifier, and a
+    change here orphans every result on disk.
+    """
+    assert (
+        str(Identifier(_gaussian_with_explicit_priors()))
+        == "9929b2be4248f0d116f5c1c034bda870"
+    )
+    assert (
+        str(Identifier(af.Collection(g=_gaussian_with_explicit_priors())))
+        == "5b45f48f8ab1205471ce531904ace327"
+    )
+
+
+def _asserted_collection(reverse=False):
+    a = af.Model(af.ex.Gaussian)
+    b = af.Model(af.ex.Gaussian)
+    collection = af.Collection(a=a, b=b)
+    if reverse:
+        collection.add_assertion(b.sigma < a.sigma)
+    else:
+        collection.add_assertion(a.sigma < b.sigma)
+    return collection
+
+
+def test_assertion_changes_identifier():
+    """
+    Without this a model ordered by an assertion targets the output directory of the
+    unordered model and loads its completed result instead of running.
+    """
+    unordered = af.Collection(a=af.Model(af.ex.Gaussian), b=af.Model(af.ex.Gaussian))
+    assert Identifier(_asserted_collection()) != Identifier(unordered)
+
+
+def test_assertion_direction_changes_identifier():
+    assert Identifier(_asserted_collection()) != Identifier(
+        _asserted_collection(reverse=True)
+    )
+
+
+def test_assertion_identifier_is_deterministic():
+    assert Identifier(_asserted_collection()) == Identifier(_asserted_collection())
+
+
+def test_number_of_assertions_changes_identifier():
+    a = af.Model(af.ex.Gaussian)
+    b = af.Model(af.ex.Gaussian)
+    collection = af.Collection(a=a, b=b)
+    collection.add_assertion(a.sigma < b.sigma)
+    one = str(Identifier(collection))
+
+    collection.add_assertion(a.centre < b.centre)
+    assert str(Identifier(collection)) != one
+
+
+def test_assertion_on_child_changes_collection_identifier():
+    gaussian = af.Model(af.ex.Gaussian)
+    gaussian.add_assertion(gaussian.centre < gaussian.sigma)
+
+    assert Identifier(af.Collection(gaussian=gaussian)) != Identifier(
+        af.Collection(gaussian=af.Model(af.ex.Gaussian))
+    )
+
+
+def test_compound_assertion_changes_identifier():
+    """
+    A chained assertion is a `CompoundAssertion`, whose operands are themselves
+    assertions held in public attributes, and an arithmetic operand is a `CompoundPrior`
+    holding its sides in underscore prefixed attributes. Both must reach the hash.
+    """
+    a = af.Model(af.ex.Gaussian)
+    b = af.Model(af.ex.Gaussian)
+    chained = af.Collection(a=a, b=b)
+    chained.add_assertion((a.sigma < b.sigma) < b.centre)
+
+    c = af.Model(af.ex.Gaussian)
+    d = af.Model(af.ex.Gaussian)
+    arithmetic = af.Collection(a=c, b=d)
+    arithmetic.add_assertion(c.sigma * 2 < d.sigma)
+
+    identifiers = {
+        str(Identifier(chained)),
+        str(Identifier(arithmetic)),
+        str(Identifier(_asserted_collection())),
+    }
+    assert len(identifiers) == 3
+
+
+def test_assertion_name_does_not_change_identifier():
+    """
+    The name is logged when an assertion is violated and cannot change the fit.
+    """
+    a = af.Model(af.ex.Gaussian)
+    b = af.Model(af.ex.Gaussian)
+    collection = af.Collection(a=a, b=b)
+    collection.add_assertion(a.sigma < b.sigma, name="ordered")
+
+    assert Identifier(collection) == Identifier(_asserted_collection())

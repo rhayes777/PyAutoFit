@@ -627,6 +627,12 @@ class AbstractPriorModel(AbstractModel):
         model checks its own as its instance is built, JAX because `gathered_assertions` collects
         them from the whole tree.
 
+        Assertions are part of the model's identifier
+        (:class:`~autofit.mapper.identifier.Identifier`), so a model with an assertion is written
+        to a different output directory than the same model without it and does not resume its
+        result. The identifier records the assertion's type and the paths of its operands, not the
+        ``name``.
+
         Parameters
         ----------
         assertion
