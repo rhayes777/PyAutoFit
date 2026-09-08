@@ -501,12 +501,13 @@ class MeanField(Collection, Dict[Variable, AbstractMessage], Factor):
         """
         success, messages, _, flag = status
         updated = False
-        # Per-variable mask of what this update actually moved, carried on the
-        # returned Status for the (factor, variable) staleness warning. It is
-        # computed on both branches below, against the *final* factor_dist —
-        # after `update_invalid` on the invalid branch, since it is exactly a
-        # variable whose every parameter was reverted that must read as
-        # unchanged. None when there is nothing to compare against.
+        # Per-variable mask of whether this update *accepted* each variable's
+        # projection, carried on the returned Status for the (factor, variable)
+        # staleness warning. A valid projection accepts every one of its
+        # variables, whether or not the message moved — landing on a fixed
+        # point is not a rejection. An invalid projection accepts exactly the
+        # variables `check_valid` passes, read before `update_invalid` reverts
+        # the rest. None when the update never reached the projection.
         changed = None
         if not status.success and last_dist is not None:
             # The optimiser did not succeed (failed line search, bad Hessian,
@@ -544,23 +545,26 @@ class MeanField(Collection, Dict[Variable, AbstractMessage], Factor):
                 # Name the variables `update_invalid` reverts, with the
                 # precisions that made the quotient invalid (a projected
                 # marginal wider than the cavity has negative factor precision).
-                reverted = [
-                    v
-                    for v, valid in factor_dist.check_valid().items()
-                    if not np.all(valid)
-                ]
+                valid = factor_dist.check_valid()
+                reverted = [v for v, v_valid in valid.items() if not np.all(v_valid)]
                 messages += self._reverted_variable_messages(reverted, cavity_dist)
+                # The acceptance mask is the projection's validity, read
+                # *before* the revert: a variable is accepted only if every one
+                # of its parameters survived. `check_valid` after the revert is
+                # true by construction — the reverted parameters come from a
+                # valid message — so it cannot be the signal (PyAutoFit#1571).
+                changed = VariableData(
+                    {v: bool(np.all(v_valid)) for v, v_valid in valid.items()}
+                )
                 factor_dist = factor_dist.update_invalid(last_dist)
-                # Whether anything *moved*, not whether the result is valid:
-                # `check_valid` after the revert is true by construction, since
-                # the reverted parameters come from a valid message, so it used
-                # to report a fully reverted projection as an update and hide it
-                # from the STALE FACTORS warning (PyAutoFit#1571).
-                changed = factor_dist.check_changed(last_dist)
-                if changed.any():
+                # `updated` stays on the numerical comparison: a projection
+                # whose every parameter was reverted moved nothing and counts
+                # as skipped.
+                moved = factor_dist.check_changed(last_dist)
+                if moved.any():
                     updated = True
-                    n_changed = changed.sum()
-                    n_total = changed.size
+                    n_changed = moved.sum()
+                    n_total = moved.size
                     logger.debug(
                         "meanfield with variables: %r ,"
                         "partially updated %d variables "
@@ -578,11 +582,10 @@ class MeanField(Collection, Dict[Variable, AbstractMessage], Factor):
                 flag = StatusFlag.BAD_PROJECTION
             else:
                 updated = True
-                changed = (
-                    factor_dist.check_changed(last_dist)
-                    if last_dist is not None
-                    else None
-                )
+                # A valid projection is accepted for every variable, moved or
+                # not: reproducing a message exactly is a fixed point, not a
+                # rejection.
+                changed = VariableData({v: True for v in factor_dist})
 
         except exc.MessageException as e:
             logger.exception(e)

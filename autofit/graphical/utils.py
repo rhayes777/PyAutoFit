@@ -298,16 +298,18 @@ class Status:
         Parameters
         ----------
         changed
-            Per-variable mask of whether this factor update actually moved
-            each of the factor's messages, as
-            ``MeanField.check_changed`` computes it. ``updated`` is the
-            factor-level summary of the same thing (did *anything* move);
+            Per-variable mask of whether this factor update's projection was
+            *accepted* for each of the factor's variables — not whether the
+            message moved numerically. A valid projection accepts every
+            variable (a message that reproduces itself is at a fixed point,
+            not rejected); an invalid one accepts the variables that passed
+            ``check_valid`` and rejects those ``update_invalid`` reverts.
+            ``updated`` remains the factor-level "did anything move";
             this is the per-variable resolution the (factor, variable)
             staleness warning needs, so that a variable reverted on every
             projection is named even when its factor's other variables
-            update. ``None`` when the update carried no comparison — no
-            previous message to compare against, or a status that never
-            reached the mean-field projection.
+            update. ``None`` when the update never reached the mean-field
+            projection.
         """
         self.success = success
         self.messages = messages

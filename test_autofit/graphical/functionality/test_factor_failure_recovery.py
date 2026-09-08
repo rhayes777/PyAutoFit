@@ -508,11 +508,11 @@ def test_partial_revert_is_recorded_in_ep_history_csv(tmp_path):
     `ep_history.csv` gains a `reverted_variables` column so a workspace referee
     can tally the per-variable signal without parsing the warning text.
 
-    The column records what each update did *not* move, which on a converging
-    graph is more than the reverted variables: once EP reaches a fixed point
-    every message stops moving, so a healthy factor's later rows list its
-    variables too. The signal a referee wants is therefore a variable that is
-    listed on *every* row for a factor -- never once absent -- which is what
+    The column records the variables whose projection each update *rejected*
+    -- the ones `update_invalid` reverted -- not the ones whose message
+    happened not to move: a valid projection accepts every variable, so a
+    healthy factor records nothing even once it has settled. A variable listed
+    on *every* row for a factor was therefore never accepted, which is what
     `_stale_factor_warnings` reports.
     """
     model_approx, factor_graph, prior_x, prior_y, likelihood = (
@@ -555,6 +555,42 @@ def test_partial_revert_is_recorded_in_ep_history_csv(tmp_path):
     assert not [
         w for w in optimiser._stale_factor_warnings() if "variable 'x'" in w
     ]
+
+
+def test_restart_from_fixed_point_is_not_stale(tmp_path):
+    """
+    EP restarted from its own converged `EPMeanField` reproduces every message
+    exactly: nothing moves, but nothing is rejected either. A fixed point is
+    not a rejection (PyAutoFit#1579), so no factor may be reported stale and
+    no history row may name a reverted variable.
+    """
+    model_approx, factor_graph, prior, likelihood = make_shared_variable_approx()
+
+    def run(approx, name, steps):
+        optimiser = graph.EPOptimiser(
+            factor_graph,
+            factor_optimisers={
+                prior: ExactFactorFit(),
+                likelihood: ExactFactorFit(),
+            },
+            ep_history=EPHistory(kl_tol=None),
+            paths=DirectoryPaths(name=name, path_prefix=str(tmp_path)),
+        )
+        return optimiser, optimiser.run(
+            approx, max_steps=steps, max_consecutive_failures=100
+        )
+
+    _, converged = run(model_approx, "burn_in", 6)
+    optimiser, _ = run(converged, "fixed_point", 4)
+
+    assert optimiser._stale_factor_warnings() == []
+
+    with open(optimiser.output_path / "ep_history.csv", newline="") as f:
+        rows = list(csv.DictReader(f))
+
+    assert rows
+    assert all(row["flag"] == StatusFlag.SUCCESS.name for row in rows)
+    assert all(row["reverted_variables"] == "" for row in rows)
 
 
 def test_factor_step_preserves_the_changed_mask_on_the_status():
