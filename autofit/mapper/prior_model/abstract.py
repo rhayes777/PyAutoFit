@@ -190,14 +190,21 @@ class AbstractPriorModel(AbstractModel):
     def assertions(self, assertions):
         self._assertions = assertions
 
-    def check_assertions(self, arguments: Dict[Prior, float]):
+    def check_assertions(self, arguments: Dict[Prior, float], xp=np):
         """
         Check that all assertions are satisfied by the given arguments.
+
+        This is the **exception** form of the assertion check, and therefore the numpy form: it
+        applies a Python ``not`` to each assertion's value, which is illegal on a traced value.
+        The traced form is `assertions_satisfied_for_arguments`.
 
         Parameters
         ----------
         arguments
             A dictionary mapping priors to values
+        xp
+            The array module (``numpy`` or ``jax.numpy``) used to realise the values the
+            assertions compare.
 
         Raises
         ------
@@ -211,6 +218,7 @@ class AbstractPriorModel(AbstractModel):
             or assertion is not True
             and not assertion.instance_for_arguments(
                 arguments,
+                xp=xp,
             )
         ]
         number_of_failed_assertions = len(failed_assertions)
@@ -225,6 +233,166 @@ class AbstractPriorModel(AbstractModel):
             raise exc.FitException(
                 f"{number_of_failed_assertions} assertions failed!\n{name_string}"
             )
+
+    def gathered_assertions(self) -> list:
+        """
+        Every assertion attached anywhere in this model's tree.
+
+        Assertions are attached to whichever model object the user happened to hold -- a child
+        `Model` as often as the top-level `Collection` -- and on the numpy path that does not
+        matter, because each model checks its own assertions as its own instance is built. The
+        traced path has no such recursion to hook into: it is handed one model and one parameter
+        vector, so it must find the assertions itself or silently enforce fewer of them than
+        numpy does.
+
+        Returns
+        -------
+        This model's own assertions first, then those of every `AbstractPriorModel` reachable
+        beneath it in walk order, then those attached to the assertions' own operands. A component
+        reachable by more than one path (a shared component) contributes its assertions once.
+        """
+        assertions = list(self._assertions)
+
+        # `_assertions` itself is never walked into by the tree walk below:
+        # `path_instances_of_class` skips attributes whose name starts with an underscore, so the
+        # assertion objects -- which are themselves `AbstractPriorModel`s -- are not mistaken for
+        # components of the model. Their operands are picked up separately, afterwards.
+        seen = {id(self)}
+
+        for _, model in self.attribute_tuples_with_type(
+            AbstractPriorModel,
+            ignore_children=False,
+        ):
+            if id(model) in seen:
+                continue
+            seen.add(id(model))
+            assertions.extend(getattr(model, "_assertions", []))
+
+        # An assertion's operand can itself be a model carrying assertions -- `derived = p + 1` is
+        # a `CompoundPrior`, and `derived.add_assertion(...)` attaches to it. On numpy those fire
+        # when the operand is realised, so they are part of the model's contract; the tree walk
+        # cannot see them, because the operand hangs off the assertion rather than off the model.
+        collected = {id(assertion) for assertion in assertions}
+        visited = set()
+        queue = list(assertions)
+
+        while queue:
+            node = queue.pop(0)
+
+            if id(node) in visited:
+                continue
+            visited.add(id(node))
+
+            if isinstance(node, AbstractPriorModel) and id(node) not in seen:
+                for assertion in node._assertions:
+                    if id(assertion) not in collected:
+                        collected.add(id(assertion))
+                        assertions.append(assertion)
+                        queue.append(assertion)
+
+            for attribute in ("_left", "_right", "assertion_1", "assertion_2"):
+                operand = getattr(node, attribute, None)
+                if operand is not None:
+                    queue.append(operand)
+
+        return assertions
+
+    def assertions_satisfied_for_arguments(
+        self,
+        arguments: Dict[Prior, float],
+        xp=np,
+        assertions=None,
+    ):
+        """
+        Whether every assertion attached to this model is satisfied, returned as a **value**
+        rather than signalled by an exception.
+
+        This is the traced sibling of `check_assertions`. It never applies a Python ``not``,
+        ``and`` or ``if`` to an assertion's value, so under ``jax.jit`` / ``jax.vmap`` -- where
+        each value is a tracer -- it returns a traced boolean instead of raising
+        ``TracerBoolConversionError``. `Fitness` applies that boolean with ``xp.where``,
+        mapping a violating model to the resample figure of merit.
+
+        Parameters
+        ----------
+        arguments
+            A dictionary mapping priors to physical values.
+        xp
+            The array module (``numpy`` or ``jax.numpy``) used to realise and combine the
+            assertion values.
+        assertions
+            The assertions to evaluate. Defaults to `gathered_assertions`, i.e. every assertion
+            in the model tree; a caller that gathers them once (as `Fitness` does, in its
+            constructor) passes them in so the walk is not repeated per likelihood evaluation.
+
+        Returns
+        -------
+        A boolean array which is ``True`` when every assertion holds. A model with no assertions
+        returns ``True``.
+        """
+        if assertions is None:
+            assertions = self.gathered_assertions()
+
+        satisfied = xp.asarray(True)
+
+        for assertion in assertions:
+            if assertion is True:
+                continue
+            if assertion is False:
+                value = xp.asarray(False)
+            else:
+                value = assertion.instance_for_arguments(
+                    arguments,
+                    ignore_assertions=True,
+                    xp=xp,
+                )
+            satisfied = xp.logical_and(satisfied, value)
+
+        return satisfied
+
+    def assertions_satisfied_from_vector(self, vector, xp=np, assertions=None):
+        """
+        Whether every assertion attached to this model is satisfied by a physical parameter
+        vector, returned as a **value** rather than signalled by an exception.
+
+        The vector is mapped to arguments exactly as `instance_from_vector` maps it, so the
+        assertions are evaluated against the same physical values the instance would be built
+        from.
+
+        Parameters
+        ----------
+        vector: [float]
+            A vector of physical parameter values, ordered by prior id.
+        xp
+            The array module (``numpy`` or ``jax.numpy``) used to realise and combine the
+            assertion values.
+        assertions
+            The assertions to evaluate. Defaults to `gathered_assertions` (see
+            `assertions_satisfied_for_arguments`).
+
+        Returns
+        -------
+        A boolean array which is ``True`` when every assertion holds. A model with no assertions
+        returns ``True``.
+        """
+        if len(vector) != self.prior_count:
+            raise AssertionError(
+                f"Vector length {len(vector)} != prior count {self.prior_count}"
+            )
+
+        arguments = dict(
+            map(
+                lambda prior_tuple, physical_unit: (prior_tuple.prior, physical_unit),
+                self.prior_tuples_ordered_by_id,
+                vector,
+            )
+        )
+
+        return self.assertions_satisfied_for_arguments(
+            arguments,
+            xp=xp,
+            assertions=assertions,
+        )
 
     def set_item_at_path(self, path: Tuple[str, ...], value):
         """
@@ -441,8 +609,24 @@ class AbstractPriorModel(AbstractModel):
     def add_assertion(self, assertion, name=""):
         """
         Assert that some relationship holds between physical values associated with
-        priors at the point an instance is created. If this fails a FitException is
-        raised causing the model to be re-sampled.
+        priors at the point an instance is created.
+
+        The assertion is enforced differently on the two array backends, but with the same
+        outcome -- the non-linear search never selects a violating model:
+
+        - **numpy**: `check_assertions` raises a ``FitException`` when the assertion fails, which
+          :class:`~autofit.non_linear.fitness.Fitness` catches and turns into the resample figure
+          of merit.
+        - **JAX**: raising is impossible inside a trace, so the assertion is instead evaluated as
+          a traced boolean by `assertions_satisfied_from_vector` and applied by
+          :class:`~autofit.non_linear.fitness.Fitness` with ``xp.where``, mapping a violating
+          model to the resample figure of merit. This is a **value-only** penalty, carrying the
+          same gradient caveat as the NaN guards documented on `Fitness.call`.
+
+        Both paths enforce assertions attached anywhere in the model tree: numpy because each
+        model checks its own as its instance is built, JAX because `gathered_assertions` collects
+        them from the whole tree.
+
         Parameters
         ----------
         assertion
@@ -1620,7 +1804,7 @@ class AbstractPriorModel(AbstractModel):
         if not (
             conf.instance["general"]["test"]["exception_override"] or ignore_assertions
         ):
-            self.check_assertions(arguments)
+            self.check_assertions(arguments, xp=xp)
 
         return self._instance_for_arguments(
             arguments,

@@ -1,3 +1,4 @@
+import numpy as np
 import pytest
 
 import autofit as af
@@ -118,3 +119,373 @@ class TestModel:
         model.add_assertion(False)
         with pytest.raises(exc.FitException):
             model.instance_from_unit_vector([])
+
+
+class TestAssertionsSatisfiedFromVector:
+    """
+    The **value** form of the assertion check, which is what makes assertions work under JAX.
+
+    `check_assertions` signals a violation by raising, and a `raise` cannot happen inside a
+    trace. `assertions_satisfied_from_vector` returns the same verdict as a boolean array
+    instead, which `Fitness` applies with an `xp.where`. These tests pin it on numpy, where the
+    verdict must match what `instance_from_vector` does or does not raise; the traced behaviour
+    is pinned in `test_autofit/non_linear/test_fitness_assertions_jax.py`.
+    """
+
+    @staticmethod
+    def _collection(*names):
+        return af.Collection(**{name: af.Model(af.ex.Gaussian) for name in names})
+
+    def test_greater_than_assertion(self):
+        model = self._collection("gaussian_0", "gaussian_1")
+        model.add_assertion(model.gaussian_0.centre > model.gaussian_1.centre)
+
+        # The vector is ordered by prior id: centre, normalization, sigma for each Gaussian in
+        # turn, so index 0 is `gaussian_0.centre` and index 3 is `gaussian_1.centre`.
+        satisfied = model.assertions_satisfied_from_vector(
+            [20.0, 1.0, 1.0, 10.0, 1.0, 1.0]
+        )
+        violated = model.assertions_satisfied_from_vector(
+            [10.0, 1.0, 1.0, 20.0, 1.0, 1.0]
+        )
+
+        assert np.asarray(satisfied).dtype == bool
+        assert bool(satisfied) is True
+        assert bool(violated) is False
+
+    def test_greater_than_equal_assertion(self):
+        """
+        The `>=` assertion is a different class to `>`, and the equal case is the one that
+        distinguishes them.
+        """
+        model = self._collection("gaussian_0", "gaussian_1")
+        model.add_assertion(model.gaussian_0.centre >= model.gaussian_1.centre)
+
+        equal = model.assertions_satisfied_from_vector(
+            [10.0, 1.0, 1.0, 10.0, 1.0, 1.0]
+        )
+
+        assert bool(equal) is True
+        assert (
+            bool(
+                model.assertions_satisfied_from_vector(
+                    [20.0, 1.0, 1.0, 10.0, 1.0, 1.0]
+                )
+            )
+            is True
+        )
+        assert (
+            bool(
+                model.assertions_satisfied_from_vector(
+                    [10.0, 1.0, 1.0, 20.0, 1.0, 1.0]
+                )
+            )
+            is False
+        )
+
+    def test_compound_assertion(self):
+        """
+        `(a > b) > c` chains to `a > b and b > c`, a `CompoundAssertion`. Both halves must hold,
+        and the combination must not go through a Python `and`.
+        """
+        model = self._collection("gaussian_0", "gaussian_1", "gaussian_2")
+        model.add_assertion(
+            (model.gaussian_0.centre > model.gaussian_1.centre)
+            > model.gaussian_2.centre
+        )
+
+        ordered = [3.0, 1.0, 1.0, 2.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+        second_half_violated = [3.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 1.0, 1.0]
+        first_half_violated = [1.0, 1.0, 1.0, 2.0, 1.0, 1.0, 0.5, 1.0, 1.0]
+
+        assert bool(model.assertions_satisfied_from_vector(ordered)) is True
+        assert (
+            bool(model.assertions_satisfied_from_vector(second_half_violated)) is False
+        )
+        assert (
+            bool(model.assertions_satisfied_from_vector(first_half_violated)) is False
+        )
+
+    def test_compound_prior_assertion(self):
+        """
+        The motivating case: an ordering between two *derived* quantities rather than two bare
+        priors -- here the squared radius of each component's (centre, normalization) pair, which
+        is the 1D stand-in for the MGE `ell_comps` label degeneracy the assertion was added to
+        break. The assertion adds no free parameters, so the vector length is unchanged.
+        """
+        model = self._collection("gaussian_0", "gaussian_1")
+
+        prior_count = model.prior_count
+        model.add_assertion(
+            (model.gaussian_0.centre**2 + model.gaussian_0.normalization**2)
+            > (model.gaussian_1.centre**2 + model.gaussian_1.normalization**2)
+        )
+
+        assert model.prior_count == prior_count
+
+        # |(0.4, 0.3)|^2 = 0.25 > |(0.05, 0.05)|^2 = 0.005
+        satisfied = [0.4, 0.3, 1.0, 0.05, 0.05, 1.0]
+        violated = [0.05, 0.05, 1.0, 0.4, 0.3, 1.0]
+
+        assert bool(model.assertions_satisfied_from_vector(satisfied)) is True
+        assert bool(model.assertions_satisfied_from_vector(violated)) is False
+
+    def test_model_without_assertions_is_always_satisfied(self):
+        """
+        A model with nothing attached must return `True` rather than an empty reduction, so
+        `Fitness` can call this unconditionally.
+        """
+        model = self._collection("gaussian_0")
+
+        satisfied = model.assertions_satisfied_from_vector([1.0, 1.0, 1.0])
+
+        assert np.asarray(satisfied).dtype == bool
+        assert bool(satisfied) is True
+
+    def test_vector_length_is_checked(self):
+        """
+        The same guard `instance_from_vector` applies, since the two must map a vector to
+        arguments identically or the assertion would be evaluated against the wrong parameters.
+        """
+        model = self._collection("gaussian_0")
+        model.add_assertion(model.gaussian_0.centre > 0.0)
+
+        with pytest.raises(AssertionError):
+            model.assertions_satisfied_from_vector([1.0, 1.0])
+
+    def test_agrees_with_check_assertions(self):
+        """
+        The value form and the exception form are two statements of one rule, so a vector that
+        `instance_from_vector` rejects must be exactly the vector this returns `False` for.
+        """
+        model = self._collection("gaussian_0", "gaussian_1")
+        model.add_assertion(model.gaussian_0.centre > model.gaussian_1.centre)
+
+        satisfied = [20.0, 1.0, 1.0, 10.0, 1.0, 1.0]
+        violated = [10.0, 1.0, 1.0, 20.0, 1.0, 1.0]
+
+        model.instance_from_vector(satisfied)
+        assert bool(model.assertions_satisfied_from_vector(satisfied)) is True
+
+        with pytest.raises(exc.FitException):
+            model.instance_from_vector(violated)
+        assert bool(model.assertions_satisfied_from_vector(violated)) is False
+
+
+class TestGatheredAssertions:
+    """
+    Assertions are attached to whichever model object the user held, which is very often a child
+    component rather than the model the search is handed. `check_assertions` never had to care --
+    every model checks its own as its instance is built -- but the traced path is handed one model
+    and has to find them itself, so a walk that missed a child would enforce fewer assertions
+    under JAX than under numpy. That asymmetry is what these pin against.
+    """
+
+    def test_own_assertions(self):
+        model = af.Collection(gaussian=af.Model(af.ex.Gaussian))
+        assertion = model.gaussian.centre > 0.0
+        model.add_assertion(assertion)
+
+        assert model.gathered_assertions() == [assertion]
+
+    def test_child_assertions(self):
+        """
+        The form the pre-existing numpy regression test uses: attached to the child `Model`, and
+        the `Collection` is what the search sees.
+        """
+        gaussian_0 = af.Model(af.ex.Gaussian)
+        gaussian_1 = af.Model(af.ex.Gaussian)
+        assertion = gaussian_0.centre > gaussian_1.centre
+        gaussian_0.add_assertion(assertion)
+
+        model = af.Collection(gaussian_0=gaussian_0, gaussian_1=gaussian_1)
+
+        assert model._assertions == []
+        assert model.gathered_assertions() == [assertion]
+
+    def test_nested_collections_and_own_assertions_first(self):
+        gaussian_0 = af.Model(af.ex.Gaussian)
+        gaussian_1 = af.Model(af.ex.Gaussian)
+        child_assertion = gaussian_0.centre > gaussian_1.centre
+        gaussian_0.add_assertion(child_assertion)
+
+        inner = af.Collection(gaussian_0=gaussian_0, gaussian_1=gaussian_1)
+        inner_assertion = inner.gaussian_1.sigma > 0.5
+        inner.add_assertion(inner_assertion)
+
+        model = af.Collection(inner=inner)
+        own_assertion = model.inner.gaussian_0.normalization > 0.0
+        model.add_assertion(own_assertion)
+
+        gathered = model.gathered_assertions()
+
+        assert gathered[0] is own_assertion
+        assert set(map(id, gathered)) == {
+            id(own_assertion),
+            id(inner_assertion),
+            id(child_assertion),
+        }
+
+    def test_model_without_assertions(self):
+        model = af.Collection(gaussian=af.Model(af.ex.Gaussian))
+
+        assert model.gathered_assertions() == []
+
+    def test_a_shared_component_contributes_once(self):
+        """
+        The same `Model` reachable by two paths is one component with one set of assertions, so
+        its assertion must not be evaluated (or counted) twice.
+        """
+        gaussian = af.Model(af.ex.Gaussian)
+        assertion = gaussian.centre > 0.0
+        gaussian.add_assertion(assertion)
+
+        model = af.Collection(first=gaussian, second=gaussian)
+
+        assert model.gathered_assertions() == [assertion]
+
+    def test_child_assertions_are_evaluated_from_a_vector(self):
+        """
+        The verdict, not just the gathering: a child-attached assertion must make
+        `assertions_satisfied_from_vector` on the *parent* return `False`, matching the
+        `FitException` `instance_from_vector` raises for the same vector.
+        """
+        gaussian_0 = af.Model(af.ex.Gaussian)
+        gaussian_1 = af.Model(af.ex.Gaussian)
+        gaussian_0.add_assertion(gaussian_0.centre > gaussian_1.centre)
+        model = af.Collection(gaussian_0=gaussian_0, gaussian_1=gaussian_1)
+
+        satisfied = [20.0, 1.0, 1.0, 10.0, 1.0, 1.0]
+        violated = [10.0, 1.0, 1.0, 20.0, 1.0, 1.0]
+
+        assert bool(model.assertions_satisfied_from_vector(satisfied)) is True
+        assert bool(model.assertions_satisfied_from_vector(violated)) is False
+
+        with pytest.raises(exc.FitException):
+            model.instance_from_vector(violated)
+
+    def test_explicit_assertions_argument_is_used_verbatim(self):
+        """
+        `Fitness` gathers once in its constructor and passes the list back in, so the per-call
+        cost is the evaluation rather than a fresh walk of the model tree.
+        """
+        gaussian_0 = af.Model(af.ex.Gaussian)
+        gaussian_1 = af.Model(af.ex.Gaussian)
+        gaussian_0.add_assertion(gaussian_0.centre > gaussian_1.centre)
+        model = af.Collection(gaussian_0=gaussian_0, gaussian_1=gaussian_1)
+
+        violated = [10.0, 1.0, 1.0, 20.0, 1.0, 1.0]
+
+        assert (
+            bool(
+                model.assertions_satisfied_from_vector(
+                    violated, assertions=model.gathered_assertions()
+                )
+            )
+            is False
+        )
+        # An empty list is not "no list": it means evaluate nothing.
+        assert (
+            bool(model.assertions_satisfied_from_vector(violated, assertions=[]))
+            is True
+        )
+
+
+class TestCompoundAssertionShortCircuits:
+    """
+    `CompoundAssertion` combines its halves with a Python `and` on numpy, which **short-circuits**:
+    a false first half means the second is never realised. That is load-bearing, not incidental --
+    a chained assertion's second half can be undefined exactly where the first one fails, and the
+    user's contract is a `FitException` (resample), not whatever exception the arithmetic raises.
+
+    Only the JAX path uses `xp.logical_and`, which evaluates both halves; there it has to, since a
+    Python `and` on a tracer is illegal, and division by zero is `inf` rather than an exception.
+    """
+
+    def test_numpy_and_short_circuits_a_singular_second_half(self):
+        prior = af.UniformPrior(lower_limit=0.0, upper_limit=2.0)
+        model = af.Collection(p=prior)
+        model.add_assertion((0 < prior) < (1 / prior))
+
+        # `0 < 0.0` is False, so `1 / 0.0` must never be evaluated.
+        with pytest.raises(exc.FitException):
+            model.instance_from_vector([0.0])
+
+        # The value form short-circuits the same way, returning `False` rather than dividing.
+        assert bool(model.assertions_satisfied_from_vector([0.0])) is False
+
+    def test_numpy_compound_result_is_a_python_bool(self):
+        """
+        The numpy half returns the `True`/`False` singletons, unchanged from before the JAX work:
+        `np.logical_and` would return an `np.bool_`, and code (and tests) downstream compare with
+        `is`.
+        """
+        prior = af.UniformPrior()
+        assertion = (0.2 < prior) < 0.5
+
+        assert assertion.instance_for_arguments({prior: 0.3}) is True
+
+
+class TestAssertionBoundaries:
+    """
+    `>` and `>=` are different classes, and the equality boundary is the only input that tells
+    them apart -- so it is the one that would catch the two being wired to the same comparison.
+    """
+
+    @staticmethod
+    def _model(operator):
+        model = af.Collection(
+            gaussian_0=af.Model(af.ex.Gaussian),
+            gaussian_1=af.Model(af.ex.Gaussian),
+        )
+        if operator == ">":
+            model.add_assertion(model.gaussian_0.centre > model.gaussian_1.centre)
+        else:
+            model.add_assertion(model.gaussian_0.centre >= model.gaussian_1.centre)
+        return model
+
+    EQUAL = [10.0, 1.0, 1.0, 10.0, 1.0, 1.0]
+
+    def test_greater_than_rejects_equality(self):
+        assert bool(self._model(">").assertions_satisfied_from_vector(self.EQUAL)) is False
+
+    def test_greater_than_equal_accepts_equality(self):
+        assert bool(self._model(">=").assertions_satisfied_from_vector(self.EQUAL)) is True
+
+
+class TestAssertionsOnAssertionOperands:
+    """
+    An assertion's operand can itself be a model carrying assertions -- `derived = p + 1` is a
+    `CompoundPrior`, and `derived.add_assertion(...)` attaches to it. On numpy those fire when the
+    operand is realised, so they are part of the model's contract; a gather that walked only the
+    model tree would miss them (the operand hangs off the assertion, and `_assertions` is not
+    walked into), and JAX would accept a vector numpy rejects.
+    """
+
+    @staticmethod
+    def _model():
+        prior = af.UniformPrior(lower_limit=0.0, upper_limit=2.0)
+        derived = prior + 1
+        derived.add_assertion(prior > 0.5)
+
+        model = af.Collection(p=prior)
+        model.add_assertion(derived < 2)
+        return model
+
+    def test_operand_assertions_are_gathered(self):
+        model = self._model()
+
+        assert len(model._assertions) == 1
+        assert len(model.gathered_assertions()) == 2
+
+    def test_operand_assertion_rejects_the_same_vector_numpy_does(self):
+        model = self._model()
+
+        # p = 0.25 satisfies the outer assertion (0.25 + 1 < 2) but violates the operand's own
+        # (0.25 > 0.5 is False), which is what numpy rejects it for.
+        with pytest.raises(exc.FitException):
+            model.instance_from_vector([0.25])
+        assert bool(model.assertions_satisfied_from_vector([0.25])) is False
+
+        model.instance_from_vector([0.75])
+        assert bool(model.assertions_satisfied_from_vector([0.75])) is True
