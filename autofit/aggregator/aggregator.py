@@ -93,6 +93,21 @@ def unzip_directory(directory: str):
                     )
 
 
+def _is_search_output(root, dirs, filenames) -> bool:
+    """
+    Whether an ``os.walk`` step has landed on a search output directory.
+
+    The sentinel is ``files/search.json``, which ``save_all`` always writes; the
+    ``"files" in dirs`` guard keeps the walk from returning the ``files``
+    directory itself as a search output. A bare ``metadata`` file is still
+    accepted so output folders (and archived zips) written before the sentinel
+    changed continue to aggregate.
+    """
+    if "files" in dirs and (Path(root) / "files" / "search.json").exists():
+        return True
+    return "metadata" in filenames
+
+
 def is_relative_to(path_a, path_b):
     """Return True if the path is relative to another path or False."""
     try:
@@ -152,7 +167,7 @@ class Aggregator:
         Aggregate phase results for all subdirectories in a given directory.
 
         The whole directory structure is traversed and a Phase object created for each directory that contains a
-        metadata file.
+        ``files/search.json`` file (or, for legacy output, a ``metadata`` file).
 
         Zipped search outputs are extracted as they are encountered, in the same traversal. A zip whose
         extracted directory already exists is skipped, so repeat calls do not pay the extraction cost again;
@@ -192,7 +207,7 @@ class Aggregator:
                 def should_add():
                     return not completed_only or ".completed" in filenames
 
-                if "metadata" in filenames:
+                if _is_search_output(root, dirs, filenames):
                     if should_add():
                         search_outputs.append(
                             SearchOutput(
