@@ -82,15 +82,10 @@ class TestAssertion:
         assert assertion.instance_for_arguments({prior_1: 0.5}) is False
 
     def test_compound_assertion(self, prior_1):
-        """
-        The two halves are combined with `np.logical_and` rather than a Python `and` -- `and`
-        coerces its operands to Python bools, which is illegal on a JAX tracer -- so the result
-        is an `np.bool_` rather than the `True`/`False` singletons.
-        """
         assertion = (0.2 < prior_1) < 0.5
-        assert assertion.instance_for_arguments({prior_1: 0.3}) == True
-        assert assertion.instance_for_arguments({prior_1: 0.1}) == False
-        assert assertion.instance_for_arguments({prior_1: 0.6}) == False
+        assert assertion.instance_for_arguments({prior_1: 0.3}) is True
+        assert assertion.instance_for_arguments({prior_1: 0.1}) is False
+        assert assertion.instance_for_arguments({prior_1: 0.6}) is False
 
 
 @pytest.fixture(name="promise_model")
@@ -394,3 +389,103 @@ class TestGatheredAssertions:
             bool(model.assertions_satisfied_from_vector(violated, assertions=[]))
             is True
         )
+
+
+class TestCompoundAssertionShortCircuits:
+    """
+    `CompoundAssertion` combines its halves with a Python `and` on numpy, which **short-circuits**:
+    a false first half means the second is never realised. That is load-bearing, not incidental --
+    a chained assertion's second half can be undefined exactly where the first one fails, and the
+    user's contract is a `FitException` (resample), not whatever exception the arithmetic raises.
+
+    Only the JAX path uses `xp.logical_and`, which evaluates both halves; there it has to, since a
+    Python `and` on a tracer is illegal, and division by zero is `inf` rather than an exception.
+    """
+
+    def test_numpy_and_short_circuits_a_singular_second_half(self):
+        prior = af.UniformPrior(lower_limit=0.0, upper_limit=2.0)
+        model = af.Collection(p=prior)
+        model.add_assertion((0 < prior) < (1 / prior))
+
+        # `0 < 0.0` is False, so `1 / 0.0` must never be evaluated.
+        with pytest.raises(exc.FitException):
+            model.instance_from_vector([0.0])
+
+        # The value form short-circuits the same way, returning `False` rather than dividing.
+        assert bool(model.assertions_satisfied_from_vector([0.0])) is False
+
+    def test_numpy_compound_result_is_a_python_bool(self):
+        """
+        The numpy half returns the `True`/`False` singletons, unchanged from before the JAX work:
+        `np.logical_and` would return an `np.bool_`, and code (and tests) downstream compare with
+        `is`.
+        """
+        prior = af.UniformPrior()
+        assertion = (0.2 < prior) < 0.5
+
+        assert assertion.instance_for_arguments({prior: 0.3}) is True
+
+
+class TestAssertionBoundaries:
+    """
+    `>` and `>=` are different classes, and the equality boundary is the only input that tells
+    them apart -- so it is the one that would catch the two being wired to the same comparison.
+    """
+
+    @staticmethod
+    def _model(operator):
+        model = af.Collection(
+            gaussian_0=af.Model(af.ex.Gaussian),
+            gaussian_1=af.Model(af.ex.Gaussian),
+        )
+        if operator == ">":
+            model.add_assertion(model.gaussian_0.centre > model.gaussian_1.centre)
+        else:
+            model.add_assertion(model.gaussian_0.centre >= model.gaussian_1.centre)
+        return model
+
+    EQUAL = [10.0, 1.0, 1.0, 10.0, 1.0, 1.0]
+
+    def test_greater_than_rejects_equality(self):
+        assert bool(self._model(">").assertions_satisfied_from_vector(self.EQUAL)) is False
+
+    def test_greater_than_equal_accepts_equality(self):
+        assert bool(self._model(">=").assertions_satisfied_from_vector(self.EQUAL)) is True
+
+
+class TestAssertionsOnAssertionOperands:
+    """
+    An assertion's operand can itself be a model carrying assertions -- `derived = p + 1` is a
+    `CompoundPrior`, and `derived.add_assertion(...)` attaches to it. On numpy those fire when the
+    operand is realised, so they are part of the model's contract; a gather that walked only the
+    model tree would miss them (the operand hangs off the assertion, and `_assertions` is not
+    walked into), and JAX would accept a vector numpy rejects.
+    """
+
+    @staticmethod
+    def _model():
+        prior = af.UniformPrior(lower_limit=0.0, upper_limit=2.0)
+        derived = prior + 1
+        derived.add_assertion(prior > 0.5)
+
+        model = af.Collection(p=prior)
+        model.add_assertion(derived < 2)
+        return model
+
+    def test_operand_assertions_are_gathered(self):
+        model = self._model()
+
+        assert len(model._assertions) == 1
+        assert len(model.gathered_assertions()) == 2
+
+    def test_operand_assertion_rejects_the_same_vector_numpy_does(self):
+        model = self._model()
+
+        # p = 0.25 satisfies the outer assertion (0.25 + 1 < 2) but violates the operand's own
+        # (0.25 > 0.5 is False), which is what numpy rejects it for.
+        with pytest.raises(exc.FitException):
+            model.instance_from_vector([0.25])
+        assert bool(model.assertions_satisfied_from_vector([0.25])) is False
+
+        model.instance_from_vector([0.75])
+        assert bool(model.assertions_satisfied_from_vector([0.75])) is True

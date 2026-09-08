@@ -122,6 +122,90 @@ def test_gathered_assertions_survive_a_pickle_roundtrip():
     )
 
 
+def test_unpickling_an_old_fitness_recomputes_the_gathered_assertions():
+    """
+    A `Fitness` pickled before the traced penalty existed carries neither `_traced_assertions` nor
+    `_apply_assertions_traced`. Defaulting them to "no assertions" would mean a search *resumed*
+    from such a pickle silently stops enforcing its model's assertions under JAX -- the failure is
+    invisible, since the fit runs happily and simply samples models the user forbade. The state is
+    recomputed from the restored model instead, which is where the assertions live anyway.
+    """
+    gaussian_0 = af.Model(af.ex.Gaussian)
+    gaussian_1 = af.Model(af.ex.Gaussian)
+    gaussian_0.add_assertion(gaussian_0.centre > gaussian_1.centre)
+    model = af.Collection(gaussian_0=gaussian_0, gaussian_1=gaussian_1)
+
+    data = np.ones(20)
+    noise_map = np.ones(20) * 0.1
+    fitness = Fitness(
+        model=model,
+        analysis=af.ex.Analysis(data=data, noise_map=noise_map),
+        resample_figure_of_merit=-1.0e99,
+    )
+
+    state = fitness.__getstate__()
+    del state["_traced_assertions"]
+    del state["_apply_assertions_traced"]
+
+    restored = Fitness.__new__(Fitness)
+    restored.__setstate__(state)
+
+    assert restored._apply_assertions_traced is True
+    assert len(restored._traced_assertions) == 1
+    assert restored.call([10.0, 1.0, 1.0, 20.0, 1.0, 1.0]) == -1.0e99
+
+
+def test_numpy_short_circuit_assertion_returns_the_sentinel():
+    """
+    The numpy `and` short-circuit is part of the user contract: a chained assertion whose second
+    half is singular exactly where the first fails must reach the search as a resample, not as a
+    `ZeroDivisionError` out of the likelihood.
+    """
+    prior = af.UniformPrior(lower_limit=0.0, upper_limit=2.0)
+    model = af.Collection(p=prior)
+    model.add_assertion((0 < prior) < (1 / prior))
+
+    data = np.ones(20)
+    noise_map = np.ones(20) * 0.1
+    fitness = Fitness(
+        model=model,
+        analysis=af.ex.Analysis(data=data, noise_map=noise_map),
+        resample_figure_of_merit=-1.0e99,
+    )
+
+    assert fitness.call([0.0]) == -1.0e99
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"convert_to_chi_squared": True},
+        {"fom_is_log_likelihood": False},
+        {"convert_to_chi_squared": True, "fom_is_log_likelihood": False},
+    ],
+)
+def test_numpy_returns_the_raw_sentinel_whatever_the_conversion(kwargs):
+    """
+    The reference the JAX path must match: numpy returns `resample_figure_of_merit` from an early
+    `return`, so neither the log-prior addition nor the chi-squared multiply touches it.
+    """
+    gaussian_0 = af.Model(af.ex.Gaussian)
+    gaussian_1 = af.Model(af.ex.Gaussian)
+    model = af.Collection(gaussian_0=gaussian_0, gaussian_1=gaussian_1)
+    model.add_assertion(model.gaussian_0.centre > model.gaussian_1.centre)
+
+    data = np.ones(20)
+    noise_map = np.ones(20) * 0.1
+    fitness = Fitness(
+        model=model,
+        analysis=af.ex.Analysis(data=data, noise_map=noise_map),
+        resample_figure_of_merit=-1.0e99,
+        **kwargs,
+    )
+
+    assert fitness.call([10.0, 1.0, 1.0, 20.0, 1.0, 1.0]) == -1.0e99
+
+
 def _ceiling_fitness(log_likelihood, ceiling=None, **kwargs):
     """
     A `Fitness` whose analysis returns `log_likelihood` for any instance.

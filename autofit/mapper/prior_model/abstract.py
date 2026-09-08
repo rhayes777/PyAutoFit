@@ -248,14 +248,15 @@ class AbstractPriorModel(AbstractModel):
         Returns
         -------
         This model's own assertions first, then those of every `AbstractPriorModel` reachable
-        beneath it in walk order. A component reachable by more than one path (a shared
-        component) contributes its assertions once.
+        beneath it in walk order, then those attached to the assertions' own operands. A component
+        reachable by more than one path (a shared component) contributes its assertions once.
         """
         assertions = list(self._assertions)
 
-        # `_assertions` itself is never walked into: `path_instances_of_class` skips attributes
-        # whose name starts with an underscore, so the assertion objects -- which are themselves
-        # `AbstractPriorModel`s -- are not mistaken for components of the model.
+        # `_assertions` itself is never walked into by the tree walk below:
+        # `path_instances_of_class` skips attributes whose name starts with an underscore, so the
+        # assertion objects -- which are themselves `AbstractPriorModel`s -- are not mistaken for
+        # components of the model. Their operands are picked up separately, afterwards.
         seen = {id(self)}
 
         for _, model in self.attribute_tuples_with_type(
@@ -266,6 +267,33 @@ class AbstractPriorModel(AbstractModel):
                 continue
             seen.add(id(model))
             assertions.extend(getattr(model, "_assertions", []))
+
+        # An assertion's operand can itself be a model carrying assertions -- `derived = p + 1` is
+        # a `CompoundPrior`, and `derived.add_assertion(...)` attaches to it. On numpy those fire
+        # when the operand is realised, so they are part of the model's contract; the tree walk
+        # cannot see them, because the operand hangs off the assertion rather than off the model.
+        collected = {id(assertion) for assertion in assertions}
+        visited = set()
+        queue = list(assertions)
+
+        while queue:
+            node = queue.pop(0)
+
+            if id(node) in visited:
+                continue
+            visited.add(id(node))
+
+            if isinstance(node, AbstractPriorModel) and id(node) not in seen:
+                for assertion in node._assertions:
+                    if id(assertion) not in collected:
+                        collected.add(id(assertion))
+                        assertions.append(assertion)
+                        queue.append(assertion)
+
+            for attribute in ("_left", "_right", "assertion_1", "assertion_2"):
+                operand = getattr(node, attribute, None)
+                if operand is not None:
+                    queue.append(operand)
 
         return assertions
 

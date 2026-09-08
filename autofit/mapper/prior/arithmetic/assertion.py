@@ -101,11 +101,29 @@ class CompoundAssertion(AbstractPriorModel, Compound):
         """
         Both sub-assertions must hold.
 
-        Combined with ``xp.logical_and`` rather than a Python ``and``: under ``jax.jit`` /
-        ``jax.vmap`` each sub-assertion is a tracer, and ``and`` would coerce it to a Python
-        bool and raise ``TracerBoolConversionError``. On numpy this returns an ``np.bool_``,
-        which `AbstractPriorModel.check_assertions` negates exactly as it did a Python bool.
+        The numpy path keeps the Python ``and``, which **short-circuits**: a false first half
+        means the second is never realised. That is load-bearing rather than incidental — a
+        chained assertion's second half can be undefined exactly where the first one fails
+        (``(0 < p) < (1 / p)`` at ``p = 0``), and the user's contract there is a ``FitException``
+        (resample), not a ``ZeroDivisionError`` out of the likelihood.
+
+        The JAX path cannot use ``and``: each half is a tracer, and ``and`` coerces its operands
+        to Python bools, raising ``TracerBoolConversionError``. ``xp.logical_and`` evaluates both
+        halves, which is safe there because the arithmetic that raises on numpy is ``inf`` or
+        ``nan`` under JAX rather than an exception.
+
+        The branch is on the *module identity* of ``xp``, which is a static Python value even
+        inside a trace, so it is legal under ``jit`` and ``vmap``.
         """
+        if xp is np:
+            return self.assertion_1.instance_for_arguments(
+                arguments,
+                ignore_assertions,
+            ) and self.assertion_2.instance_for_arguments(
+                arguments,
+                ignore_assertions,
+            )
+
         return xp.logical_and(
             self.assertion_1.instance_for_arguments(
                 arguments,
