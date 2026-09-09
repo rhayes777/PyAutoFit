@@ -46,15 +46,6 @@ You guide the science; it writes and runs Python scripts you can inspect, rerun 
 - [The autofit_workspace GitHub repository](https://github.com/PyAutoLabs/autofit_workspace), which includes example scripts demonstrating **PyAutoFit**'s features.
 - [The standalone HowToFit repository](https://github.com/PyAutoLabs/HowToFit), a series of Jupyter notebook lectures which give new users a step-by-step introduction to **PyAutoFit**.
 
-## Support
-
-Support for installation issues, help with Fit modeling and using **PyAutoFit** is available by
-[raising an issue on the GitHub issues page](https://github.com/PyAutoLabs/PyAutoFit/issues).
-
-We also offer support on the **PyAutoFit** [Slack channel](https://pyautoFit.slack.com/), where we also provide the
-latest updates on **PyAutoFit**. Slack is invitation-only, so if you'd like to join send
-an [email](https://github.com/Jammy2211) requesting an invite.
-
 ## HowToFit
 
 For users less familiar with Bayesian inference and scientific analysis you may wish to read through
@@ -63,25 +54,11 @@ content pitched at undergraduate level and above.
 
 The lectures are available in the [standalone HowToFit repository](https://github.com/PyAutoLabs/HowToFit).
 
-## Inference with Natural Language
+## Support
 
-Start with a simple example: fitting a Gaussian profile to noisy data.
-Ask [autofit_assistant](https://github.com/PyAutoLabs/autofit_assistant):
+Support for installation issues, help with Fit modeling and using **PyAutoFit** is available by
+[raising an issue on the GitHub issues page](https://github.com/PyAutoLabs/PyAutoFit/issues).
 
-> Fit the bundled 1D Gaussian dataset. Explain the model and priors,
-> use nested sampling to infer its parameters, and plot the fitted
-> profile over the data.
-
-<img src="https://raw.githubusercontent.com/PyAutoLabs/PyAutoFit/main/files/toy_model_fit.png" alt="Gaussian model fitted to noisy one-dimensional data" width="400" />
-
-Then extend the analysis through a follow-up request:
-
-> Fit a model with two Gaussians instead. Show me the priors and
-> compare the Bayesian evidence to assess whether the additional
-> component is justified.
-
-For your own science, point the assistant to your data and existing model or likelihood code.
-
-Follow the [natural-language introduction](https://pyautofit.readthedocs.io/en/latest/overview/natural_language.html)
-for the complete workflow, or see [The Python API](https://pyautofit.readthedocs.io/en/latest/overview/python_api.html)
-for PyAutoFit's Python interface and inner workings.
+We also offer support on the **PyAutoFit** [Slack channel](https://pyautoFit.slack.com/), where we also provide the
+latest updates on **PyAutoFit**. Slack is invitation-only, so if you'd like to join send
+an [email](https://github.com/Jammy2211) requesting an invite.
