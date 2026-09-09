@@ -6,6 +6,14 @@ This page is the under-the-hood companion to [Natural Language Inference](https:
 it walks through the **PyAutoFit** Python API that an assistant writes for you, so you can read, run and
 extend that code yourself.
 
+**Every code snippet on this page is available as a runnable script and notebook** in the
+[autofit_workspace](https://github.com/PyAutoLabs/autofit_workspace):
+[`scripts/overview/overview_1_the_basics.py`](https://github.com/PyAutoLabs/autofit_workspace/blob/main/scripts/overview/overview_1_the_basics.py)
+and [`notebooks/overview/overview_1_the_basics.ipynb`](https://github.com/PyAutoLabs/autofit_workspace/blob/main/notebooks/overview/overview_1_the_basics.ipynb),
+which you can also
+[run in your browser on Colab](https://colab.research.google.com/github/PyAutoLabs/autofit_workspace/blob/2026.9.8.1/notebooks/overview/overview_1_the_basics.ipynb)
+without installing anything.
+
 **PyAutoFit** is a Python based probabilistic programming language for model fitting and Bayesian inference
 of large datasets. The API lets a user quickly compose a probabilistic model and fit it to data via a
 log likelihood function, using a range of non-linear search algorithms (e.g. MCMC, nested sampling).
