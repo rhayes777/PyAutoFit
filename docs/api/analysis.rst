@@ -8,7 +8,7 @@ It acts as an interface between the data, model and the non-linear search.
 
 **Examples / Tutorials:**
 
-- `readthedocs: example using Analysis object <https://pyautofit.readthedocs.io/en/latest/overview/the_basics.html>`_.
+- `readthedocs: example using Analysis object <https://pyautofit.readthedocs.io/en/latest/overview/python_api.html>`_.
 - `autofit_workspace: simple tutorial <https://github.com/PyAutoLabs/autofit_workspace/blob/main/notebooks/overview/overview_1_the_basics.ipynb>`_
 - `autofit_workspace: complex tutorial <https://github.com/PyAutoLabs/autofit_workspace/blob/main/notebooks/overview/overview_2_scientific_workflow.ipynb>`_
 - `HowToFit: tutorial lectures (detailed step-by-step examples) <https://github.com/PyAutoLabs/HowToFit>`_

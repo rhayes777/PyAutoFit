@@ -34,7 +34,7 @@ To begin instantly, follow the [assistant setup guide](https://github.com/PyAuto
 need to write Python to follow it.** The workflow is:
 **model → priors → likelihood → search → results → scientific workflow**.
 
-If you do want to see how **PyAutoFit** works under the hood, [The Basics](https://pyautofit.readthedocs.io/en/latest/overview/the_basics.html), explains PyAutoFit's 
+If you do want to see how **PyAutoFit** works under the hood, [The Python API](https://pyautofit.readthedocs.io/en/latest/overview/python_api.html) explains PyAutoFit's 
 inner workings and Python API, including the model, Analysis, search and Result objects that the assistant
 uses behind the scenes.
 
@@ -84,7 +84,7 @@ normalization                 LogUniformPrior [2], lower_limit = 1e-06, upper_li
 sigma                         UniformPrior [3], lower_limit = 0.0, upper_limit = 25.0
 ```
 
-Models are highly customizeable, you can ask to fix a parameter, 
+Models are highly customizable: you can ask to fix a parameter, 
 link parameters between components, or assert a constraint. For your own 
 science, simply ask the assistant to compose your model for you.
 
@@ -217,7 +217,7 @@ already completed fit.
 
 ## What Next?
 
-I now recommend you instlal the [autofit_assistant](https://github.com/PyAutoLabs/autofit_assistant), have it perform inference on a
+I now recommend you install the [autofit_assistant](https://github.com/PyAutoLabs/autofit_assistant), have it perform inference on a
 topic within your scientific domain and experiment with what it can do.
 
 If you find you start doing larger more complex modeling tasks, you may quickly find you have more
@@ -225,9 +225,9 @@ results than you can manage and inspect. At this point, you should setup a **PyA
 with this page describing advanced tools that make inference scalable and the inspection of results fitting to
 large datasets feasible. 
 
-**PyAutoFit** also supports many advanced[Statistical Methods](https://pyautofit.readthedocs.io/en/latest/overview/statistical_methods.html) 
-not mentioning here. This includes hierarchical models to large dataset, building inference pipelines combining different searches by 
-chaining them together and Bayesian model comparison. You can ask the assistant to describe each feature and then perform inference using the 
+**PyAutoFit** also supports many advanced [Statistical Methods](https://pyautofit.readthedocs.io/en/latest/overview/statistical_methods.html) 
+not mentioned here. This includes hierarchical models to large dataset, building inference pipelines combining different searches by 
+chaining them together, and Bayesian model comparison. You can ask the assistant to describe each feature and then perform inference using the 
 same natural-language approach.
 
 ## HowToFit
@@ -238,13 +238,29 @@ content pitched at undergraduate level and above.
 
 The lectures are available in the [standalone HowToFit repository](https://github.com/PyAutoLabs/HowToFit).
 
+If you're new to statistical inference and are not totally sure what concepts like a model, likelihood or
+sampling are, you can use **teacher mode** to have the assistant explain concepts in more detail. Simply
+start a prompt with "Teacher mode." and ask questions:
+
+```
+Teacher mode.
+
+I'm new to PyAutoFit and want to learn the basic workflow end-to-end. Fit the
+bundled 1D Gaussian dataset in dataset/gaussian_x1/ and recover its input
+parameters.
+
+Explain what each step is doing and why as we go: composing the model, choosing
+the priors, picking the non-linear search, and how to read the posterior. So I
+come away understanding the workflow, not just the commands.
+```
+
 ## The Python API
 
-Checking [The Python API](https://pyautofit.readthedocs.io/en/latest/overview/the_basics.html) to see the actual underlying
+Checking [The Python API](https://pyautofit.readthedocs.io/en/latest/overview/python_api.html) to see the actual underlying
 **PyAutoFit** Python API which implements the inference performed through natural language above.
 
 The [autofit_workspace](https://github.com/PyAutoLabs/autofit_workspace) provides human readable, runnable examples 
 for everything **PyAutoFit**. These examples are the basis on which the [autofit_assistant](https://github.com/PyAutoLabs/autofit_assistant) is
-trained and what allow is to do complex inference taksk through natural language. 
-For you as a scienist, reading through these guides can help build understanding 
+trained, and what allows it to do complex inference tasks through natural language. 
+For you as a scientist, reading through these guides can help build understanding 
 of how inference actually works.
