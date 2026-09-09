@@ -51,12 +51,14 @@ the `data` (black) and the model (red) we'll fit:
 :width: 400
 ```
 
-There are two ways to read the rest of these docs:
+Start with [Quick Start](https://pyautofit.readthedocs.io/en/latest/overview/quick_start.html), which sets up
+the assistant and gets inference running on your own likelihood in a few minutes. After that, there are two
+ways to read the rest of these docs:
 
 - [Natural Language Inference](https://pyautofit.readthedocs.io/en/latest/overview/natural_language.html)
   walks through this fit as a conversation with an assistant — composing the model, defining the likelihood,
   choosing a search, running the fit and inspecting the results, all described in words rather than written by
-  hand. **This is the recommended starting point.**
+  hand. **This is the recommended route through the docs.**
 - [The Python API](https://pyautofit.readthedocs.io/en/latest/overview/python_api.html) walks through the same
   fit in code, showing the `Model`, `Analysis`, search and `Result` objects the assistant writes for you, and
   which you can read, run and extend yourself.
@@ -71,6 +73,7 @@ covering hierarchical models, search chaining and Bayesian model comparison.
 :hidden: true
 :maxdepth: 1
 
+overview/quick_start
 overview/natural_language
 overview/scientific_workflow
 overview/statistical_methods
