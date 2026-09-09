@@ -27,13 +27,15 @@ Simply open your AI coding agent (`codex` or `Claude Code` are recommended) and 
 >
 > Begin the "start here" guide for a new user.
 
+**PyAutoFit** is designed to be used entirely through natural language — the
+[natural-language inference page](https://pyautofit.readthedocs.io/en/latest/overview/natural_language.html)
+walks through this, including its **AI First Design**.
+
 ## What is PyAutoFit?
 
 **PyAutoFit** is a domain-agnostic Python package for scientific model fitting and Bayesian inference. It supports
 nested sampling, MCMC and optimisation, alongside advanced methods such as hierarchical models, search chaining
-and Bayesian model comparison. The source code has an **AI First Design**; check out the
-[ReadTheDocs natural-language inference page](https://pyautofit.readthedocs.io/en/latest/overview/natural_language.html)
-for the details.
+and Bayesian model comparison.
 
 [**autofit_assistant**](https://github.com/PyAutoLabs/autofit_assistant) connects natural-language requests to runnable
 **PyAutoFit** workflows. Ask it to compose a model, discuss priors, run inference or compare competing explanations.
