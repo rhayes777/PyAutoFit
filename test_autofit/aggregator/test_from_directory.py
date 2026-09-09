@@ -133,6 +133,43 @@ def test_zip_temporary_mirrors_the_scanned_layout(tmp_path):
     assert len({output.directory for output in aggregator}) == 2
 
 
+@pytest.fixture(name="zipped_grid_search_directory")
+def make_zipped_grid_search_directory(tmp_path):
+    """
+    A grid search, with one child search, archived as a single zip.
+    """
+    source = Path(__file__).parent / "search_output"
+    staging = tmp_path / "staging"
+    staging.mkdir()
+    shutil.copytree(source, staging / "child")
+    (staging / ".is_grid_search").write_text("my_unique_tag")
+
+    with zipfile.ZipFile(tmp_path / "grid.zip", "w") as f:
+        for path in staging.rglob("*"):
+            if path.is_file():
+                f.write(path, path.relative_to(staging))
+    shutil.rmtree(staging)
+    return tmp_path
+
+
+def test_zip_temporary_grid_search(zipped_grid_search_directory):
+    aggregator = Aggregator.from_directory(
+        zipped_grid_search_directory,
+        unzip_temporary=True,
+    )
+
+    assert len(aggregator.grid_search_outputs) == 1
+
+    grid_search = aggregator.grid_searches()[0]
+
+    assert grid_search.unique_tag == "my_unique_tag"
+    # The child is paired with its grid search, which only holds if both were
+    # extracted into the same mirrored temporary tree.
+    assert len(grid_search.children) == 1
+    assert aggregator.grid_search_outputs[0]._temporary_directory is not None
+    assert [path.name for path in zipped_grid_search_directory.iterdir()] == ["grid.zip"]
+
+
 def test_outputs_by_suffix(scan_directory):
     search_output = SearchOutput(scan_directory / "search_output")
 
