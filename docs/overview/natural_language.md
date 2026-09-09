@@ -37,22 +37,29 @@ uses behind the scenes.
 
 ## Bring Your Own Likelihood
 
-You do not need to start from a bundled example, or write the integration
-yourself. **Point the assistant at your existing likelihood function and it
-takes care of the rest** — wiring your code to a named model, choosing priors
-with you, setting up a search and organising the results:
+Already have a likelihood function for your science problem? **Point the
+assistant at your existing code and it can set it up with PyAutoFit** —
+defining the model, choosing priors with you, configuring a search and
+organising the results:
 
-> Setup PyAutoFit with my existing science project, an example likelihood
-> function can be found at [point to GitHub link or computer directory].
-> Give me an overview of my project, compose a model and tell me about it and
-> give me your assessment of what non-linear search (MCMC, nested sampler,
-> maximum likelihood estimator) you think would be a good choice. Do not
-> begin inference until we have had a discussion and I give you the go ahead,
-> and once inference is running give me a overview of how results are output
-> to hard-disk and how I can inspect and interpret them with PyAutoFit.
+> Set up PyAutoFit with my existing science project. An example likelihood
+> function can be found at [GitHub link or local directory].
+>
+> First, give me an overview of my project and likelihood function. Compose
+> an appropriate model, explain it to me, and recommend a non-linear search
+> (for example MCMC, nested sampling or maximum-likelihood estimation).
+>
+> Do not begin inference until we have discussed the setup and I give you
+> the go-ahead.
+>
+> Once inference is running, explain how the results are written to disk and
+> show me how to inspect and interpret them with PyAutoFit.
 
-Your validated science code keeps working exactly as it did; PyAutoFit's
-searches and result tools are what get wrapped around it.
+Your existing science code remains the source of the likelihood. With
+PyAutoFit built around it, you can perform inference through natural
+language while gaining access to features such as flexible priors and model
+composition, MCMC and nested sampling, automated result handling, model
+comparison and scalable workflows.
 
 ## Contents
 

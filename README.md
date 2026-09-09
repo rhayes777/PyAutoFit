@@ -31,6 +31,27 @@ Simply open your AI coding agent (`codex` or `Claude Code` are recommended) and 
 [natural-language inference page](https://pyautofit.readthedocs.io/en/latest/overview/natural_language.html)
 walks through this, including its **AI First Design**.
 
+## Bring Your Own Likelihood
+
+Already have a likelihood function for your science problem? **Point the assistant at your existing code and it can
+set it up with PyAutoFit** — defining the model, choosing priors with you, configuring a search and organising the
+results:
+
+> Set up PyAutoFit with my existing science project. An example likelihood function can be found at
+> [GitHub link or local directory].
+>
+> First, give me an overview of my project and likelihood function. Compose an appropriate model, explain it to me,
+> and recommend a non-linear search (for example MCMC, nested sampling or maximum-likelihood estimation).
+>
+> Do not begin inference until we have discussed the setup and I give you the go-ahead.
+>
+> Once inference is running, explain how the results are written to disk and show me how to inspect and interpret
+> them with PyAutoFit.
+
+Your existing science code remains the source of the likelihood. With PyAutoFit built around it, you can perform
+inference through natural language while gaining access to features such as flexible priors and model composition,
+MCMC and nested sampling, automated result handling, model comparison and scalable workflows.
+
 ## What is PyAutoFit?
 
 **PyAutoFit** is a domain-agnostic Python package for scientific model fitting and Bayesian inference. It supports
