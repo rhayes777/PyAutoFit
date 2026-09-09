@@ -17,9 +17,17 @@
 
 **Bring your models, data and likelihood code. Fit models, explore results and develop your analysis through conversation.**
 
-[**autofit_assistant**](https://github.com/PyAutoLabs/autofit_assistant) connects natural-language requests to runnable
-**PyAutoFit** workflows. Ask it to compose a model, discuss priors, run inference or compare competing explanations.
-You guide the science; it writes and runs Python scripts you can inspect, rerun and share.
+## Getting Started
+
+**PyAutoFit** and the **autofit_assistant** allow one to perform scientific inference using purely natural language.
+Simply open your AI coding agent (`codex` or `Claude Code` are recommended) and input the following prompt:
+
+> I want to perform scientific inference with PyAutoFit (https://github.com/PyAutoLabs/PyAutoFit) and the
+> autofit_assistant (https://github.com/PyAutoLabs/autofit_assistant).
+>
+> Begin the "start here" guide for a new user.
+
+## What is PyAutoFit?
 
 **PyAutoFit** is a domain-agnostic Python package for scientific model fitting and Bayesian inference. It supports
 nested sampling, MCMC and optimisation, alongside advanced methods such as hierarchical models, search chaining
@@ -27,11 +35,12 @@ and Bayesian model comparison. The source code has an **AI First Design**; check
 [ReadTheDocs natural-language inference page](https://pyautofit.readthedocs.io/en/latest/overview/natural_language.html)
 for the details.
 
-## Getting Started
+[**autofit_assistant**](https://github.com/PyAutoLabs/autofit_assistant) connects natural-language requests to runnable
+**PyAutoFit** workflows. Ask it to compose a model, discuss priors, run inference or compare competing explanations.
+You guide the science; it writes and runs Python scripts you can inspect, rerun and share.
 
-The following links are useful for new starters:
+## Human Readable Documentation
 
-- **[Start with autofit_assistant](https://github.com/PyAutoLabs/autofit_assistant#getting-started)** to build and run inference workflows using natural language. The setup guide explains supported coding agents and access requirements.
 - [The PyAutoFit readthedocs](https://pyautofit.readthedocs.io/en/latest), which includes an [installation guide](https://pyautofit.readthedocs.io/en/latest/installation/overview.html) and an overview of **PyAutoFit**'s core features.
 - [The introduction Jupyter Notebook on Colab](https://colab.research.google.com/github/PyAutoLabs/autofit_workspace/blob/2026.9.8.1/notebooks/overview/overview_1_the_basics.ipynb), where you can try **PyAutoFit** in a web browser (without installation).
 - [The autofit_workspace GitHub repository](https://github.com/PyAutoLabs/autofit_workspace), which includes example scripts demonstrating **PyAutoFit**'s features.
