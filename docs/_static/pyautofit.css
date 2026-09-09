@@ -1,0 +1,27 @@
+/* PyAutoFit-only docs layer. The shared brand file `pyauto.css` is byte-identical
+   across PyAutoFit / PyAutoGalaxy / PyAutoLens, so repo-specific rules live here
+   instead of diverging it. */
+
+/* "AI First Design" asides on the Natural Language Inference overview: the note
+   is rendered in the project accent so it reads as commentary on the design
+   rather than part of the walkthrough. Colour comes from Furo's brand variable,
+   so it follows the light/dark accent set in conf.py automatically. */
+.ai-first-design {
+  color: var(--color-brand-content);
+  border-left: 3px solid var(--color-brand-content);
+  padding-left: 1rem;
+  margin: 1.2rem 0;
+}
+
+.ai-first-design p {
+  color: inherit;
+  margin-bottom: 0;
+}
+
+/* Inline literals inside the aside inherit the accent too, so the block reads as
+   one colour rather than orange prose broken up by default-coloured code spans. */
+.ai-first-design code,
+.ai-first-design .literal {
+  color: inherit;
+  background: transparent;
+}

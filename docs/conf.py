@@ -121,7 +121,7 @@ add_function_parentheses = False
 language = "en"
 
 html_static_path = ["_static"]
-html_css_files = ["pyauto.css"]
+html_css_files = ["pyauto.css", "pyautofit.css"]
 
 html_theme_options = {
     "light_css_variables": {
