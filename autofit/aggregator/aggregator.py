@@ -22,7 +22,12 @@ from typing import List, Union, Iterator, Optional
 from autonerves.test_mode import is_test_mode
 
 from .predicate import AttributePredicate
-from .search_output import SearchOutput, GridSearchOutput, GridSearch
+from .search_output import (
+    SearchOutput,
+    GridSearchOutput,
+    GridSearch,
+    TemporaryExtraction,
+)
 
 
 class AggregatorGroup:
@@ -122,6 +127,7 @@ class Aggregator:
         self,
         search_outputs: List[SearchOutput],
         grid_search_outputs: List[GridSearchOutput],
+        temporary_directory: Optional[TemporaryExtraction] = None,
     ):
         """
         Class to aggregate phase results for all subdirectories in a given directory.
@@ -130,6 +136,11 @@ class Aggregator:
         ----------
         search_outputs
             A list of search_outputs
+        temporary_directory
+            The temporary extraction zipped outputs were unpacked into, if
+            ``from_directory`` was called with ``unzip_temporary=True``. Held so
+            ``close`` can remove it eagerly; the search outputs keep it alive
+            regardless.
         """
         if len(search_outputs) > 20:
             print(
@@ -139,6 +150,9 @@ class Aggregator:
             )
         self.search_outputs = search_outputs
         self.grid_search_outputs = grid_search_outputs
+        # Set here rather than lazily: ``__getattr__`` returns an
+        # ``AttributePredicate`` for any name it does not find.
+        self._temporary_directory = temporary_directory
 
     def grid_searches(self):
         """
@@ -162,6 +176,7 @@ class Aggregator:
         directory: Union[str, os.PathLike],
         completed_only=False,
         reference: Optional[dict] = None,
+        unzip_temporary: bool = False,
     ) -> "Aggregator":
         """
         Aggregate phase results for all subdirectories in a given directory.
@@ -173,6 +188,10 @@ class Aggregator:
         extracted directory already exists is skipped, so repeat calls do not pay the extraction cost again;
         delete the extracted directory to force re-extraction.
 
+        By default the extraction is written next to the zip and left there, which doubles the disk a results
+        tree occupies. Pass ``unzip_temporary=True`` to extract into a temporary directory instead, which is
+        removed once the aggregator and its search outputs are released (or immediately, via ``close``).
+
         Parameters
         ----------
         directory
@@ -182,27 +201,62 @@ class Aggregator:
             are included in the aggregator.
         reference
             A dictionary mapping paths to types to be used when loading models from disk.
+        unzip_temporary
+            If `True` zips are extracted into a temporary directory that is cleaned up automatically,
+            leaving the aggregated directory untouched. A zip that already has an extracted directory
+            beside it still uses that directory and is not extracted again.
         """
         print("Aggregator loading search_outputs... could take some time.")
 
-        def scan(scan_directory):
+        temporary_directory = None
+        temporary_roots = []
+
+        def temporary_path(zip_path: Path, scan_root: Path) -> Path:
+            """
+            Where to extract ``zip_path`` inside the shared temporary directory.
+
+            The scanned layout is mirrored so that two zips of the same name in
+            different directories cannot collide.
+            """
+            nonlocal temporary_directory
+            if temporary_directory is None:
+                temporary_directory = TemporaryExtraction()
+            relative = zip_path.parent.relative_to(scan_root)
+            return temporary_directory.path / relative / zip_path.stem
+
+        def scan(scan_directory, extract_temporary=False, owner=None):
+            """
+            Walk ``scan_directory``, extracting zips and collecting search outputs.
+
+            ``extract_temporary`` sends extractions to the shared temporary
+            directory rather than beside the zip; ``owner`` is the temporary
+            extraction the outputs found here should keep alive.
+            """
+            scan_directory = Path(scan_directory)
             search_outputs = []
             grid_search_outputs = []
 
             for root, dirs, filenames in os.walk(scan_directory, topdown=True):
                 for filename in filenames:
                     if filename.endswith(".zip"):
+                        zip_path = Path(root) / filename
                         extracted = Path(root) / filename[:-4]
                         if extracted.exists():
                             continue
+                        if extract_temporary:
+                            extracted = temporary_path(zip_path, scan_directory)
                         try:
-                            with zipfile.ZipFile(Path(root) / filename, "r") as f:
+                            with zipfile.ZipFile(zip_path, "r") as f:
                                 f.extractall(extracted)
                         except zipfile.BadZipFile:
                             raise zipfile.BadZipFile(
                                 f"File is not a zip file: \n " f"{root} \n" f"{filename}"
                             )
-                        dirs.append(filename[:-4])
+                        if extract_temporary:
+                            # Outside the tree being walked, so it is scanned separately.
+                            temporary_roots.append(extracted)
+                        else:
+                            dirs.append(filename[:-4])
 
                 def should_add():
                     return not completed_only or ".completed" in filenames
@@ -213,6 +267,7 @@ class Aggregator:
                             SearchOutput(
                                 Path(root),
                                 reference=reference,
+                                temporary_directory=owner,
                             )
                         )
                 if ".is_grid_search" in filenames:
@@ -220,12 +275,35 @@ class Aggregator:
                         grid_search_outputs.append(
                             GridSearchOutput(
                                 Path(root),
+                                temporary_directory=owner,
                             )
                         )
 
             return search_outputs, grid_search_outputs
 
-        search_outputs, grid_search_outputs = scan(directory)
+        def scan_all(scan_directory):
+            """
+            Scan a directory and then every temporary extraction it produced.
+
+            Temporary extractions sit outside the walked tree, so each is scanned in
+            turn. Any zip nested inside one extracts beside itself, which is still
+            inside the temporary directory and removed with it.
+            """
+            search_outputs, grid_search_outputs = scan(
+                scan_directory,
+                extract_temporary=unzip_temporary,
+            )
+            while temporary_roots:
+                temporary_root = temporary_roots.pop()
+                extra_search_outputs, extra_grid_search_outputs = scan(
+                    temporary_root,
+                    owner=temporary_directory,
+                )
+                search_outputs.extend(extra_search_outputs)
+                grid_search_outputs.extend(extra_grid_search_outputs)
+            return search_outputs, grid_search_outputs
+
+        search_outputs, grid_search_outputs = scan_all(directory)
 
         # Under test mode the searches wrote their results beneath an inserted
         # ``test_mode`` segment (``output/test_mode/<prefix>``) rather than the
@@ -237,7 +315,7 @@ class Aggregator:
             directory = Path(directory)
             test_mode_directory = directory.parent / "test_mode" / directory.name
             if test_mode_directory.exists():
-                search_outputs, grid_search_outputs = scan(test_mode_directory)
+                search_outputs, grid_search_outputs = scan_all(test_mode_directory)
 
         if len(search_outputs) == 0:
             print(f"\nNo search_outputs found in {directory}\n")
@@ -246,19 +324,62 @@ class Aggregator:
                 f"\n A total of {str(len(search_outputs))} search_outputs and results were found."
             )
 
-        return cls(search_outputs, grid_search_outputs)
+        return cls(
+            search_outputs,
+            grid_search_outputs,
+            temporary_directory=temporary_directory,
+        )
 
-    def add_directory(self, directory: Union[str, Path]):
+    def add_directory(
+        self,
+        directory: Union[str, Path],
+        unzip_temporary: bool = False,
+    ):
         """
         Add a directory to the aggregator.
+
+        Parameters
+        ----------
+        directory
+            A directory searched recursively for search outputs.
+        unzip_temporary
+            If `True` zips are extracted into a temporary directory that is cleaned
+            up automatically, as in ``from_directory``. The added search outputs
+            keep that directory alive; ``close`` does not remove it.
         """
-        aggregator = Aggregator.from_directory(directory)
+        aggregator = Aggregator.from_directory(
+            directory,
+            unzip_temporary=unzip_temporary,
+        )
         self.search_outputs.extend(aggregator.search_outputs)
         self.grid_search_outputs.extend(aggregator.grid_search_outputs)
+
+    def close(self):
+        """
+        Remove the temporary directory zipped outputs were extracted into, if there
+        is one, without waiting for garbage collection.
+
+        Search outputs read out of it cannot be loaded afterwards. Only the
+        aggregator returned by ``from_directory`` holds the directory; one produced
+        by slicing or querying it does not, so ``close`` there does nothing.
+        """
+        if self._temporary_directory is not None:
+            self._temporary_directory.cleanup()
+            self._temporary_directory = None
+
+    def __enter__(self) -> "Aggregator":
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
 
     def remove_unzipped(self):
         """
         Removes the unzipped output directory for each phase.
+
+        Only relevant to the default extraction mode, which unpacks each zip beside
+        itself and leaves it there. Outputs extracted with ``unzip_temporary=True``
+        are cleaned up on their own.
         """
         for phase in self.search_outputs:
             split_path = Path(phase.directory).parent
