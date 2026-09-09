@@ -215,6 +215,26 @@ ones successfully find the best-fit reliably.
 The assistant uses saved samples and the original data to reinspect an
 already completed fit.
 
+## Scientific Context
+
+PyAutoFit is domain agnostic: **you bring the scientific context**. The assistant ships with a statistics wiki 
+covering Bayesian inference, priors, searches and model comparison. Its **literature wiki** at `wiki/literature/` 
+is yours to populate with the papers that define your field and analysis.
+
+Adding papers lets the assistant connect your natural language scientific descriptions to its inference: what 
+parameters mean, which assumptions are conventional, how previous studies approached the problem, and what might 
+complicate the interpretation of a result.
+
+To add a paper, simply ask:
+
+> Ingest this paper into the literature wiki: [arXiv ID, link or local PDF].
+> Summarise its model, likelihood, priors and main conclusions, and explain
+> how it relates to the analysis we are developing.
+
+The wiki builds a lasting reference for your project, so scientific context is available alongside your code and 
+results. As you add relevant papers, the assistant can draw on them to frame decisions, cite prior work and identify 
+caveats worth investigating.
+
 ## What Next?
 
 I now recommend you install the [autofit_assistant](https://github.com/PyAutoLabs/autofit_assistant), have it perform inference on a
