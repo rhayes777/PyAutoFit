@@ -22,8 +22,10 @@ workflow well suited to AI agents. The examples below show why.
 
 To begin instantly, follow the [assistant setup guide](https://github.com/PyAutoLabs/autofit_assistant#getting-started) and ask:
 
-> Fit the bundled dataset in dataset/gaussian_x1/ with a 1D Gaussian.
-> Explain the model, priors, likelihood, search and results as we go.
+> I want to perform scientific inference with PyAutoFit (https://github.com/PyAutoLabs/PyAutoFit) and the
+> autofit_assistant (https://github.com/PyAutoLabs/autofit_assistant).
+>
+> Begin the "start here" guide for a new user.
 
 **Every step on this page can be requested in natural language—you do not
 need to write Python to follow it.** The workflow is:
