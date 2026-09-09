@@ -136,8 +136,10 @@ use domain-specific natural language while keeping it separate from the inferenc
 
 ## Choose a search
 
-> Show me the available searches. For this first fit, use Dynesty nested
-> sampling with 100 live points to estimate the posterior and evidence.
+> Show me the available non-linear searches, including those which support
+> gradient based inference using JAX. For this example fit, our likelihood
+> function is not implemented using JAX, so lets use Dynesty nested sampling
+> with 100 live points to estimate the posterior and evidence.
 
 PyAutoFit supports several types of inference algorithm:
 
@@ -146,6 +148,10 @@ PyAutoFit supports several types of inference algorithm:
 - **MCMC:** Emcee and Zeus, for posterior sampling.
 - **Optimisation:** algorithms such as L-BFGS, for finding a best-fitting
   solution.
+- **Gradient-based (JAX):** `BlackJAXNUTS` for Hamiltonian / NUTS sampling, and
+  `MultiStartAdam` / `MultiStartProdigy` for optimisation. These take gradients
+  of your likelihood automatically, so they require it to be written in JAX —
+  which is why this example, whose likelihood is plain NumPy, uses Dynesty.
 
 The assistant configures the requested search. You can ask it to explain
 the settings or help choose an algorithm for your likelihood and scientific
