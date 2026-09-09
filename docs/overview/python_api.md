@@ -1,11 +1,13 @@
-(the-basics)=
+(python-api)=
 
-# The Basics
+# The Python API
+
+This page is the under-the-hood companion to [Inference with Natural Language](https://pyautofit.readthedocs.io/en/latest/overview/natural_language.html):
+it walks through the **PyAutoFit** Python API that an assistant writes for you, so you can read, run and
+extend that code yourself.
 
 **PyAutoFit** is a Python based probabilistic programming language for model fitting and Bayesian inference
-of large datasets.
-
-The basic **PyAutoFit** API allows us a user to quickly compose a probabilistic model and fit it to data via a
+of large datasets. The API lets a user quickly compose a probabilistic model and fit it to data via a
 log likelihood function, using a range of non-linear search algorithms (e.g. MCMC, nested sampling).
 
 This overview gives a run through of:
@@ -633,7 +635,8 @@ a non-linear search, and interpret the results.
 The **PyAutoFit** API introduced here is highly extensible and customizable, making it adaptable to a wide range
 of model-fitting problems.
 
-The next overview will delve into setting up a scientific workflow with **PyAutoFit**, utilizing its API to
+The [Scientific Workflow](https://pyautofit.readthedocs.io/en/latest/overview/scientific_workflow.html) overview
+delves into setting up a scientific workflow with **PyAutoFit**, utilizing this API to
 optimize model-fitting efficiency and scalability for large datasets. This approach ensures that detailed scientific
 interpretation of the results remains feasible and insightful.
 

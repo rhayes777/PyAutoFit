@@ -1,12 +1,15 @@
 # PyAutoFit
 
-**PyAutoFit** is a Python based probabilistic programming language for model fitting and Bayesian inference
-of large datasets.
+**PyAutoFit** is a Python package for scientific model fitting and Bayesian inference. Bring your own model
+classes, data and likelihood code; **PyAutoFit** provides priors, inference algorithms and tools for interpreting
+and organising the results. It is domain agnostic: inference can sit around your existing scientific software.
 
-The basic **PyAutoFit** API allows us a user to quickly compose a probabilistic model and fit it to data via a
-log likelihood function, using a range of non-linear search algorithms (e.g. MCMC, nested sampling).
+We recommend getting started with [autofit_assistant](https://github.com/PyAutoLabs/autofit_assistant), which lets
+you **perform scientific inference using natural language**. Describe the model you want to fit, ask the assistant
+to run the analysis, and explore the results through follow-up requests —
+see [Inference with Natural Language](https://pyautofit.readthedocs.io/en/latest/overview/natural_language.html).
 
-Users can then set up **PyAutoFit** scientific workflow, which enables streamlined modeling of small
+Users can then set up a **PyAutoFit** scientific workflow, which enables streamlined modeling of small
 datasets with tools to scale up to large datasets.
 
 **PyAutoFit** supports advanced statistical methods, most
@@ -16,6 +19,7 @@ notably [a big data framework for Bayesian hierarchical analysis](https://pyauto
 
 The following links are useful for new starters:
 
+- [The autofit_assistant repository](https://github.com/PyAutoLabs/autofit_assistant), which lets you perform inference in natural language via a coding agent — the recommended starting point.
 - [The PyAutoFit readthedocs](https://pyautofit.readthedocs.io/en/latest), which includes an [installation guide](https://pyautofit.readthedocs.io/en/latest/installation/overview.html) and an overview of **PyAutoFit**'s core features.
 - [The introduction Jupyter Notebook on Colab](https://colab.research.google.com/github/PyAutoLabs/autofit_workspace/blob/2026.9.8.1/notebooks/overview/overview_1_the_basics.ipynb), where you can try **PyAutoFit** in a web browser (without installation).
 - [The autofit_workspace GitHub repository](https://github.com/PyAutoLabs/autofit_workspace), which includes example scripts demonstrating **PyAutoFit**'s features.
@@ -38,108 +42,39 @@ content pitched at undergraduate level and above.
 
 The lectures are available in the [standalone HowToFit repository](https://github.com/PyAutoLabs/HowToFit).
 
-## API Overview
+## Overview
 
-To illustrate the **PyAutoFit** API, we use an illustrative toy model of fitting a one-dimensional Gaussian to
-noisy 1D data. Here's the `data` (black) and the model (red) we'll fit:
+To illustrate **PyAutoFit** we use a toy model of fitting a one-dimensional Gaussian to noisy 1D data. Here's
+the `data` (black) and the model (red) we'll fit:
 
 ```{image} https://raw.githubusercontent.com/PyAutoLabs/PyAutoFit/main/files/toy_model_fit.png
 :width: 400
 ```
 
-We define our model, a 1D Gaussian by writing a Python class using the format below:
+There are two ways to read the rest of these docs:
 
-```python
-class Gaussian:
+- [Inference with Natural Language](https://pyautofit.readthedocs.io/en/latest/overview/natural_language.html)
+  walks through this fit as a conversation with an assistant — composing the model, defining the likelihood,
+  choosing a search, running the fit and inspecting the results, all described in words rather than written by
+  hand. **This is the recommended starting point.**
+- [The Python API](https://pyautofit.readthedocs.io/en/latest/overview/python_api.html) walks through the same
+  fit in code, showing the `Model`, `Analysis`, search and `Result` objects the assistant writes for you, and
+  which you can read, run and extend yourself.
 
-    def __init__(
-        self,
-        centre=0.0,        # <- PyAutoFit recognises these
-        normalization=0.1, # <- constructor arguments are
-        sigma=0.01,        # <- the Gaussian's parameters.
-    ):
-        self.centre = centre
-        self.normalization = normalization
-        self.sigma = sigma
-
-    """
-    An instance of the Gaussian class will be available during model fitting.
-
-    This method will be used to fit the model to data and compute a likelihood.
-    """
-
-    def model_data_from(self, xvalues):
-
-        transformed_xvalues = xvalues - self.centre
-
-        return (self.normalization / (self.sigma * (2.0 * np.pi) ** 0.5)) * \
-                np.exp(-0.5 * (transformed_xvalues / self.sigma) ** 2.0)
-```
-
-**PyAutoFit** recognises that this Gaussian may be treated as a model component whose parameters can be fitted for via
-a non-linear search like [emcee](https://github.com/dfm/emcee).
-
-To fit this Gaussian to the `data` we create an Analysis object, which gives **PyAutoFit** the `data` and a
-`log_likelihood_function` describing how to fit the `data` with the model:
-
-```python
-class Analysis(af.Analysis):
-
-    def __init__(self, data, noise_map):
-
-        self.data = data
-        self.noise_map = noise_map
-
-    def log_likelihood_function(self, instance):
-
-        """
-        The 'instance' that comes into this method is an instance of the Gaussian class
-        above, with the parameters set to values chosen by the non-linear search.
-        """
-
-        print("Gaussian Instance:")
-        print("Centre = ", instance.centre)
-        print("normalization = ", instance.normalization)
-        print("Sigma = ", instance.sigma)
-
-        """
-        We fit the ``data`` with the Gaussian instance, using its
-        "model_data_from" function to create the model data.
-        """
-
-        xvalues = np.arange(self.data.shape[0])
-
-        model_data = instance.model_data_from(xvalues=xvalues)
-        residual_map = self.data - model_data
-        chi_squared_map = (residual_map / self.noise_map) ** 2.0
-        log_likelihood = -0.5 * sum(chi_squared_map)
-
-        return log_likelihood
-```
-
-We can now fit our model to the `data` using a non-linear search:
-
-```python
-model = af.Model(Gaussian)
-
-analysis = Analysis(data=data, noise_map=noise_map)
-
-emcee = af.Emcee(nwalkers=50, nsteps=2000)
-
-result = emcee.fit(model=model, analysis=analysis)
-```
-
-The `result` contains information on the model-fit, for example the parameter samples, maximum log likelihood
-model and marginalized probability density functions.
+Between them sit the [Scientific Workflow](https://pyautofit.readthedocs.io/en/latest/overview/scientific_workflow.html),
+which makes inference scalable to large datasets, and the
+[Statistical Methods](https://pyautofit.readthedocs.io/en/latest/overview/statistical_methods.html) overview,
+covering hierarchical models, search chaining and Bayesian model comparison.
 
 ```{toctree}
 :caption: 'Overview:'
 :hidden: true
 :maxdepth: 1
 
-overview/the_basics
+overview/natural_language
 overview/scientific_workflow
 overview/statistical_methods
+overview/python_api
 ```
 
 ```{toctree}
