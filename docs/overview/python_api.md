@@ -2,7 +2,7 @@
 
 # The Python API
 
-This page is the under-the-hood companion to [Inference with Natural Language](https://pyautofit.readthedocs.io/en/latest/overview/natural_language.html):
+This page is the under-the-hood companion to [Natural Language Inference](https://pyautofit.readthedocs.io/en/latest/overview/natural_language.html):
 it walks through the **PyAutoFit** Python API that an assistant writes for you, so you can read, run and
 extend that code yourself.
 

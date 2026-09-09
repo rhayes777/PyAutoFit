@@ -7,7 +7,7 @@ and organising the results. It is domain agnostic: inference can sit around your
 We recommend getting started with [autofit_assistant](https://github.com/PyAutoLabs/autofit_assistant), which lets
 you **perform scientific inference using natural language**. Describe the model you want to fit, ask the assistant
 to run the analysis, and explore the results through follow-up requests —
-see [Inference with Natural Language](https://pyautofit.readthedocs.io/en/latest/overview/natural_language.html).
+see [Natural Language Inference](https://pyautofit.readthedocs.io/en/latest/overview/natural_language.html).
 
 Users can then set up a **PyAutoFit** scientific workflow, which enables streamlined modeling of small
 datasets with tools to scale up to large datasets.
@@ -53,7 +53,7 @@ the `data` (black) and the model (red) we'll fit:
 
 There are two ways to read the rest of these docs:
 
-- [Inference with Natural Language](https://pyautofit.readthedocs.io/en/latest/overview/natural_language.html)
+- [Natural Language Inference](https://pyautofit.readthedocs.io/en/latest/overview/natural_language.html)
   walks through this fit as a conversation with an assistant — composing the model, defining the likelihood,
   choosing a search, running the fit and inspecting the results, all described in words rather than written by
   hand. **This is the recommended starting point.**
