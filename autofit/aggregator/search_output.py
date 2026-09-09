@@ -2,8 +2,11 @@ import csv
 import json
 import logging
 import pickle
+import tempfile
+import weakref
 from abc import ABC
 from pathlib import Path
+from shutil import rmtree
 from typing import Generator, Tuple, Optional, List, cast, Type
 
 import dill
@@ -48,10 +51,56 @@ def _create_file_handle(*args, **kwargs):
 dill._dill._create_filehandle = _create_file_handle
 
 
+class TemporaryExtraction:
+    """
+    A temporary directory into which the aggregator extracts zipped search outputs.
+
+    Every search output read out of the directory holds a reference to the
+    ``TemporaryExtraction`` that owns it, so the extracted files live exactly as
+    long as something still points at them and are removed once the last such
+    object is garbage collected. ``cleanup`` removes them eagerly.
+
+    A ``weakref.finalize`` is used rather than ``tempfile.TemporaryDirectory``
+    because the latter warns (``ResourceWarning``) whenever it is cleaned up
+    implicitly, and implicit cleanup is the normal path here.
+    """
+
+    def __init__(self, prefix: str = "autofit_aggregator_"):
+        self.path = Path(tempfile.mkdtemp(prefix=prefix))
+        # The callback must not close over ``self`` or the object would never
+        # become unreachable; ``self.path`` is bound as an argument instead.
+        self._finalizer = weakref.finalize(self, rmtree, self.path, True)
+
+    @property
+    def is_alive(self) -> bool:
+        """
+        Whether the extracted files are still on disk.
+        """
+        return self._finalizer.alive
+
+    def cleanup(self):
+        """
+        Remove the extracted files now, without waiting for garbage collection.
+
+        Search outputs still pointing into the directory cannot be read afterwards.
+        """
+        self._finalizer()
+
+
 class AbstractSearchOutput(ABC):
-    def __init__(self, directory: Path, reference: Optional[dict] = None):
+    def __init__(
+        self,
+        directory: Path,
+        reference: Optional[dict] = None,
+        temporary_directory: Optional[TemporaryExtraction] = None,
+    ):
         self.directory = directory
         self._reference = reference
+        # Keeps a temporary extraction alive for as long as this output can be
+        # read from it. ``None`` for outputs read from a real directory.
+        # Must be set here: ``__getattr__`` would otherwise try to load a
+        # pickle of this name from disk.
+        self._temporary_directory = temporary_directory
 
     @property
     def is_complete(self) -> bool:
@@ -194,7 +243,12 @@ class SearchOutput(AbstractSearchOutput, fit_interface.Fit):
 
     is_grid_search = False
 
-    def __init__(self, directory: Path, reference: dict = None):
+    def __init__(
+        self,
+        directory: Path,
+        reference: dict = None,
+        temporary_directory: Optional[TemporaryExtraction] = None,
+    ):
         """
         Represents the output of a single search. Comprises the ``files`` directory
         written by the search (including ``search.json``) and other dataset files.
@@ -203,8 +257,11 @@ class SearchOutput(AbstractSearchOutput, fit_interface.Fit):
         ----------
         directory
             The directory of the search
+        temporary_directory
+            The temporary extraction this output was read from, if any. Held so the
+            extracted files outlive the scan that produced them.
         """
-        super().__init__(directory, reference)
+        super().__init__(directory, reference, temporary_directory)
         self.__search = None
         self.__model = None
         self._samples = None

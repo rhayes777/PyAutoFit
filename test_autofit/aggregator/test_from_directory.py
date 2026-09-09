@@ -1,4 +1,5 @@
 import json
+import gc
 import shutil
 import zipfile
 from pathlib import Path
@@ -46,6 +47,90 @@ def test_zip_not_re_extracted(zipped_directory):
 
     assert len(aggregator) == 1
     assert not (zipped_directory / "search_output" / ".completed").exists()
+
+
+def test_zip_temporary_leaves_no_extracted_directory(zipped_directory):
+    aggregator = Aggregator.from_directory(zipped_directory, unzip_temporary=True)
+
+    assert len(aggregator) == 1
+    assert not (zipped_directory / "search_output").exists()
+    assert [path.name for path in zipped_directory.iterdir()] == ["search_output.zip"]
+
+
+def test_zip_temporary_loads_the_same_outputs(zipped_directory, scan_directory):
+    temporary = Aggregator.from_directory(zipped_directory, unzip_temporary=True)
+    alongside = Aggregator.from_directory(scan_directory)
+
+    assert len(temporary) == len(alongside)
+    assert {output.name for output in temporary[0].jsons} == {
+        output.name for output in alongside[0].jsons
+    }
+
+
+def test_zip_temporary_removed_when_released(zipped_directory):
+    aggregator = Aggregator.from_directory(zipped_directory, unzip_temporary=True)
+    # Only the path is kept: holding the extraction itself would keep it alive.
+    path = aggregator[0]._temporary_directory.path
+
+    assert path.exists()
+
+    del aggregator
+    gc.collect()
+
+    assert not path.exists()
+
+
+def test_zip_temporary_outlives_the_aggregator(zipped_directory):
+    """
+    A search output kept after the aggregator is dropped can still be read.
+    """
+    aggregator = Aggregator.from_directory(zipped_directory, unzip_temporary=True)
+    search_output = aggregator[0]
+
+    del aggregator
+    gc.collect()
+
+    assert search_output._temporary_directory.is_alive
+    assert {output.name for output in search_output.jsons} == {
+        "directory.example",
+        "model",
+        "samples_info",
+        "search",
+    }
+
+
+def test_zip_temporary_removed_on_close(zipped_directory):
+    with Aggregator.from_directory(zipped_directory, unzip_temporary=True) as aggregator:
+        path = aggregator[0]._temporary_directory.path
+        assert path.exists()
+
+    assert not path.exists()
+
+
+def test_zip_temporary_uses_an_existing_extracted_directory(zipped_directory):
+    Aggregator.from_directory(zipped_directory)
+
+    aggregator = Aggregator.from_directory(zipped_directory, unzip_temporary=True)
+
+    assert len(aggregator) == 1
+    assert aggregator[0].directory == zipped_directory / "search_output"
+    assert aggregator[0]._temporary_directory is None
+
+
+def test_zip_temporary_mirrors_the_scanned_layout(tmp_path):
+    source = Path(__file__).parent / "search_output"
+    for name in ("one", "two"):
+        directory = tmp_path / name
+        directory.mkdir()
+        with zipfile.ZipFile(directory / "search_output.zip", "w") as f:
+            for path in source.rglob("*"):
+                if path.is_file():
+                    f.write(path, path.relative_to(source))
+
+    aggregator = Aggregator.from_directory(tmp_path, unzip_temporary=True)
+
+    assert len(aggregator) == 2
+    assert len({output.directory for output in aggregator}) == 2
 
 
 def test_outputs_by_suffix(scan_directory):
