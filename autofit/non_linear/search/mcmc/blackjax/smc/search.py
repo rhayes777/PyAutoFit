@@ -506,6 +506,14 @@ class SMC(AbstractMCMC):
 
         state = smc.init(initial_particles)
 
+        # One compile for the whole tempering step. BlackJAX's ``step`` is a plain Python composition of
+        # jax primitives, so calling it directly dispatches -- and compiles -- every primitive inside the
+        # dichotomy temperature solve and the inner-kernel scan *separately, on every call*. The particle
+        # cloud's shape is fixed for the run, so wrapping it in ``jax.jit`` traces and compiles it once and
+        # every subsequent temperature reuses that executable; this is the same reason ``BlackJAXNUTS`` jits
+        # its own inner step rather than driving blackjax eagerly.
+        smc_step = jax.jit(smc.step)
+
         vmapped_log_likelihood = jax.jit(jax.vmap(log_likelihood_z))
 
         self.logger.info(
@@ -528,7 +536,7 @@ class SMC(AbstractMCMC):
 
         while float(state.tempering_param) < 1.0 and n_smc_steps < self.max_smc_steps:
             rng_key, step_key = jax.random.split(rng_key)
-            state, info = jax.block_until_ready(smc.step(step_key, state))
+            state, info = jax.block_until_ready(smc_step(step_key, state))
 
             n_smc_steps += 1
             log_evidence_bridge += float(info.log_likelihood_increment)
