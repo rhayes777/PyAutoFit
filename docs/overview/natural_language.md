@@ -92,6 +92,9 @@ For your own project, you can instead ask:
 > the same parameter values.
 :::
 
+This is the job of the assistant's [**BYOL** mode](https://github.com/PyAutoLabs/autofit_assistant/blob/main/modes/byol.md),
+which wraps your existing likelihood unchanged and validates it.
+
 :::{container} ai-first-design
 **AI First Design:** PyAutoFit gives the agent a small, testable integration task: connect named model parameters to your existing likelihood and check that its numerical outputs are unchanged. Your validated science code then becomes available to PyAutoFit's searches and result-analysis tools, without the agent having to reimplement it.
 :::

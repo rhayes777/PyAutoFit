@@ -38,7 +38,7 @@ six steps on your own science. At any step you can ask a question (for example
 "what is a prior?") or say "teacher mode" to get a full explanation of everything
 as you go. The six steps are the sections of [Natural Language Inference](https://pyautofit.readthedocs.io/en/latest/overview/natural_language.html).
 
-## Bring Your Own Likelihood
+## Bring Your Own Likelihood (BYOL)
 
 Already have a likelihood function for your science problem? **Point the
 assistant at your existing code and it can set it up with PyAutoFit** —
@@ -59,6 +59,13 @@ organising the results:
 > Once inference is running, explain how the results are written to disk and
 > show me how to inspect and interpret them with PyAutoFit.
 :::
+
+The assistant answers this prompt with its
+[**BYOL** mode](https://github.com/PyAutoLabs/autofit_assistant/blob/main/modes/byol.md) — bring your
+own likelihood, the assistant brings the inference. It reads your code and
+restates what your likelihood scores, composes a model with priors chosen
+with you, wraps and validates your function unchanged, recommends a search,
+and runs nothing until you say go.
 
 Your existing science code remains the source of the likelihood. With
 PyAutoFit built around it, you can perform inference through natural
