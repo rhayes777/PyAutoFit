@@ -1053,6 +1053,12 @@ class _Extractor:
         if isinstance(value, AbstractPriorModel):
             return None
 
+        if value is None:
+            # An unset optional attribute (e.g. ``Basis(regularization=None)``).
+            # ``model.info`` prints nothing for it, so it is not a slot at all --
+            # emitting a row would violate the correspondence contract.
+            return None
+
         # A raw Python object assigned into a Collection/Model.
         return self._solved(
             ParamRow(
@@ -1380,9 +1386,7 @@ def _all_rows(node: ComponentNode, base: int = None):
 
 
 def _prior_ids_in(node: ComponentNode) -> set:
-    return {
-        row.prior_id for _, row in _all_rows(node) if row.prior_id is not None
-    }
+    return {row.prior_id for _, row in _all_rows(node) if row.prior_id is not None}
 
 
 def _row_signature(row: ParamRow, context: _CollapseContext) -> Tuple:
@@ -1398,9 +1402,7 @@ def _row_signature(row: ParamRow, context: _CollapseContext) -> Tuple:
         row.provenance.kind,
         row.in_model_info,
         row.is_instance,
-        ()
-        if row.prior_id is None
-        else context.prior_config.get(row.prior_id, ()),
+        () if row.prior_id is None else context.prior_config.get(row.prior_id, ()),
         tuple(_row_signature(component, context) for component in row.components),
     )
 
@@ -1460,9 +1462,7 @@ def _safety_profile(
     assertions = []
     for prior_ids in context.assertions:
         inside = sorted(
-            relative
-            for relative, row in _all_rows(member)
-            if row.prior_id in prior_ids
+            relative for relative, row in _all_rows(member) if row.prior_id in prior_ids
         )
         if not inside:
             continue
@@ -1474,9 +1474,7 @@ def _safety_profile(
         if row.prior_id is None:
             continue
         for occurrence in context.direct_occurrences.get(row.prior_id, ()):
-            if not any(
-                occurrence[: len(path)] == path for path in member_paths
-            ):
+            if not any(occurrence[: len(path)] == path for path in member_paths):
                 external.add(relative)
                 break
 
@@ -1548,15 +1546,12 @@ def _varies_by_member(members: List[ComponentNode]) -> Tuple[str, ...]:
         if row.dimensionality == "tuple":
             values = [
                 tuple(
-                    component.value
-                    for component in rows.get(relative, row).components
+                    component.value for component in rows.get(relative, row).components
                 )
                 for rows in per_member
             ]
         else:
-            values = [
-                rows.get(relative, row).value for rows in per_member
-            ]
+            values = [rows.get(relative, row).value for rows in per_member]
         if any(value != values[0] for value in values[1:]):
             varies.append(relative)
     # A tuple row that varies already names the tuple; drop its slots.
@@ -1568,9 +1563,7 @@ def _varies_by_member(members: List[ComponentNode]) -> Tuple[str, ...]:
     return tuple(
         relative
         for relative in varies
-        if not any(
-            relative.startswith(f"{name}.") for name in tuples
-        )
+        if not any(relative.startswith(f"{name}.") for name in tuples)
     )
 
 
@@ -1622,9 +1615,7 @@ def _plate(
     for ids in ids_per_member:
         for prior_id in ids:
             counts[prior_id] = counts.get(prior_id, 0) + 1
-    shared_within = {
-        prior_id for prior_id, count in counts.items() if count > 1
-    }
+    shared_within = {prior_id for prior_id, count in counts.items() if count > 1}
 
     varies = _varies_by_member(members)
     return replace(
@@ -1670,9 +1661,7 @@ def _collapse_siblings(
 
     by_signature: Dict[Tuple, List[int]] = {}
     for index in candidates:
-        by_signature.setdefault(
-            _signature(children[index], context), []
-        ).append(index)
+        by_signature.setdefault(_signature(children[index], context), []).append(index)
 
     groups: List[List[int]] = []
     for indices in by_signature.values():
@@ -1837,9 +1826,7 @@ class GraphSpec:
             "assertions": [edge.to_dict() for edge in self.assertions],
             "path_index": {
                 key: (
-                    entry
-                    if isinstance(entry, dict)
-                    else [list(path) for path in entry]
+                    entry if isinstance(entry, dict) else [list(path) for path in entry]
                 )
                 for key, entry in self.path_index.items()
             },
@@ -1890,23 +1877,21 @@ def _info_group_map(model) -> Dict[Path, Path]:
                 key = integers_representative_key(list(map(int, names)))
             except ValueError:
                 key = (
-                    f"{min(names)} - {max(names)}"
-                    if len(set(names)) > 1
-                    else names[0]
+                    f"{min(names)} - {max(names)}" if len(set(names)) > 1 else names[0]
                 )
             carried.append(((*before, key, *after), value, sources))
         entries = carried
 
-    return {
-        source: path for path, _, sources in entries for source in sources
-    }
+    return {source: path for path, _, sources in entries for source in sources}
 
 
 def _group_paths(paths: Sequence[Path]) -> Tuple[Path, ...]:
     """The figure's own grouping of a plate's member paths, via ``find_groups``."""
     if len(paths) < 2:
         return tuple(paths)
-    return tuple(path for path, _ in find_groups([(path, 0) for path in paths], limit=0))
+    return tuple(
+        path for path, _ in find_groups([(path, 0) for path in paths], limit=0)
+    )
 
 
 def _path_index(spec: GraphSpec, model) -> Dict[str, Any]:

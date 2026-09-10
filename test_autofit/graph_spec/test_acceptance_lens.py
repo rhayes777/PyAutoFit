@@ -130,9 +130,14 @@ def test_b_mge_two_by_thirty_with_a_pixelized_source():
     # 6 shared priors: centre_0 and centre_1 across all 60, then each basis's
     # ell_comps_0 / ell_comps_1 across its own 30.
     assert spec.counts["shared_priors"] == 6
-    assert sorted(
-        (len(edge.occurrences) for edge in spec.shared), reverse=True
-    ) == [60, 60, 30, 30, 30, 30]
+    assert sorted((len(edge.occurrences) for edge in spec.shared), reverse=True) == [
+        60,
+        60,
+        30,
+        30,
+        30,
+        30,
+    ]
 
     # 16 unique sampled scalars.
     assert spec.counts["unique_sampled_scalars"] == 16
@@ -151,9 +156,9 @@ def test_b_mge_two_by_thirty_with_a_pixelized_source():
     assert pixels.sampling == "fixed"
     assert pixels.value == 1000.0
 
-    # Nothing fixed is dropped by the plates: 60 sigmas plus `pixels`, the two
-    # redshifts and the `Basis.regularization` slot.
-    assert spec.counts["fixed_leaf_slots"] == 64
+    # Nothing fixed is dropped by the plates: 60 sigmas plus `pixels` and the
+    # two redshifts (`Basis.regularization=None` is unset, not a slot).
+    assert spec.counts["fixed_leaf_slots"] == 63
 
 
 def test_b_mge_path_index_records_the_finer_partition():
@@ -161,9 +166,7 @@ def test_b_mge_path_index_records_the_finer_partition():
 
     # `model.info` groups the shared centre across all 60; the figure's
     # partition is finer (two plates of 30), so the entry records both.
-    entry = spec.path_index[
-        "galaxies/lens/bulge/profile_list/0/centre/centre_0"
-    ]
+    entry = spec.path_index["galaxies/lens/bulge/profile_list/0/centre/centre_0"]
     assert entry == {
         "figure": ["galaxies/lens/bulge/profile_list/0 - 29/centre/centre_0"],
         "info": ["galaxies/lens/bulge/profile_list/0 - 59/centre/centre_0"],
@@ -232,9 +235,7 @@ def test_e_group_scale_with_eight_extra_galaxies():
     # representative's.
     assert spec.path_index["extra_galaxies/0/mass/centre"] == {
         "figure": ["extra_galaxies/0 - 7/mass/centre"],
-        "info": [
-            f"extra_galaxies/{index}/mass/centre" for index in range(8)
-        ],
+        "info": [f"extra_galaxies/{index}/mass/centre" for index in range(8)],
     }
 
     # Nothing fixed is dropped: every member's slots are still counted.

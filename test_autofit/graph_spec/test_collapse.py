@@ -80,9 +80,7 @@ def test_r1_collapses_identical_siblings_into_one_plate():
 def test_r1_a_different_prior_configuration_stays_out_of_the_plate():
     first, odd, third, fourth = _gaussians(4)
     odd.centre = af.UniformPrior(lower_limit=0.0, upper_limit=2.0)
-    spec = GraphSpec.from_model(
-        af.Collection([first, odd, third, fourth])
-    )
+    spec = GraphSpec.from_model(af.Collection([first, odd, third, fourth]))
 
     # Declaration order is preserved: the plate takes its first member's slot.
     assert [child.path for child in spec.root.children] == [("0",), ("1",)]
@@ -318,9 +316,7 @@ def test_collections_are_frames_and_never_collapse():
 
 
 def test_a_collections_model_children_do_collapse():
-    spec = GraphSpec.from_model(
-        af.Collection(outer=af.Collection(_gaussians(4)))
-    )
+    spec = GraphSpec.from_model(af.Collection(outer=af.Collection(_gaussians(4))))
     (plate,) = _plates(spec)
 
     assert plate.path == ("outer", "0")

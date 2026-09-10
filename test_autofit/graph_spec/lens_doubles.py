@@ -36,7 +36,6 @@ from typing import Optional, Tuple
 
 import autofit as af
 
-
 # ----------------------------------------------------------------------------
 # priors, mirroring pyautogalaxy/autogalaxy/config/priors/*.yaml
 # ----------------------------------------------------------------------------
@@ -364,9 +363,7 @@ def mge_model(total_gaussians: int = 30, gaussian_per_basis: int = 2):
 
     bulge_gaussian_list = []
     for _ in range(gaussian_per_basis):
-        gaussian_list = af.Collection(
-            linear_gaussian() for _ in range(total_gaussians)
-        )
+        gaussian_list = af.Collection(linear_gaussian() for _ in range(total_gaussians))
         for index, gaussian in enumerate(gaussian_list):
             gaussian.centre.centre_0 = centre_0
             gaussian.centre.centre_1 = centre_1
