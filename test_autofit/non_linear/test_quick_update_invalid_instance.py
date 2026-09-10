@@ -134,6 +134,23 @@ def test__a_valid_max_lh_instance_still_renders_the_visual(caplog):
     assert len(fitness.paths.results) == 1
 
 
+@pytest.mark.parametrize("live_visual_update", [False, True])
+def test__quick_updates_preserve_the_live_notebook_display(monkeypatch, live_visual_update):
+    cleared = []
+    monkeypatch.setattr("IPython.display.clear_output", lambda **kwargs: cleared.append(kwargs))
+    fitness = _fitness(RecordingAnalysis())
+    fitness.live_visual_update = live_visual_update
+
+    for likelihood in [-10.0, -9.0]:
+        fitness.manage_quick_update(
+            parameters=[50.0, 25.0, 10.0], log_likelihood=likelihood
+        )
+
+    # Text-only updates can clear their old output. Live updates must retain
+    # the image's display_id target across subsequent likelihood evaluations.
+    assert len(cleared) == (0 if live_visual_update else 2)
+
+
 def test__a_visual_that_raises_is_swallowed_like_the_background_worker_does(caplog):
     # The background quick-update worker already swallows `Exception` around the
     # render (`BackgroundQuickUpdate._process_pending`). The synchronous path

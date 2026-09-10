@@ -675,7 +675,11 @@ class Fitness:
 
             from IPython.display import clear_output
 
-            clear_output(wait=True)
+            # Clearing a notebook cell removes the display_id target used by
+            # LiveDisplay.update_display, leaving later image updates invisible.
+            # Keep that target alive for both synchronous and background renders.
+            if not self.live_visual_update:
+                clear_output(wait=True)
 
             start_time = time.time()
 
