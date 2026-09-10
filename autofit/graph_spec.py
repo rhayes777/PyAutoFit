@@ -53,6 +53,14 @@ with an empty tuple and carries ``in_model_info=False``.  A ``missing`` row *is*
 in ``model.info`` (it is the line ``Prior Missing: Enter Manually or Add to
 Config``) and so keeps ``in_model_info=True``.
 
+A **plate** stands for many paths at once, and the figure's partition can be
+*finer* than ``model.info``'s grouping: the MGE splits into two 30-member
+plates on ``ell_comps`` while ``model.info`` groups the shared ``centre`` of all
+sixty as ``0 - 59``.  That mapping is recorded rather than hidden -- such an
+entry is a ``{"figure": [...], "info": [...]}`` dict of ``"/"``-joined paths
+instead of the plain tuple.  Both shapes are JSON-stable; see
+:func:`_path_index`.
+
 Properties, not one exclusive kind
 ----------------------------------
 
@@ -69,8 +77,10 @@ A :class:`ParamRow` carries **independent properties** rather than a single
     ``model.info`` prints as *Prior Missing: Enter Manually or Add to Config*).
 ``sharing``
     ``prior_id`` plus :attr:`ParamRow.occurrences`, *every* path at which the
-    same ``Prior`` object appears.  :attr:`ParamRow.shared` is a derived
-    property.  **Sharing is never a sampling state.**
+    same ``Prior`` object appears, and :attr:`ParamRow.direct_occurrences`, the
+    subset of those that do not pass through a relation.
+    :attr:`ParamRow.shared` is derived from the latter.  **Sharing is never a
+    sampling state.**
 ``dimensionality``
     ``scalar`` or ``tuple``.  A tuple row carries :attr:`ParamRow.components`,
     one :class:`ParamRow` per slot (``centre_0``, ``centre_1``, ...), each with
@@ -118,10 +128,72 @@ Sharing and relation operands
 ``all_paths_prior_tuples`` is the sharing detector, and it reports *every* path
 at which a prior object sits.  A relation's operands are real attributes of the
 ``CompoundPrior``, so ``m.centre = m.normalization + m.sigma`` puts prior *n* at
-both ``('normalization',)`` and ``('centre', 'self')``.  Those extra occurrences
-are therefore reported as sharing, exactly as ``model.info`` reports them.  This
-is intentional -- the paths are genuine -- and the relation is *additionally*
+both ``('normalization',)`` and ``('centre', 'self')``.  Both paths are genuine
+and both are kept, in :attr:`ParamRow.occurrences`.
+
+But a prior used once directly and once *inside a relation* is **related, not
+shared**: the second path is the relation's own operand slot, not a second use
+of the parameter, and counting it as sharing would draw a sharing edge for every
+relation and would split plates that are genuine replicates.  So
+:attr:`ParamRow.direct_occurrences` drops every occurrence whose path passes
+through a relation object, and it -- not ``occurrences`` -- is what
+:attr:`ParamRow.shared`, :class:`SharedEdge` emission,
+``counts["shared_priors"]`` and rule R2's partition read.  The relation itself is
 carried as a :class:`RelationEdge`.
+
+Collapse: rules R1 and R2, and the safety condition
+---------------------------------------------------
+
+``GraphSpec.from_model(model, collapse=True)`` (the default) collapses repeated
+sibling components into **plates**, recursively and bottom-up, over every node's
+``children``.  Only ``kind="model"`` siblings collapse: a ``Collection`` is a
+*frame*, not a repeated component -- but its model children do.  Every rule reads
+the **uncollapsed** subtrees, because a plate hides the very prior ids and rows
+the rules partition on.
+
+**R1, the soft-plate signature.**  A member's signature is the recursive tuple
+of its class name and kind, each row's ``(name, sampling, dimensionality, prior
+class, provenance kind, prior configuration)`` -- and the same per component for
+a tuple row -- and its children's signatures in order.  The prior's
+configuration comes from its own public attributes (``__identifier_fields__``
+plus its limits), never from ``repr``.  Prior **identity**, prior ``_label``
+(which carries a per-instance counter) and constant **values** are all ignored,
+so Gaussians differing only in a fixed ``sigma`` are still plate-mates.  Equal
+signatures make candidate plate-mates.
+
+**R2, the shared split.**  Within a candidate plate, each member is keyed by the
+set of prior ids it shares with at least one *other* member.  Ids present in
+**every** member do not discriminate (the MGE centre) and are dropped from every
+key; a prior shared only *inside* one member is not cross-member at all and
+never reaches the key -- without that qualifier the group model's eight extra
+galaxies fall back to eight boxes.  The members are then partitioned by the
+remaining key, which is what gives ``Gaussian x30`` + ``Gaussian x30`` rather
+than one ``x60``.
+
+**The safety condition** (Codex review point 7, mandatory).  A plate must
+preserve **sharing, relations, assertions and exceptions** across its members.
+A member also leaves the plate when its relation set (:class:`RelationEdge` s
+whose target is inside it), its assertion set (:class:`AssertionEdge` s touching
+it) or its external-sharing profile (the prior ids it shares with anything
+*outside* the plate, keyed by the row path relative to the member) differs from
+the others'.  Relations and assertions are keyed by their footprint *relative to
+the member*, so eight galaxies carrying the same relation stay together while
+one carrying it alone does not.  Exceptions -- the ``missing`` state -- are
+already carried by R1, which compares every row's ``sampling``.  A member that
+leaves is emitted as its own node, in declaration order.
+
+A plate of two or more members becomes **one** :class:`ComponentNode` -- the
+first member, rows and children -- carrying a :class:`PlateInfo`.  Its
+``representative_key`` comes from ``find_groups`` over the member paths, so it
+reads exactly as ``model.info`` prints it (``"0 - 29"``); the collapse never
+invents a second notion of sameness.  Nothing depends on set iteration order:
+every grouping is keyed by declaration order, so the output is byte-stable.
+
+``counts`` reconcile both trees: ``components`` after collapse,
+``components_raw`` before, ``plates`` how many of the former stand for more than
+one of the latter.  The row-derived counts (``fixed_leaf_slots``, ``missing``)
+are always of the **uncollapsed** tree -- collapsing must never make a fixed
+value look absent from the model.
 
 Traps this module already handles
 ---------------------------------
@@ -148,9 +220,9 @@ Entry points
 ------------
 
 ``GraphSpec.from_model(model, analysis=None, collapse=True, solved_paths=())``
-and the module-level ``graph_spec_from(model, **kwargs)``.  ``collapse`` is
-accepted **and ignored** in phase 1 -- :func:`_collapse_siblings` is the named
-hook the plate/collapse phase fills in.
+and the module-level ``graph_spec_from(model, **kwargs)``.  ``collapse=False``
+returns the uncollapsed tree -- the tree the construct catalogue is asserted
+against; ``collapse=True`` (the default) applies :func:`_collapse_siblings`.
 """
 
 from dataclasses import dataclass, field, replace
@@ -184,6 +256,10 @@ from autofit.mapper.prior.tuple_prior import TuplePrior
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.collection import Collection
 from autofit.mapper.prior_model.prior_model import Model
+from autofit.mapper.prior_model.representative import (
+    find_groups,
+    integers_representative_key,
+)
 
 __all__ = [
     "Path",
@@ -298,6 +374,7 @@ class ParamRow:
     sampling: str
     prior_id: Optional[int] = None
     occurrences: Tuple[Path, ...] = ()
+    direct_occurrences: Tuple[Path, ...] = ()
     dimensionality: str = "scalar"
     components: Tuple["ParamRow", ...] = ()
     provenance: Provenance = field(default_factory=lambda: Provenance("config-default"))
@@ -308,8 +385,14 @@ class ParamRow:
 
     @property
     def shared(self) -> bool:
-        """Whether this row's prior object appears at more than one path."""
-        return len(self.occurrences) > 1
+        """
+        Whether this row's prior object appears at more than one **direct** path.
+
+        Derived from :attr:`direct_occurrences`, not :attr:`occurrences`: a prior
+        used once directly and once as the operand of a relation is *related*,
+        not shared (see the module docstring, "Sharing and relation operands").
+        """
+        return len(self.direct_occurrences) > 1
 
     def to_dict(self) -> dict:
         return {
@@ -318,6 +401,7 @@ class ParamRow:
             "sampling": self.sampling,
             "prior_id": self.prior_id,
             "occurrences": [list(path) for path in self.occurrences],
+            "direct_occurrences": [list(path) for path in self.direct_occurrences],
             "shared": self.shared,
             "dimensionality": self.dimensionality,
             "components": [component.to_dict() for component in self.components],
@@ -334,34 +418,34 @@ class PlateInfo:
     """
     What a collapsed plate repeats.
 
-    Defined here so the spec's shape is fixed in phase 1; **the collapse phase
-    fills it in**.  ``ComponentNode.plate`` is ``None`` for every node this
-    module produces.
-
     Parameters
     ----------
     count
         How many components the plate stands for.
     member_paths
-        The path of every member, in declaration order.
+        The path of every member, in declaration order.  The first is the
+        representative whose rows and children the plate's
+        :class:`ComponentNode` carries.
     representative_key
-        A stable key for the member drawn as the representative.
+        The key ``find_groups`` puts in place of the member index, so it reads
+        exactly as ``model.info`` prints it (``"0 - 29"``).
     repeats
-        What the plate repeats -- the safety condition of rules R1/R2 requires
-        the plate to preserve sharing, relations, assertions and exceptions
-        across its members, and this field records which of those it asserts.
+        One line naming what is repeated, built mechanically from the
+        representative's own rows, e.g. ``"Gaussian with priors centre
+        \u21c4 shared, sigma fixed (varies by member)"``.
     shared_in_all
-        Parameter names whose prior is shared by *every* member (these do not
-        discriminate, so they never split a plate).
+        Prior **ids** carried by *every* member (these do not discriminate, so
+        they never split a plate -- the MGE centre).  Ascending.
     varies_by_member
-        Parameter names whose fixed value differs between members.
+        Dotted row paths, relative to a member, whose fixed value differs
+        between members.
     """
 
     count: int
     member_paths: Tuple[Path, ...] = ()
     representative_key: Optional[str] = None
     repeats: Tuple[str, ...] = ()
-    shared_in_all: Tuple[str, ...] = ()
+    shared_in_all: Tuple[int, ...] = ()
     varies_by_member: Tuple[str, ...] = ()
 
     def to_dict(self) -> dict:
@@ -694,9 +778,26 @@ class _Extractor:
             for path in (solved_paths or ())
         }
 
+        #: Every path a prior sits at, and the subset of those that do not pass
+        #: through a relation object (see the module docstring).
         self.occurrences: Dict[int, Tuple[Path, ...]] = {}
+        self.direct_occurrences: Dict[int, Tuple[Path, ...]] = {}
+        #: ``prior id -> the prior's configuration arguments``, for rule R1.
+        self.prior_config: Dict[int, Tuple] = {}
+
+        self.relation_paths = frozenset(
+            _as_path(path)
+            for path, _ in model.path_instance_tuples_for_class(_RELATION_CLASSES)
+        )
         for paths, prior in model.all_paths_prior_tuples:
-            self.occurrences[prior.id] = tuple(_as_path(path) for path in paths)
+            paths = tuple(_as_path(path) for path in paths)
+            self.occurrences[prior.id] = paths
+            self.direct_occurrences[prior.id] = tuple(
+                path
+                for path in paths
+                if not _passes_through_relation(path, self.relation_paths)
+            )
+            self.prior_config[prior.id] = _prior_configuration(prior)
 
         self._known_component_paths = set()
 
@@ -812,16 +913,14 @@ class _Extractor:
                 )
             )
 
-        return _collapse_siblings(
-            ComponentNode(
-                path=path,
-                name=name,
-                cls_name=_cls_name(obj),
-                kind=_kind(obj),
-                obj_id=getattr(obj, "id", None),
-                rows=tuple(rows),
-                children=tuple(children),
-            )
+        return ComponentNode(
+            path=path,
+            name=name,
+            cls_name=_cls_name(obj),
+            kind=_kind(obj),
+            obj_id=getattr(obj, "id", None),
+            rows=tuple(rows),
+            children=tuple(children),
         )
 
     def _promoted_entries(self, path: Path, obj) -> Dict[Path, Any]:
@@ -842,6 +941,9 @@ class _Extractor:
     def _occurrences(self, prior) -> Tuple[Path, ...]:
         return self.occurrences.get(prior.id, ())
 
+    def _direct_occurrences(self, prior) -> Tuple[Path, ...]:
+        return self.direct_occurrences.get(prior.id, ())
+
     def _solved(self, row: ParamRow) -> ParamRow:
         if row.path in self.solved_paths:
             return replace(row, sampling="solved", in_model_info=False)
@@ -860,6 +962,7 @@ class _Extractor:
                     sampling="free",
                     prior_id=value.id,
                     occurrences=self._occurrences(value),
+                    direct_occurrences=self._direct_occurrences(value),
                     prior_cls_name=type(value).__name__,
                 )
             )
@@ -969,6 +1072,7 @@ class _Extractor:
                 sampling="free",
                 prior_id=value.id,
                 occurrences=self._occurrences(value),
+                direct_occurrences=self._direct_occurrences(value),
                 prior_cls_name=type(value).__name__,
             )
         if isinstance(value, _RELATION_CLASSES):
@@ -1012,6 +1116,7 @@ class _Extractor:
                     sampling="free",
                     prior_id=leaf.id,
                     occurrences=self._occurrences(leaf),
+                    direct_occurrences=self._direct_occurrences(leaf),
                     prior_cls_name=type(leaf).__name__,
                 )
             if isinstance(leaf, ConfigException):
@@ -1042,11 +1147,19 @@ class _Extractor:
     # -- edges --------------------------------------------------------------
 
     def shared_edges(self) -> Tuple[SharedEdge, ...]:
-        return tuple(
-            SharedEdge(prior.id, tuple(_as_path(path) for path in paths))
-            for paths, prior in self.model.all_paths_prior_tuples
-            if len(paths) > 1
-        )
+        """
+        One edge per prior that sits at more than one **direct** path.  A path
+        that passes through a relation object is an operand of that relation,
+        not a second use of the prior, and is carried by a
+        :class:`RelationEdge` instead (module docstring, "Sharing and relation
+        operands").
+        """
+        edges = []
+        for _, prior in self.model.all_paths_prior_tuples:
+            paths = self.direct_occurrences.get(prior.id, ())
+            if len(paths) > 1:
+                edges.append(SharedEdge(prior.id, paths))
+        return tuple(edges)
 
     def relation_edges(self) -> Tuple[RelationEdge, ...]:
         edges = []
@@ -1168,16 +1281,444 @@ def _paths_of(node: ComponentNode) -> set:
     return paths
 
 
-def _collapse_siblings(node: ComponentNode) -> ComponentNode:
-    """
-    The collapse hook -- rules R1 (soft plate) and R2 (shared split) plus their
-    safety condition land here, filling :class:`PlateInfo`.
+# ----------------------------------------------------------------------------
+# collapse -- rules R1 / R2 and the safety condition
+# ----------------------------------------------------------------------------
 
-    **TODO (collapse phase):** phase 1 performs no collapse; this returns its
-    input unchanged and ``GraphSpec.from_model(collapse=...)`` is accepted and
-    ignored.
+#: Prior attributes that are configuration on every prior family, whatever
+#: ``__identifier_fields__`` says.  ``_label`` (a per-instance counter) and the
+#: prior id are deliberately absent: rule R1 ignores both.
+_ALWAYS_CONFIGURATION = ("lower_limit", "upper_limit")
+
+
+def _passes_through_relation(path: Path, relation_paths) -> bool:
+    """Whether any proper prefix of ``path`` is a relation object."""
+    return any(path[:length] in relation_paths for length in range(1, len(path)))
+
+
+def _prior_configuration(prior) -> Tuple[Tuple[str, Any], ...]:
     """
-    return node
+    A prior's **configuration arguments** -- what rule R1 compares.
+
+    Read from the prior's own public attributes (``__identifier_fields__``,
+    which is exactly the set autofit already treats as a prior's identity, plus
+    its limits).  Never ``repr``: a compound prior's ``repr`` recurses forever.
+    """
+    names: List[str] = []
+    for name in getattr(type(prior), "__identifier_fields__", ()) or ():
+        if name not in names:
+            names.append(name)
+    for name in _ALWAYS_CONFIGURATION:
+        if name not in names:
+            names.append(name)
+
+    configuration: List[Tuple[str, Any]] = []
+    for name in names:
+        value = getattr(prior, name, None)
+        number = _numeric(value)
+        configuration.append((name, number if number is not None else None))
+    return tuple(configuration)
+
+
+def _assertion_prior_ids(assertion) -> frozenset:
+    """
+    The ids of every prior an assertion touches, walked from the symbol table
+    rather than through ``repr`` (which recurses forever on a compound).
+    """
+    ids = set()
+
+    def _walk(node):
+        if isinstance(node, Prior):
+            ids.add(node.id)
+            return
+        if isinstance(node, CompoundAssertion):
+            _walk(node.assertion_1)
+            _walk(node.assertion_2)
+            return
+        if isinstance(node, ModifiedPrior):
+            _walk(getattr(node, node._prior_name, None))
+            return
+        if isinstance(node, _RELATION_CLASSES + (ComparisonAssertion,)):
+            _walk(getattr(node, "_left", None))
+            _walk(getattr(node, "_right", None))
+            return
+
+    _walk(assertion)
+    return frozenset(ids)
+
+
+class _CollapseContext:
+    """Everything the collapse rules need that is not on the tree itself."""
+
+    def __init__(self, extractor: "_Extractor"):
+        self.direct_occurrences = extractor.direct_occurrences
+        self.prior_config = extractor.prior_config
+        self.relations = extractor.relation_edges()
+        self.assertions = tuple(
+            _assertion_prior_ids(assertion)
+            for assertion in extractor.model.gathered_assertions()
+            if assertion is not True and assertion is not False
+        )
+
+
+def _all_rows(node: ComponentNode, base: int = None):
+    """
+    ``(relative dotted path, row)`` for every row in a subtree, tuple slots
+    included, in visual order.  Paths are relative to ``node``.
+    """
+    prefix = len(node.path) if base is None else base
+
+    def _walk(current: ComponentNode):
+        for row in current.rows:
+            yield _dotted(row.path[prefix:]), row
+            for component in row.components:
+                yield _dotted(component.path[prefix:]), component
+        for child in current.children:
+            yield from _walk(child)
+
+    return list(_walk(node))
+
+
+def _prior_ids_in(node: ComponentNode) -> set:
+    return {
+        row.prior_id for _, row in _all_rows(node) if row.prior_id is not None
+    }
+
+
+def _row_signature(row: ParamRow, context: _CollapseContext) -> Tuple:
+    """
+    Rule R1's per-row signature: everything but prior **identity**, prior
+    ``_label`` and constant **values**.
+    """
+    return (
+        row.name,
+        row.sampling,
+        row.dimensionality,
+        row.prior_cls_name,
+        row.provenance.kind,
+        row.in_model_info,
+        row.is_instance,
+        ()
+        if row.prior_id is None
+        else context.prior_config.get(row.prior_id, ()),
+        tuple(_row_signature(component, context) for component in row.components),
+    )
+
+
+def _signature(node: ComponentNode, context: _CollapseContext) -> Tuple:
+    """
+    Rule R1's **soft-plate signature**: the class tree and prior configuration,
+    recursively, ignoring prior identity, prior ``_label`` and constant values.
+    """
+    return (
+        node.cls_name,
+        node.kind,
+        tuple(_row_signature(row, context) for row in node.rows),
+        tuple(_signature(child, context) for child in node.children),
+    )
+
+
+def _relative(path: Path, member: ComponentNode) -> Optional[Path]:
+    """``path`` relative to ``member``, or ``None`` when it is outside it."""
+    prefix = member.path
+    if path[: len(prefix)] == prefix:
+        return path[len(prefix) :]
+    return None
+
+
+def _safety_profile(
+    member: ComponentNode,
+    members: List[ComponentNode],
+    context: _CollapseContext,
+) -> Tuple:
+    """
+    The safety condition (Codex review point 7): a plate must preserve
+    **sharing, relations, assertions and exceptions** across its members.
+
+    Relations and assertions are keyed by their footprint *relative to the
+    member*, so eight galaxies carrying the same relation stay together while a
+    single galaxy that carries one on its own leaves.  External sharing is keyed
+    by the relative row path, so a member that shares a prior with something
+    outside the plate leaves it.  (Exceptions -- the ``missing`` state -- are
+    already part of the R1 signature, which carries every row's ``sampling``.)
+    """
+    relations = []
+    for edge in context.relations:
+        target = _relative(edge.target_path, member)
+        if target is None:
+            continue
+        operands = []
+        for operand in edge.operand_paths:
+            relative = _relative(operand, member)
+            operands.append(
+                relative if relative is not None else ("<external>",) + operand
+            )
+        operands = tuple(operands)
+        relations.append((target, operands))
+
+    own_ids = _prior_ids_in(member)
+    assertions = []
+    for prior_ids in context.assertions:
+        inside = sorted(
+            relative
+            for relative, row in _all_rows(member)
+            if row.prior_id in prior_ids
+        )
+        if not inside:
+            continue
+        assertions.append((tuple(inside), bool(prior_ids - own_ids)))
+
+    member_paths = [other.path for other in members]
+    external = set()
+    for relative, row in _all_rows(member):
+        if row.prior_id is None:
+            continue
+        for occurrence in context.direct_occurrences.get(row.prior_id, ()):
+            if not any(
+                occurrence[: len(path)] == path for path in member_paths
+            ):
+                external.add(relative)
+                break
+
+    return (
+        tuple(sorted(relations)),
+        tuple(sorted(assertions)),
+        tuple(sorted(external)),
+    )
+
+
+def _shared_split(members: List[ComponentNode]) -> Tuple[List[Tuple], Tuple[int, ...]]:
+    """
+    Rule R2: partition a candidate plate by the **cross-member** priors its
+    members carry.
+
+    A prior in *every* member does not discriminate (the MGE centre) and is
+    dropped from every set; a prior shared only *inside* one member is not
+    cross-member at all and never reaches the partition.
+    """
+    ids_per_member = [_prior_ids_in(member) for member in members]
+    counts: Dict[int, int] = {}
+    for ids in ids_per_member:
+        for prior_id in ids:
+            counts[prior_id] = counts.get(prior_id, 0) + 1
+
+    universal = tuple(
+        sorted(
+            prior_id
+            for prior_id, count in counts.items()
+            if count == len(members) and count > 1
+        )
+    )
+    keys = [
+        tuple(
+            sorted(
+                prior_id
+                for prior_id in ids
+                if counts[prior_id] > 1 and prior_id not in universal
+            )
+        )
+        for ids in ids_per_member
+    ]
+    return keys, universal
+
+
+def _representative_key(member_paths: List[Path], position: int) -> Optional[str]:
+    """
+    The key ``find_groups`` puts in place of the member index -- ``"0 - 29"``,
+    exactly as ``model.info`` prints it.
+    """
+    grouped = find_groups([(path, 0) for path in member_paths], limit=0)
+    if len(grouped) != 1:  # pragma: no cover - defensive
+        return None
+    path = grouped[0][0]
+    if position >= len(path):  # pragma: no cover - defensive
+        return None
+    return str(path[position])
+
+
+def _varies_by_member(members: List[ComponentNode]) -> Tuple[str, ...]:
+    """
+    Dotted row paths, relative to a member, whose **fixed value** differs
+    between members -- the MGE's per-Gaussian ``sigma``, the group model's
+    per-galaxy ``mass.centre``.
+    """
+    per_member = [dict(_all_rows(member)) for member in members]
+    varies: List[str] = []
+    for relative, row in _all_rows(members[0]):
+        if row.dimensionality == "tuple":
+            values = [
+                tuple(
+                    component.value
+                    for component in rows.get(relative, row).components
+                )
+                for rows in per_member
+            ]
+        else:
+            values = [
+                rows.get(relative, row).value for rows in per_member
+            ]
+        if any(value != values[0] for value in values[1:]):
+            varies.append(relative)
+    # A tuple row that varies already names the tuple; drop its slots.
+    tuples = {
+        relative
+        for relative, row in _all_rows(members[0])
+        if row.dimensionality == "tuple"
+    }
+    return tuple(
+        relative
+        for relative in varies
+        if not any(
+            relative.startswith(f"{name}.") for name in tuples
+        )
+    )
+
+
+def _repeats(
+    member: ComponentNode,
+    shared_within: set,
+    varies: Tuple[str, ...],
+) -> Tuple[str, ...]:
+    """
+    One line naming what the plate repeats, built mechanically from the
+    representative's own rows.
+    """
+    described = []
+    for row in member.rows:
+        name = row.name
+        prior_ids = {row.prior_id} | {
+            component.prior_id for component in row.components
+        }
+        if prior_ids & shared_within:
+            described.append(f"{name} \u21c4 shared")
+        elif row.sampling == "fixed" and name in varies:
+            described.append(f"{name} fixed (varies by member)")
+        else:
+            described.append(f"{name} {row.sampling}")
+    if not described:
+        return (f"{member.cls_name}",)
+    return (f"{member.cls_name} with priors " + ", ".join(described),)
+
+
+def _plate(
+    members: List[ComponentNode],
+    representative: ComponentNode,
+    context: _CollapseContext,
+) -> ComponentNode:
+    """
+    One :class:`ComponentNode` standing for every member of a plate.
+
+    ``members`` are the **uncollapsed** member subtrees -- the rules read the
+    model as declared -- while ``representative`` is the first member as it
+    comes out of the bottom-up pass, i.e. with its own children already
+    collapsed.
+    """
+    member_paths = [member.path for member in members]
+    position = len(representative.path) - 1
+
+    _, universal = _shared_split(members)
+    ids_per_member = [_prior_ids_in(member) for member in members]
+    counts: Dict[int, int] = {}
+    for ids in ids_per_member:
+        for prior_id in ids:
+            counts[prior_id] = counts.get(prior_id, 0) + 1
+    shared_within = {
+        prior_id for prior_id, count in counts.items() if count > 1
+    }
+
+    varies = _varies_by_member(members)
+    return replace(
+        representative,
+        plate=PlateInfo(
+            count=len(members),
+            member_paths=tuple(member_paths),
+            representative_key=_representative_key(member_paths, position),
+            repeats=_repeats(members[0], shared_within, varies),
+            shared_in_all=universal,
+            varies_by_member=varies,
+        ),
+    )
+
+
+def _collapse_siblings(
+    node: ComponentNode,
+    collapsed_children: Tuple[ComponentNode, ...],
+    context: _CollapseContext,
+) -> ComponentNode:
+    """
+    Rules R1 (soft plate) and R2 (shared split) plus their safety condition,
+    applied to one node's ``children``.
+
+    Only ``kind="model"`` siblings collapse: a ``Collection`` is a *frame*, not
+    a repeated component, so it never collapses -- but its model children do.
+
+    ``node`` is the **uncollapsed** node, so every rule reads the model as
+    declared: after the bottom-up pass a member's own children may already be a
+    plate, and a plate hides the very prior ids and rows R2 and the safety
+    condition partition on.  ``collapsed_children`` are the same children after
+    that pass, and are what is actually emitted.
+
+    Everything is ordered by declaration, never by set iteration, so the result
+    is deterministic.
+    """
+    children = node.children
+    candidates = [
+        index for index, child in enumerate(children) if child.kind == "model"
+    ]
+    if len(candidates) < 2:
+        return replace(node, children=collapsed_children)
+
+    by_signature: Dict[Tuple, List[int]] = {}
+    for index in candidates:
+        by_signature.setdefault(
+            _signature(children[index], context), []
+        ).append(index)
+
+    groups: List[List[int]] = []
+    for indices in by_signature.values():
+        if len(indices) < 2:
+            groups.append(indices)
+            continue
+        members = [children[index] for index in indices]
+        keys, _ = _shared_split(members)
+        buckets: Dict[Tuple, List[int]] = {}
+        for index, member, key in zip(indices, members, keys):
+            buckets.setdefault(
+                (key, _safety_profile(member, members, context)), []
+            ).append(index)
+        groups.extend(buckets.values())
+
+    group_of: Dict[int, List[int]] = {}
+    for indices in groups:
+        for index in indices:
+            group_of[index] = indices
+
+    emitted: List[ComponentNode] = []
+    for index in range(len(children)):
+        indices = group_of.get(index)
+        if indices is None or len(indices) == 1:
+            emitted.append(collapsed_children[index])
+            continue
+        if index != indices[0]:
+            continue
+        emitted.append(
+            _plate(
+                [children[i] for i in indices],
+                collapsed_children[indices[0]],
+                context,
+            )
+        )
+
+    return replace(node, children=tuple(emitted))
+
+
+def _collapse_tree(node: ComponentNode, context: _CollapseContext) -> ComponentNode:
+    """Apply :func:`_collapse_siblings` recursively, bottom-up."""
+    return _collapse_siblings(
+        node,
+        tuple(_collapse_tree(child, context) for child in node.children),
+        context,
+    )
 
 
 # ----------------------------------------------------------------------------
@@ -1196,7 +1737,9 @@ class GraphSpec:
     shared: Tuple[SharedEdge, ...] = ()
     relations: Tuple[RelationEdge, ...] = ()
     assertions: Tuple[AssertionEdge, ...] = ()
-    path_index: Dict[str, Tuple[Path, ...]] = field(default_factory=dict)
+    #: element key -> the ``model.info`` paths it resolves to.  See
+    #: :func:`_path_index` for the two value shapes.
+    path_index: Dict[str, Any] = field(default_factory=dict)
     counts: Dict[str, int] = field(default_factory=dict)
 
     @classmethod
@@ -1221,23 +1764,30 @@ class GraphSpec:
             rows with ``in_model_info=False``.  Without it, latents are simply
             absent.
         collapse
-            **Accepted and ignored in phase 1** (see :func:`_collapse_siblings`).
+            Whether to apply rules R1/R2 and their safety condition, collapsing
+            repeated sibling components into plates (see
+            :func:`_collapse_siblings`).  ``collapse=False`` returns the
+            uncollapsed tree.
         solved_paths
             Paths -- tuples or dotted strings -- whose rows are re-stated as
             ``solved`` and marked absent from ``model.info``.  Phase 3 supplies
             the domain rules that populate this.
         """
         extractor = _Extractor(model, analysis=analysis, solved_paths=solved_paths)
-        root = extractor.build_root()
-        root = extractor.attach_latents(root)
+        raw_root = extractor.attach_latents(extractor.build_root())
+        root = (
+            _collapse_tree(raw_root, _CollapseContext(extractor))
+            if collapse
+            else raw_root
+        )
         spec = cls(
             root=root,
             shared=extractor.shared_edges(),
             relations=extractor.relation_edges(),
             assertions=extractor.assertion_edges(),
         )
-        object.__setattr__(spec, "path_index", _path_index(spec))
-        object.__setattr__(spec, "counts", _counts(model, spec))
+        object.__setattr__(spec, "path_index", _path_index(spec, model))
+        object.__setattr__(spec, "counts", _counts(model, spec, raw_root))
         return spec
 
     # -- convenience --------------------------------------------------------
@@ -1286,74 +1836,208 @@ class GraphSpec:
             "relations": [edge.to_dict() for edge in self.relations],
             "assertions": [edge.to_dict() for edge in self.assertions],
             "path_index": {
-                key: [list(path) for path in paths]
-                for key, paths in self.path_index.items()
+                key: (
+                    entry
+                    if isinstance(entry, dict)
+                    else [list(path) for path in entry]
+                )
+                for key, entry in self.path_index.items()
             },
             "counts": dict(self.counts),
         }
 
 
-def _path_index(spec: GraphSpec) -> Dict[str, Tuple[Path, ...]]:
+def _info_group_map(model) -> Dict[Path, Path]:
+    """
+    ``concrete leaf path -> the grouped path`` ``model.info`` prints for it.
+
+    A faithful replay of ``AbstractPriorModel.info``'s own
+    ``find_groups(..., limit=1)`` pass, but carrying each group's *members*
+    along so the mapping can be read back.  (``info`` additionally honours a
+    parent's ``__exclude_identifier_fields__``; those attributes are skipped
+    from the spec too, so they never reach this map.)
+    """
+    entries: List[Tuple[Path, Any, List[Path]]] = []
+    for path, value in model.path_instance_tuples_for_class(
+        (Prior, float, Constant, int, tuple, ConfigException), ignore_children=True
+    ):
+        if path[-1] in ("id", "item_number"):
+            continue
+        concrete = _as_path(path)
+        entries.append((concrete, value, [concrete]))
+
+    if not entries:
+        return {}
+
+    longest = max(len(path) for path, _, _ in entries)
+    for position in range(longest - 1):
+        grouped: Dict[Any, List] = {}
+        carried: List[Tuple[Path, Any, List[Path]]] = []
+        for path, value, sources in entries:
+            if position >= len(path):
+                carried.append((path, value, sources))
+                continue
+            key = (path[:position], path[position + 1 :], value)
+            try:
+                bucket = grouped.setdefault(key, [[], []])
+            except TypeError:  # pragma: no cover - an unhashable leaf value
+                carried.append((path, value, sources))
+                continue
+            bucket[0].append(path[position])
+            bucket[1].extend(sources)
+        for (before, after, value), (names, sources) in grouped.items():
+            try:
+                key = integers_representative_key(list(map(int, names)))
+            except ValueError:
+                key = (
+                    f"{min(names)} - {max(names)}"
+                    if len(set(names)) > 1
+                    else names[0]
+                )
+            carried.append(((*before, key, *after), value, sources))
+        entries = carried
+
+    return {
+        source: path for path, _, sources in entries for source in sources
+    }
+
+
+def _group_paths(paths: Sequence[Path]) -> Tuple[Path, ...]:
+    """The figure's own grouping of a plate's member paths, via ``find_groups``."""
+    if len(paths) < 2:
+        return tuple(paths)
+    return tuple(path for path, _ in find_groups([(path, 0) for path in paths], limit=0))
+
+
+def _path_index(spec: GraphSpec, model) -> Dict[str, Any]:
     """
     element key -> the ``model.info`` paths it resolves to.
 
-    An element absent from ``model.info`` (``solved`` and ``latent`` rows, every
-    assertion) is recorded with an **empty** tuple; a ``missing`` row is in
-    ``model.info`` and keeps its path.
-    """
-    index: Dict[str, Tuple[Path, ...]] = {}
+    Two value shapes, both JSON-stable:
 
-    def _add_row(row: ParamRow):
-        index[_key(row.path)] = (row.path,) if row.in_model_info else ()
+    * a **tuple of paths** for an element standing for exactly one path -- the
+      ordinary case, and the phase-1 shape.  An element absent from
+      ``model.info`` (a ``solved`` row, a ``latent`` row, an assertion) is the
+      empty tuple; a ``missing`` row *is* in ``model.info`` and keeps its path.
+    * a ``{"figure": [...], "info": [...]}`` **dict** of ``"/"``-joined paths
+      for an element inside a plate whose figure partition is *finer* than
+      ``model.info``'s grouping -- the MGE's two 30-member plates against
+      ``model.info``'s single ``0 - 59`` centre.  ``figure`` is the plate's own
+      grouping of the member paths, ``info`` is what ``model.info`` prints.  The
+      mapping is recorded rather than hidden (epic: "record the mapping rather
+      than hiding it").  When the two agree the plain tuple shape is used.
+    """
+    index: Dict[str, Any] = {}
+    info_map = _info_group_map(model) if _has_plate(spec.root) else {}
+
+    def _entry(concrete: Tuple[Path, ...]) -> Any:
+        figure = _group_paths(concrete)
+        if len(concrete) < 2:
+            return figure
+        info: List[Path] = []
+        for path in concrete:
+            grouped = info_map.get(path, path)
+            if grouped not in info:
+                info.append(grouped)
+        if tuple(info) == figure:
+            return figure
+        return {
+            "figure": [_key(path) for path in figure],
+            "info": [_key(path) for path in info],
+        }
+
+    def _add_row(row: ParamRow, concrete: Tuple[Path, ...]):
+        index[_key(row.path)] = _entry(concrete) if row.in_model_info else ()
         for component in row.components:
+            leaf = component.path[len(row.path) :]
             if not component.in_model_info:
                 index[_key(component.path)] = ()
             elif row.dimensionality == "tuple" and row.prior_cls_name == "tuple":
                 # A fixed tuple constant is one grouped line in `model.info`.
-                index[_key(component.path)] = (row.path,)
+                index[_key(component.path)] = index[_key(row.path)]
             else:
-                index[_key(component.path)] = (component.path,)
+                index[_key(component.path)] = _entry(
+                    tuple(path + leaf for path in concrete)
+                )
 
-    def _walk(node: ComponentNode):
-        index[_key(node.path)] = (node.path,)
+    def _walk(node: ComponentNode, concrete: Tuple[Path, ...]):
+        index[_key(node.path)] = _entry(concrete)
         for row in node.rows:
-            _add_row(row)
+            suffix = row.path[len(node.path) :]
+            _add_row(row, tuple(path + suffix for path in concrete))
         for child in node.children:
-            _walk(child)
+            if child.plate is not None:
+                suffixes = [
+                    member[len(node.path) :] for member in child.plate.member_paths
+                ]
+            else:
+                suffixes = [child.path[len(node.path) :]]
+            _walk(
+                child,
+                tuple(path + suffix for path in concrete for suffix in suffixes),
+            )
 
-    _walk(spec.root)
+    _walk(spec.root, (spec.root.path,))
     for number, _ in enumerate(spec.assertions):
         index[f"assertion/{number}"] = ()
     return index
 
 
-def _counts(model, spec: GraphSpec) -> Dict[str, int]:
+def _has_plate(node: ComponentNode) -> bool:
+    return node.plate is not None or any(_has_plate(child) for child in node.children)
+
+
+def _node_count(node: ComponentNode) -> int:
+    return 1 + sum(_node_count(child) for child in node.children)
+
+
+def _plate_count(node: ComponentNode) -> int:
+    return (node.plate is not None) + sum(
+        _plate_count(child) for child in node.children
+    )
+
+
+def _counts(model, spec: GraphSpec, raw_root: ComponentNode) -> Dict[str, int]:
+    """
+    The reconciling counts.
+
+    The row-derived counts (``fixed_leaf_slots``, ``missing``) are of the
+    **uncollapsed** tree: a plate stands for every one of its members, so
+    collapsing must not make a fixed value look absent from the model.  Only the
+    component counts are of both trees -- ``components`` after collapse,
+    ``components_raw`` before, and ``plates`` how many of the former stand for
+    more than one of the latter.
+    """
     fixed_leaf_slots = 0
     missing = 0
-    for row in spec.rows():
-        if row.dimensionality == "tuple":
-            for component in row.components:
-                if component.sampling == "fixed":
-                    fixed_leaf_slots += 1
-                if component.sampling == "missing":
-                    missing += 1
+    for node in _walk_nodes(raw_root):
+        for row in node.rows:
+            if row.dimensionality == "tuple":
+                for component in row.components:
+                    if component.sampling == "fixed":
+                        fixed_leaf_slots += 1
+                    if component.sampling == "missing":
+                        missing += 1
+                continue
+            if row.sampling == "fixed":
+                fixed_leaf_slots += 1
             if row.sampling == "missing":
-                # counted per slot above
-                pass
-            continue
-        if row.sampling == "fixed":
-            fixed_leaf_slots += 1
-        if row.sampling == "missing":
-            missing += 1
-    components_raw = len(spec.components())
+                missing += 1
     return {
         "unique_sampled_scalars": model.prior_count,
         "fixed_leaf_slots": fixed_leaf_slots,
         "shared_priors": len(spec.shared),
         "missing": missing,
-        "components_raw": components_raw,
-        "components": components_raw,
+        "components_raw": _node_count(raw_root),
+        "components": _node_count(spec.root),
+        "plates": _plate_count(spec.root),
     }
+
+
+def _walk_nodes(node: ComponentNode):
+    yield node
+    for child in node.children:
+        yield from _walk_nodes(child)
 
 
 def graph_spec_from(model, **kwargs) -> GraphSpec:

@@ -166,16 +166,32 @@ def test_solved_paths_are_marked_absent_from_model_info():
     assert spec.path_index["gaussian/normalization"] == ()
 
 
-def test_collapse_argument_is_accepted_and_ignored():
+def test_collapse_is_on_by_default_and_can_be_turned_off():
+    """
+    Phase 1 accepted ``collapse`` and ignored it; the collapse phase fills it in.
+    ``collapse=False`` must still return the *uncollapsed* tree unchanged -- it
+    is the tree every catalogue construct is asserted against.
+    """
     model = af.Collection(
         a=af.Model(af.ex.Gaussian),
         b=af.Model(af.ex.Gaussian),
     )
-    collapsed = json.dumps(GraphSpec.from_model(model, collapse=True).to_dict())
-    expanded = json.dumps(GraphSpec.from_model(model, collapse=False).to_dict())
+    collapsed = GraphSpec.from_model(model, collapse=True)
+    expanded = GraphSpec.from_model(model, collapse=False)
 
-    assert collapsed == expanded
-    assert all(node.plate is None for node in GraphSpec.from_model(model).components())
+    assert json.dumps(collapsed.to_dict()) != json.dumps(expanded.to_dict())
+    assert json.dumps(GraphSpec.from_model(model).to_dict()) == json.dumps(
+        collapsed.to_dict()
+    )
+
+    assert all(node.plate is None for node in expanded.components())
+    assert expanded.counts["components"] == expanded.counts["components_raw"] == 3
+    assert expanded.counts["plates"] == 0
+
+    assert [node.plate.count for node in collapsed.components() if node.plate] == [2]
+    assert collapsed.counts["components"] == 2
+    assert collapsed.counts["components_raw"] == 3
+    assert collapsed.counts["plates"] == 1
 
 
 def test_importing_graph_spec_does_not_import_matplotlib():

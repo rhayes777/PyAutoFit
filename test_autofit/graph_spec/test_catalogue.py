@@ -120,7 +120,10 @@ def test_04_shared_prior():
     )
     model.a.centre = model.b.centre
 
-    spec = GraphSpec.from_model(model)
+    # The raw tree: `a` and `b` are plate-mates under rule R1/R2, so the
+    # collapsed spec draws them once (see `test_collapse.py`).  This construct
+    # is about *extraction*, so it is asserted uncollapsed.
+    spec = GraphSpec.from_model(model, collapse=False)
 
     a_centre = spec.row(("a", "centre"))
     b_centre = spec.row(("b", "centre"))
@@ -156,6 +159,17 @@ def test_05_relation():
     assert row.provenance.operands == ("normalization", "sigma")
     # Its value varies during sampling, so its sampling status is free.
     assert row.sampling == "free"
+
+    # `normalization` sits at ('normalization',) *and* at ('centre', 'self'),
+    # because a compound prior's operands are real attributes of it.  The second
+    # path passes through the relation, so it is not a second *use* of the
+    # prior: the row is related, not shared, and there is no `SharedEdge`.
+    normalization = spec.row(("normalization",))
+    assert set(normalization.occurrences) == {("normalization",), ("centre", "self")}
+    assert normalization.direct_occurrences == (("normalization",),)
+    assert normalization.shared is False
+    assert spec.shared == ()
+    assert spec.counts["shared_priors"] == 0
 
     assert len(spec.relations) == 1
     edge = spec.relations[0]
@@ -260,7 +274,9 @@ def test_07b_partially_fixed_tuple_is_a_mixed_state():
 
 def test_08_named_collection():
     model = af.Collection(a=af.Model(af.ex.Gaussian), b=af.Model(af.ex.Gaussian))
-    spec = GraphSpec.from_model(model)
+    # Two identical siblings collapse into a plate; the construct under test is
+    # the named-attribute children, so assert the uncollapsed tree.
+    spec = GraphSpec.from_model(model, collapse=False)
 
     assert spec.root.kind == "collection"
     assert spec.root.cls_name == "Collection"
@@ -277,7 +293,7 @@ def test_09_list_collection():
     model = af.Collection(
         [af.Model(af.ex.Gaussian), af.Model(af.ex.Gaussian), af.Model(af.ex.Gaussian)]
     )
-    spec = GraphSpec.from_model(model)
+    spec = GraphSpec.from_model(model, collapse=False)
 
     assert [child.name for child in spec.root.children] == ["0", "1", "2"]
     assert [child.path for child in spec.root.children] == [("0",), ("1",), ("2",)]
@@ -325,7 +341,7 @@ def test_11_multi_level_model():
         gaussian_list=[af.Model(af.ex.Gaussian), af.Model(af.ex.Gaussian)],
         normalization=af.UniformPrior(lower_limit=0.0, upper_limit=1.0),
     )
-    spec = GraphSpec.from_model(model)
+    spec = GraphSpec.from_model(model, collapse=False)
 
     assert spec.root.cls_name == "MultiLevel"
     # The list became a child Collection at ('gaussian_list',).
@@ -419,7 +435,7 @@ def test_15_factor_graph_fully_shared():
         af.AnalysisFactor(prior_model=model, analysis=NullAnalysis()),
         af.AnalysisFactor(prior_model=model, analysis=NullAnalysis()),
     )
-    spec = GraphSpec.from_model(factor_graph.global_prior_model)
+    spec = GraphSpec.from_model(factor_graph.global_prior_model, collapse=False)
 
     assert spec.root.kind == "global"
     assert spec.root.cls_name == "GlobalPriorModel"
@@ -447,7 +463,7 @@ def test_16_factor_graph_per_dataset_free_parameters():
         af.AnalysisFactor(prior_model=model_1, analysis=NullAnalysis()),
         af.AnalysisFactor(prior_model=model_2, analysis=NullAnalysis()),
     )
-    spec = GraphSpec.from_model(factor_graph.global_prior_model)
+    spec = GraphSpec.from_model(factor_graph.global_prior_model, collapse=False)
 
     # Shared parameters keep one prior id; the freed one gets a new id.
     assert spec.row(("0", "centre")).prior_id == spec.row(("1", "centre")).prior_id
