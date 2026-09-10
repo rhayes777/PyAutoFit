@@ -28,7 +28,7 @@
         "kwargs": {
           "type": "dict",
           "arguments": {
-            "galaxies.lens.bulge.centre.centre_0": -1.0,
+            "galaxies.lens.bulge.centre.centre_0": -1.5,
             "galaxies.lens.bulge.centre.centre_1": -2.0
           }
         }

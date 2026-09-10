@@ -16,18 +16,23 @@ from autofit.aggregator.summary.aggregate_csv.row import Row
 
 
 class AggregateCSV:
-    def __init__(self, aggregator: Aggregator):
+    def __init__(self, aggregator: Aggregator, strict: bool = False):
         """
         Summarise results from the aggregator as a CSV.
 
         Parameters
         ----------
         aggregator
+        strict
+            If True an argument matching neither the samples_summary nor the
+            latent_summary raises a KeyError. If False (the default) a warning
+            is logged once for each such column and its values are left empty.
         """
         if len(aggregator) == 0:
             raise ValueError("The aggregator is empty.")
 
         self._aggregator = aggregator
+        self._strict = strict
         self._columns = []
 
     def add_variable(
@@ -56,6 +61,7 @@ class AggregateCSV:
                 argument,
                 name=name,
                 value_types=value_types,
+                strict=self._strict,
             )
         )
 
