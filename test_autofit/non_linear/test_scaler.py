@@ -274,19 +274,36 @@ def _rosenbrock_like(theta):
 
 
 def _gradient(objective, theta, eps=1.0e-7):
-    grad = np.zeros_like(theta)
-    for i in range(theta.size):
-        step = np.zeros_like(theta)
-        step[i] = eps
-        grad[i] = (objective(theta + step) - objective(theta - step)) / (2.0 * eps)
-    return grad
+    """
+    Central differences, one coordinate at a time, on a plain Python list.
+
+    The arithmetic is the same float64 sequence a numpy implementation performs --
+    ``(f(theta + eps e_i) - f(theta - eps e_i)) / (2 eps)``, with ``theta + 0.0``
+    on every other coordinate, which is exact -- and the recovered argmin is
+    therefore bit-identical. What goes away is numpy's per-call dispatch, which at
+    two dimensions costs roughly a hundred times the two multiplies and two adds
+    it is dispatching: the old form allocated three arrays per gradient (1.2M
+    ``zeros_like`` calls over the 200000-step descents below) to hold four
+    numbers.
+    """
+    gradient = []
+    for i in range(len(theta)):
+        plus = list(theta)
+        minus = list(theta)
+        plus[i] = theta[i] + eps
+        minus[i] = theta[i] - eps
+        gradient.append((objective(plus) - objective(minus)) / (2.0 * eps))
+    return gradient
 
 
 def _descend(objective, start, learning_rate, n_steps):
-    theta = np.array(start, dtype=float)
+    theta = [float(value) for value in np.asarray(start, dtype=float)]
     for _ in range(n_steps):
-        theta = theta - learning_rate * _gradient(objective, theta)
-    return theta
+        theta = [
+            value - learning_rate * partial
+            for value, partial in zip(theta, _gradient(objective, theta))
+        ]
+    return np.array(theta)
 
 
 def test__objective_composed_through_the_scale_is_the_SAME_objective():
