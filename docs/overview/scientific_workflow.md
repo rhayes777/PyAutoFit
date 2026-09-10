@@ -2,12 +2,6 @@
 
 # Scientific Workflow
 
-## Hard Disk Output
-
-> Describe the contents of the output folder from our completed inference,
-> explaining what each file and subfolder tells me. Add a domain-specific
-> results summary in `science_summary.json`.
-
 After fitting a model, you need to inspect the result, understand how it was
 obtained and decide what to try next. A scientific workflow connects these
 steps across your study: perhaps many models for one dataset, or the same
@@ -20,6 +14,25 @@ language. We use a simple 1D Gaussian profile, but you supply the scientific
 meaning of the models, data and derived quantities for your own project.
 The [workspace example](https://github.com/PyAutoLabs/autofit_workspace/blob/main/scripts/overview/overview_2_scientific_workflow.py)
 contains the corresponding runnable Python.
+
+## Contents
+
+- **Hard Disk Output**: Save every fit's model, samples, search settings and a domain-specific summary to disk in a readable layout.
+- **Visualization**: Save plots of the data before inference and of the best fit and residuals during it.
+- **On The Fly**: Watch the fit and residual figure update live while the search runs.
+- **Loading Results**: Reload saved fits with the aggregator and tabulate or reinspect them without rerunning.
+- **Result Customization**: Expose the fitted profile, residuals and derived quantities directly from the result.
+- **Model Composition**: Make competing assumptions explicit by fitting free, fixed and shared-parameter variants of the model.
+- **Searches**: Compare Nautilus, Dynesty, Emcee and an optimizer on the same model, data and priors.
+- **Configs**: Put shared priors and search settings into configuration files and record the effective settings with each result.
+- **Database**: Collect saved runs into a SQLite database and query them by model, metadata or result properties.
+- **Scaling Up**: Organize a study of many datasets, models and searches so every conclusion traces back to its saved output.
+
+## Hard Disk Output
+
+> Describe the contents of the output folder from our completed inference,
+> explaining what each file and subfolder tells me. Add a domain-specific
+> results summary in `science_summary.json`.
 
 Saving results to hard disk makes it possible to:
 

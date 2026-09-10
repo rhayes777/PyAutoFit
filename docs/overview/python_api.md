@@ -18,20 +18,22 @@ without installing anything.
 of large datasets. The API lets a user quickly compose a probabilistic model and fit it to data via a
 log likelihood function, using a range of non-linear search algorithms (e.g. MCMC, nested sampling).
 
-This overview gives a run through of:
+This overview covers the basic API. More advanced functionality is described in the
+following overviews and the **PyAutoFit** cookbooks.
 
-> - **Models**: Use Python classes to compose the model which is fitted to data.
-> - **Instances**: Create instances of the model via its Python class.
-> - **Analysis**: Define an `Analysis` class which includes the log likelihood function that fits the model to the data.
-> - **Searches**: Choose an MCMC, nested sampling or maximum likelihood estimator non-linear search algorithm that fits the model to the data.
-> - **Model Fit**: Fit the model to the data using the chosen non-linear search, with on-the-fly results and visualization.
-> - **Results**: Use the results of the search to interpret and visualize the model fit.
+## Contents
 
-- **Samples**: Use the samples of the search to inspect the parameter samples and visualize the probability density function of the results.
-- **Multiple Datasets**: Dedicated support for simultaneously fitting multiple datasets, enabling scalable analysis of large datasets.
-
-This overviews provides a high level of the basic API, with more advanced functionality described in the following
-overviews and the **PyAutoFit** cookbooks.
+- **Example**: The 1D Gaussian model-fitting problem used throughout this page.
+- **Model**: Use Python classes to compose the model which is fitted to data.
+- **Instances**: Create instances of the model via its Python class.
+- **Analysis**: Define an `Analysis` class whose log likelihood function fits the model to the data.
+- **Non Linear Search**: Choose an MCMC, nested sampling or maximum likelihood estimator that fits the model to the data.
+- **Model Fit**: Fit the model to the data with the chosen search, with on-the-fly results and visualization.
+- **Result**: Use the result of the search to interpret and visualize the model fit.
+- **Samples**: Inspect the parameter samples and visualize the probability density function of the results.
+- **Multiple Datasets**: Fit multiple datasets simultaneously, enabling scalable analysis of large datasets.
+- **Wrap Up**: Where this API leads next.
+- **Resources**: Cookbooks and further reading.
 
 ## Example
 
