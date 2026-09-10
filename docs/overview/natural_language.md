@@ -10,6 +10,9 @@ with [Quick Start](https://pyautofit.readthedocs.io/en/latest/overview/quick_sta
 **Every step on this page can be requested in natural language—you do not
 need to write Python to follow it.** The workflow is:
 **model → priors → likelihood → search → results → scientific workflow**.
+Typing the start-here prompt from [Quick Start](https://pyautofit.readthedocs.io/en/latest/overview/quick_start.html)
+into the assistant walks these six sections as a [guided tour](https://github.com/PyAutoLabs/autofit_assistant/blob/main/modes/start_here.md), one step at
+a time — or you can paste any prompt below into the assistant directly.
 
 ## Contents
 
@@ -54,9 +57,9 @@ Total Free Parameters = 3
 
 model                         Gaussian (N=3)
 
-centre                        UniformPrior [1], lower_limit = 0.0, upper_limit = 100.0
-normalization                 LogUniformPrior [2], lower_limit = 1e-06, upper_limit = 1000000.0
-sigma                         UniformPrior [3], lower_limit = 0.0, upper_limit = 25.0
+centre                        UniformPrior [0], lower_limit = 0.0, upper_limit = 100.0
+normalization                 UniformPrior [1], lower_limit = 0.0, upper_limit = 100.0
+sigma                         UniformPrior [2], lower_limit = 0.1, upper_limit = 30.0
 ```
 
 Models are highly customizable: you can ask to fix a parameter, 
@@ -78,8 +81,6 @@ The assistant sets up the likelihood function: which in this case evaluates the
 Gaussian at each data point and compares the predictions with the measurements, 
 accounting for their uncertainties. As requested, you get an image comparing
 the model and data.
-
-[Find 1D example of a random model to the data, maybe from HowToFit]?
 
 For your own project, you can instead ask:
 
