@@ -35,7 +35,7 @@ Begin the "start here" guide for a new user.
 [natural-language inference page](https://pyautofit.readthedocs.io/en/latest/overview/natural_language.html)
 walks through this, including its **AI First Design**.
 
-## Bring Your Own Likelihood
+## Bring Your Own Likelihood (BYOL)
 
 Already have a likelihood function for your science problem? **Point the assistant at your existing code and it can
 set it up with PyAutoFit** — defining the model, choosing priors with you, configuring a search and organising the
@@ -55,6 +55,12 @@ Do not begin inference until we have discussed the setup and I give you the go-a
 Once inference is running, explain how the results are written to disk and show me how to inspect and interpret
 them with PyAutoFit.
 ```
+
+The assistant answers this prompt with its
+[**BYOL** mode](https://github.com/PyAutoLabs/autofit_assistant/blob/main/modes/byol.md) — bring your own likelihood,
+the assistant brings the inference. It reads your code and restates what your likelihood scores, composes a model with
+priors chosen with you, wraps and validates your function unchanged, recommends a search, and runs nothing until you
+say go.
 
 Your existing science code remains the source of the likelihood. With PyAutoFit built around it, you can perform
 inference through natural language while gaining access to features such as flexible priors and model composition,
