@@ -29,6 +29,13 @@ To begin instantly, follow the [assistant setup guide](https://github.com/PyAuto
 >
 > Begin the "start here" guide for a new user.
 
+The assistant answers this prompt with its guided
+[**start here** mode](https://github.com/PyAutoLabs/autofit_assistant/blob/main/modes/start_here.md):
+six steps on the bundled 1D Gaussian which you type yourself, followed by the same
+six steps on your own science. At any step you can ask a question (for example
+"what is a prior?") or say "teacher mode" to get a full explanation of everything
+as you go. The six steps are the sections of [Natural Language Inference](https://pyautofit.readthedocs.io/en/latest/overview/natural_language.html).
+
 ## Bring Your Own Likelihood
 
 Already have a likelihood function for your science problem? **Point the
