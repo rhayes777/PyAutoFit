@@ -121,6 +121,7 @@ from .non_linear.samples.pdf import marginalize
 from .text import formatter
 from .text import samples_text
 from .visualise import VisualiseGraph
+from .graph_spec import GraphSpec, graph_spec_from
 from .interpolator import (
     LinearInterpolator,
     SplineInterpolator,
