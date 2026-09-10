@@ -23,6 +23,7 @@ working unchanged. New code should subclass :class:`Latent` instead.
 import functools
 import logging
 import time
+import traceback
 from typing import Optional
 
 import numpy as np
@@ -142,6 +143,19 @@ def latent_samples_from(
             latent.variables, analysis, model=samples.model
         )
 
+        # A latent function that raises becomes a NaN row (below) so one bad
+        # sample cannot abort the batch. That must never be *silent*: a raise
+        # on every sample means the latent function is broken for this model
+        # (e.g. a `jax.jit` trace failure), and the only symptom was "no
+        # finite latent samples remained" with the cause lost. Count the
+        # failures and keep the first traceback for the warnings below.
+        failures = {"count": 0, "first_traceback": None}
+
+        def _record_failure():
+            failures["count"] += 1
+            if failures["first_traceback"] is None:
+                failures["first_traceback"] = traceback.format_exc()
+
         if analysis._use_jax:
             import jax
             import jax.numpy as jnp
@@ -167,9 +181,11 @@ def latent_samples_from(
                     # A latent that raises (any exception, not just
                     # FitException) becomes a NaN row, which the global mask
                     # below drops — one bad sample must not abort the batch.
+                    # The raise is recorded, not swallowed: see `failures`.
                     try:
                         return jitted_compute_latent(p)
                     except Exception:
+                        _record_failure()
                         return nan_tuple
 
                 def batched_compute_latent(parameters_batch):
@@ -197,9 +213,11 @@ def latent_samples_from(
                 # Any exception (not just FitException) becomes a NaN row,
                 # which the global mask below drops — a single failing latent
                 # evaluation must not abort the whole post-fit latent pass.
+                # The raise is recorded, not swallowed: see `failures`.
                 try:
                     return compute_latent_for_model(xx)
                 except Exception:
+                    _record_failure()
                     return nan_row
 
             def batched_compute_latent(x):
@@ -278,11 +296,35 @@ def latent_samples_from(
 
         print(f"Time to compute latent variables: {time.time() - start_latent} seconds for {len(samples)} samples.")
 
-        if not kept_idx:
+        n_samples = len(parameter_array)
+
+        if failures["count"]:
             logger.warning(
-                "compute_latent_samples: no finite latent samples remained "
-                "after masking; skipping latent output."
+                "compute_latent_samples: the latent function raised on %d of "
+                "%d samples; each becomes a NaN row and is dropped. First "
+                "failure:\n%s",
+                failures["count"],
+                n_samples,
+                failures["first_traceback"],
             )
+
+        def _warn_no_latents():
+            if n_samples and failures["count"] == n_samples:
+                logger.warning(
+                    "compute_latent_samples: no finite latent samples remained "
+                    "because the latent function raised on EVERY sample -- "
+                    "the latent function is broken for this model (see the "
+                    "traceback above), the samples are not at fault; skipping "
+                    "latent output."
+                )
+            else:
+                logger.warning(
+                    "compute_latent_samples: no finite latent samples remained "
+                    "after masking; skipping latent output."
+                )
+
+        if not kept_idx:
+            _warn_no_latents()
             return None
 
         kept_keys = [keys[i] for i in kept_idx]
@@ -292,10 +334,7 @@ def latent_samples_from(
         kept_samples = [s for s, keep in zip(all_samples, row_mask) if keep]
 
         if len(kept_samples) == 0:
-            logger.warning(
-                "compute_latent_samples: no finite latent samples remained "
-                "after masking; skipping latent output."
-            )
+            _warn_no_latents()
             return None
 
         latent_samples = [
