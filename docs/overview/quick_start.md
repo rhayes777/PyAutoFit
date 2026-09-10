@@ -2,9 +2,11 @@
 
 > **Access requirements**
 >
-> The assistant runs through a coding agent such as Claude Code or OpenAI
-> Codex. Sustained use normally needs a paid subscription or API billing;
-> limited free access may be available. See the [assistant setup guide](https://github.com/PyAutoLabs/autofit_assistant#getting-started)
+> The assistant runs inside an AI coding agent: Claude Code or OpenAI Codex are
+> recommended. Sustained scientific use normally needs paid access to one of them
+> (a personal subscription, institutional access or API billing); OpenCode is an
+> experimental alternative whose model access and capability depend on the
+> provider. See the [assistant setup guide](https://github.com/PyAutoLabs/autofit_assistant#getting-started)
 > for current options. PyAutoFit itself is open source.
 
 **PyAutoFit is a Python package for scientific model fitting and Bayesian
