@@ -41,9 +41,11 @@ uncertainties.
 
 ## Compose the model
 
+:::{container} nl-prompt
 > Create a 1D Gaussian model with free centre, normalization and sigma.
 > Use uniform priors from 0 to 100 for centre, 0 to 100 for normalization,
 > and 0.1 to 30 for sigma. Show me the model and its priors.
+:::
 
 This specifies a model with three free parameters:
 
