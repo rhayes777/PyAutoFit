@@ -1,6 +1,9 @@
+import logging
 from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Optional, Callable
+
+logger = logging.getLogger(__name__)
 
 
 class AbstractColumn(ABC):
@@ -37,6 +40,7 @@ class Column(AbstractColumn):
         argument: str,
         name: Optional[str] = None,
         value_types: list[ValueType] = (ValueType.Median,),
+        strict: bool = False,
     ):
         """
         A column in the summary table.
@@ -49,6 +53,10 @@ class Column(AbstractColumn):
             An optional name for the column
         value_types
             Value types to include. See ValueType.
+        strict
+            If True an argument matching neither the samples_summary nor the
+            latent_summary raises a KeyError. If False (the default) a warning
+            is logged once for the column and the values are left empty.
         """
         super().__init__(
             name
@@ -59,8 +67,40 @@ class Column(AbstractColumn):
         )
         self.argument = argument
         self.value_types = value_types
+        self.strict = strict
+        self._has_warned = False
+
+    def _check_argument(self, row: "Row"):
+        """
+        Check that the argument matches the samples_summary or latent_summary
+        of a row.
+
+        If it matches neither then a KeyError is raised when strict, else a
+        warning is logged once for the column.
+
+        Parameters
+        ----------
+        row
+            A row in the summary table
+        """
+        if self.path in row.known_paths:
+            return
+
+        available = sorted(".".join(path) for path in row.known_paths)
+        message = (
+            f"Argument '{self.argument}' matches no value in the samples "
+            f"summary or latent summary. Available arguments include: "
+            f"{', '.join(available[:10])}"
+        )
+        if self.strict:
+            raise KeyError(message)
+        if not self._has_warned:
+            self._has_warned = True
+            logger.warning(message)
 
     def value(self, row: "Row"):
+        self._check_argument(row)
+
         result = {}
 
         if ValueType.Median in self.value_types:
