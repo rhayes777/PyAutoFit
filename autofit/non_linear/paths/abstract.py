@@ -397,6 +397,17 @@ class AbstractPaths(ABC):
         that was invalidated and recomputed — it is replaced, otherwise the
         stale copy would come back at the next ``restore()``.
 
+        Under ``remove_files`` the zip is the **only** store for a search:
+        the output directory is deleted once the search is archived, so a
+        loose copy left beside the zip is not a second home for the file but
+        a directory that should not exist. It shadows the zip for
+        ``Aggregator.from_directory``, which then sees a search output with
+        no ``.completed`` file. The loose copy is therefore deleted once the
+        member is in the archive, along with any parent directory that
+        emptied as a result, and the cache it holds is recomputed the next
+        time it is asked for. With ``remove_files`` unset the output
+        directory is the primary store and the loose copy stays.
+
         Parameters
         ----------
         file_path
@@ -406,23 +417,69 @@ class AbstractPaths(ABC):
         if not Path(self._zip_path).exists():
             return
 
-        arcname = str(Path(file_path).relative_to(self.output_path))
+        file_path = Path(file_path)
+        arcname = str(file_path.relative_to(self.output_path))
+
+        replace = False
 
         with zipfile.ZipFile(self._zip_path, "a") as f:
             try:
                 info = f.getinfo(arcname)
             except KeyError:
                 f.write(file_path, arcname)
-                return
+                info = None
 
-            if _matches_archived(info, file_path):
-                return
+            if info is not None and not _matches_archived(info, file_path):
+                replace = True
 
-        _replace_zip_member(
-            zip_path=self._zip_path,
-            arcname=arcname,
-            file_path=file_path,
-        )
+        if replace:
+            _replace_zip_member(
+                zip_path=self._zip_path,
+                arcname=arcname,
+                file_path=file_path,
+            )
+
+        if self.remove_files:
+            self._remove_preserved_copy(file_path)
+
+    def _remove_preserved_copy(self, file_path: Path):
+        """
+        Delete a file that has just been written into the search's zip, and any
+        directory between it and ``output_path`` that the deletion emptied.
+
+        Called only under ``remove_files``, where the zip is the search's only
+        store; see ``preserve_in_zip``.
+
+        Parameters
+        ----------
+        file_path
+            Absolute path of the loose file, which lives under ``output_path``.
+        """
+        output_path = Path(self.output_path)
+
+        try:
+            file_path.unlink()
+        except FileNotFoundError:
+            return
+        except OSError as e:
+            logger.debug(f"Could not remove the preserved copy at {file_path}: {e}")
+            return
+
+        directory = file_path.parent
+        while True:
+            try:
+                directory.relative_to(output_path)
+            except ValueError:
+                # Walked above the search's own output directory.
+                return
+            try:
+                directory.rmdir()
+            except OSError:
+                # Not empty, or gone already — nothing further to prune.
+                return
+            if directory == output_path:
+                return
+            directory = directory.parent
 
     def restore(self):
         """

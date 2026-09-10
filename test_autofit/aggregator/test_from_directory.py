@@ -1,5 +1,6 @@
 import json
 import gc
+import os
 import shutil
 import zipfile
 from pathlib import Path
@@ -33,6 +34,33 @@ def test_from_directory(scan_directory):
     assert len(aggregator) == 1
 
 
+def test_search_outputs_are_sorted_by_path(tmp_path, monkeypatch):
+    """
+    ``os.walk`` yields directory entries in whatever order the filesystem
+    reports — hash order on ext4, insertion order on tmpfs — so the aggregated
+    outputs must be sorted before they are returned. Without the sort the order
+    is machine-dependent, and everything that pairs a row to an output by index
+    (the summary CSV writers, ``add_label_column``) pairs them differently on
+    different machines.
+    """
+    source = Path(__file__).parent / "search_output"
+    for name in ("a", "b"):
+        shutil.copytree(source, tmp_path / name)
+
+    real_walk = os.walk
+
+    def reversed_walk(top, **kwargs):
+        for root, dirs, filenames in real_walk(top, **kwargs):
+            dirs.reverse()
+            yield root, dirs, filenames
+
+    monkeypatch.setattr(os, "walk", reversed_walk)
+
+    aggregator = Aggregator.from_directory(tmp_path)
+
+    assert [output.directory.name for output in aggregator] == ["a", "b"]
+
+
 def test_zip_extracted_and_loaded(zipped_directory):
     aggregator = Aggregator.from_directory(zipped_directory)
     assert len(aggregator) == 1
@@ -40,13 +68,37 @@ def test_zip_extracted_and_loaded(zipped_directory):
 
 
 def test_zip_not_re_extracted(zipped_directory):
+    """
+    An extracted directory that carries ``.completed`` is the search, so the zip
+    beside it is left alone and the directory on disk is not overwritten.
+    """
     Aggregator.from_directory(zipped_directory)
 
-    (zipped_directory / "search_output" / ".completed").unlink()
+    completed = zipped_directory / "search_output" / ".completed"
+    completed.write_text("not the archived content")
+
     aggregator = Aggregator.from_directory(zipped_directory)
 
     assert len(aggregator) == 1
-    assert not (zipped_directory / "search_output" / ".completed").exists()
+    assert completed.read_text() == "not the archived content"
+
+
+def test_incomplete_sibling_directory_loses_to_the_zip(zipped_directory):
+    """
+    A directory beside the zip with no ``.completed`` file is not the extraction
+    of a finished search — post-completion writers recreate ``<search>/files/``
+    after the real directory was zipped and removed. The zip wins, so the search
+    is still aggregated under ``completed_only``.
+    """
+    extracted = zipped_directory / "search_output"
+    (extracted / "files").mkdir(parents=True)
+    (extracted / "files" / "search.json").write_text("{}")
+    (extracted / "files" / "cache_artifact.json").write_text("{}")
+
+    aggregator = Aggregator.from_directory(zipped_directory, completed_only=True)
+
+    assert len(aggregator) == 1
+    assert (extracted / ".completed").exists()
 
 
 def test_zip_temporary_leaves_no_extracted_directory(zipped_directory):
@@ -108,13 +160,41 @@ def test_zip_temporary_removed_on_close(zipped_directory):
 
 
 def test_zip_temporary_uses_an_existing_extracted_directory(zipped_directory):
+    """
+    The completed extraction beside the zip is used as-is; nothing is extracted
+    into the temporary directory.
+    """
     Aggregator.from_directory(zipped_directory)
+    assert (zipped_directory / "search_output" / ".completed").exists()
 
     aggregator = Aggregator.from_directory(zipped_directory, unzip_temporary=True)
 
     assert len(aggregator) == 1
     assert aggregator[0].directory == zipped_directory / "search_output"
     assert aggregator[0]._temporary_directory is None
+
+
+def test_zip_temporary_incomplete_sibling_directory_loses_to_the_zip(zipped_directory):
+    """
+    The temporary-extraction path has the same precedence: a sibling directory
+    without ``.completed`` does not stand for the search, so the zip is extracted
+    into the temporary directory and the sibling is left untouched on disk.
+    """
+    extracted = zipped_directory / "search_output"
+    (extracted / "files").mkdir(parents=True)
+    (extracted / "files" / "search.json").write_text("{}")
+
+    aggregator = Aggregator.from_directory(
+        zipped_directory,
+        completed_only=True,
+        unzip_temporary=True,
+    )
+
+    assert len(aggregator) == 1
+    assert aggregator[0]._temporary_directory is not None
+    assert aggregator[0].directory != extracted
+    assert not (extracted / ".completed").exists()
+    assert (extracted / "files" / "search.json").read_text() == "{}"
 
 
 def test_zip_temporary_mirrors_the_scanned_layout(tmp_path):
