@@ -24,10 +24,12 @@ workflow well suited to AI agents.
 
 To begin instantly, follow the [assistant setup guide](https://github.com/PyAutoLabs/autofit_assistant#getting-started) and ask:
 
+:::{container} nl-prompt
 > I want to perform scientific inference with PyAutoFit (https://github.com/PyAutoLabs/PyAutoFit) and the
 > autofit_assistant (https://github.com/PyAutoLabs/autofit_assistant).
 >
 > Begin the "start here" guide for a new user.
+:::
 
 The assistant answers this prompt with its guided
 [**start here** mode](https://github.com/PyAutoLabs/autofit_assistant/blob/main/modes/start_here.md):
@@ -43,6 +45,7 @@ assistant at your existing code and it can set it up with PyAutoFit** —
 defining the model, choosing priors with you, configuring a search and
 organising the results:
 
+:::{container} nl-prompt
 > Set up PyAutoFit with my existing science project. An example likelihood
 > function can be found at [GitHub link or local directory].
 >
@@ -55,6 +58,7 @@ organising the results:
 >
 > Once inference is running, explain how the results are written to disk and
 > show me how to inspect and interpret them with PyAutoFit.
+:::
 
 Your existing science code remains the source of the likelihood. With
 PyAutoFit built around it, you can perform inference through natural

@@ -22,10 +22,14 @@
 **PyAutoFit** and the **autofit_assistant** allow one to perform scientific inference using purely natural language.
 Simply open your AI coding agent (`codex` or `Claude Code` are recommended) and input the following prompt:
 
-> I want to perform scientific inference with PyAutoFit (https://github.com/PyAutoLabs/PyAutoFit) and the
-> autofit_assistant (https://github.com/PyAutoLabs/autofit_assistant).
->
-> Begin the "start here" guide for a new user.
+<sub><b>Example Natural Language Prompt for Claude Code, Codex or other AI coding agent</b></sub>
+
+```text
+I want to perform scientific inference with PyAutoFit (https://github.com/PyAutoLabs/PyAutoFit) and the
+autofit_assistant (https://github.com/PyAutoLabs/autofit_assistant).
+
+Begin the "start here" guide for a new user.
+```
 
 **PyAutoFit** is designed to be used entirely through natural language — the
 [natural-language inference page](https://pyautofit.readthedocs.io/en/latest/overview/natural_language.html)
@@ -37,16 +41,20 @@ Already have a likelihood function for your science problem? **Point the assista
 set it up with PyAutoFit** — defining the model, choosing priors with you, configuring a search and organising the
 results:
 
-> Set up PyAutoFit with my existing science project. An example likelihood function can be found at
-> [GitHub link or local directory].
->
-> First, give me an overview of my project and likelihood function. Compose an appropriate model, explain it to me,
-> and recommend a non-linear search (for example MCMC, nested sampling or maximum-likelihood estimation).
->
-> Do not begin inference until we have discussed the setup and I give you the go-ahead.
->
-> Once inference is running, explain how the results are written to disk and show me how to inspect and interpret
-> them with PyAutoFit.
+<sub><b>Example Natural Language Prompt for Claude Code, Codex or other AI coding agent</b></sub>
+
+```text
+Set up PyAutoFit with my existing science project. An example likelihood function can be found at
+[GitHub link or local directory].
+
+First, give me an overview of my project and likelihood function. Compose an appropriate model, explain it to me,
+and recommend a non-linear search (for example MCMC, nested sampling or maximum-likelihood estimation).
+
+Do not begin inference until we have discussed the setup and I give you the go-ahead.
+
+Once inference is running, explain how the results are written to disk and show me how to inspect and interpret
+them with PyAutoFit.
+```
 
 Your existing science code remains the source of the likelihood. With PyAutoFit built around it, you can perform
 inference through natural language while gaining access to features such as flexible priors and model composition,

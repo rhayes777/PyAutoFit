@@ -72,10 +72,12 @@ science, simply ask the assistant to compose your model for you.
 
 ## Define the likelihood
 
+:::{container} nl-prompt
 > Load the 1D Gaussian data and noise map, define a likelihood function which uses 
 > independent Gaussian errors to compare the model with the data and for a random 
 > set of parameters calculate the likelihood. Produce an image comparing the fit
 > to the data
+:::
 
 The assistant sets up the likelihood function: which in this case evaluates the 
 Gaussian at each data point and compares the predictions with the measurements, 
@@ -84,9 +86,11 @@ the model and data.
 
 For your own project, you can instead ask:
 
+:::{container} nl-prompt
 > Use my existing likelihood code for this analysis [point to code]. Connect 
 > it to PyAutoFit and check that it returns the same likelihood values at 
 > the same parameter values.
+:::
 
 :::{container} ai-first-design
 **AI First Design:** PyAutoFit gives the agent a small, testable integration task: connect named model parameters to your existing likelihood and check that its numerical outputs are unchanged. Your validated science code then becomes available to PyAutoFit's searches and result-analysis tools, without the agent having to reimplement it.
@@ -98,10 +102,12 @@ use domain-specific natural language while keeping it separate from the inferenc
 
 ## Choose a search
 
+:::{container} nl-prompt
 > Show me the available non-linear searches, including those which support
 > gradient based inference using JAX. For this example fit, our likelihood
 > function is not implemented using JAX, so lets use Dynesty nested sampling
 > with 100 live points to estimate the posterior and evidence.
+:::
 
 PyAutoFit supports several types of inference algorithm:
 
@@ -125,15 +131,19 @@ goal.
 
 ## Fit and inspect the result
 
+:::{container} nl-prompt
 > Run the model fit. Show the parameter estimates and uncertainties, and plot
 > the maximum-likelihood Gaussian over the data.
+:::
 
 The assistant runs the search and presents a summary of the inferred
 centre, normalization and width, together with their uncertainties and
 a plot of the fitted profile. You can then explore the result:
 
+:::{container} nl-prompt
 > Plot the posterior distributions. How well is sigma constrained, and
 > is it correlated with normalization?
+:::
 
 :::{container} ai-first-design
 **AI First Design:** Results preserve the model's named parameters (e.g. `result.instance.gaussian.sigma`), so the agent can connect the scientific quantities you specify via language to the numerical results.
@@ -141,9 +151,11 @@ a plot of the fitted profile. You can then explore the result:
 
 ## Save and revisit the analysis
 
+:::{container} nl-prompt
 > Save the run to disk, with fit and residual images updated during
 > sampling. Afterwards, reload the saved samples and inspect the fit
 > without rerunning it.
+:::
 
 Ask to save results and visualization for before starting the fit and the 
 assistant will ensure all results and output to hard-disk in a way **designed for efficient human inspection**.
@@ -152,8 +164,10 @@ Saved runs retain the model, search settings and sample information, alongside t
 visualization you request. At scale, results can also be collected into a database and queried by dataset metadata,
 search, model or result properties. For example:
 
+:::{container} nl-prompt
 > Find the completed Gaussian fits and make a table of the inferred widths
 > and their uncertainties, labelled by dataset and search algorithm.
+:::
 
 :::{container} ai-first-design
 **AI First Design:** Structured, persistent outputs give the agent a history of experiments it can reload, query and compare as your analysis grows.
@@ -165,21 +179,25 @@ The same building blocks support more involved requests:
 
 **Fit three Gaussians**
 
+:::{container} nl-prompt
 > Extend the model to three Gaussians and sum their profiles in the
 > likelihood. Assert that their centres are in ascending order, show me
 > the priors, perform inference with Dynesty again and compare the Bayesian 
 > evidence with the single-Gaussian fit.
+:::
 
 The assistant builds a model with three named components and reports
 the Bayesian evidence comparison under the stated priors. 
 
 **Compare inference algorithms**
 
+:::{container} nl-prompt
 > Fit the same model using Emcee, Dynesty and an optimiser for maximum
 > likelihood estimation. Keep the likelihood and parameter bounds fixed,
 > and use the same priors for both samplers. Compare runtime, likelihood
 > evaluations and best-fit values. For the samplers, also assess convergence
 > and agreement of posterior constraints.
+:::
 
 This produces a comparison for your likelihood and computing environment,
 making it easy to work out which inference method is fastest and which
@@ -187,9 +205,11 @@ ones successfully find the best-fit reliably.
 
 **Investigate a saved result**
 
+:::{container} nl-prompt
 > Load the saved Gaussian fit. Report the median and 68% credible interval
 > for sigma, plot its correlation with normalization, and inspect the
 > residuals for structure the model may have missed.
+:::
 
 The assistant uses saved samples and the original data to reinspect an
 already completed fit.
@@ -206,9 +226,11 @@ complicate the interpretation of a result.
 
 To add a paper, simply ask:
 
+:::{container} nl-prompt
 > Ingest this paper into the literature wiki: [arXiv ID, link or local PDF].
 > Summarise its model, likelihood, priors and main conclusions, and explain
 > how it relates to the analysis we are developing.
+:::
 
 The wiki builds a lasting reference for your project, so scientific context is available alongside your code and 
 results. As you add relevant papers, the assistant can draw on them to frame decisions, cite prior work and identify 
@@ -241,6 +263,7 @@ If you're new to statistical inference and are not totally sure what concepts li
 sampling are, you can use **teacher mode** to have the assistant explain concepts in more detail. Simply
 start a prompt with "Teacher mode." and ask questions:
 
+:::{container} nl-prompt
 > Teacher mode.
 >
 > I'm new to PyAutoFit and want to learn the basic workflow end-to-end. Fit the
@@ -250,6 +273,7 @@ start a prompt with "Teacher mode." and ask questions:
 > Explain what each step is doing and why as we go: composing the model, choosing
 > the priors, picking the non-linear search, and how to read the posterior. So I
 > come away understanding the workflow, not just the commands.
+:::
 
 ## The Python API
 

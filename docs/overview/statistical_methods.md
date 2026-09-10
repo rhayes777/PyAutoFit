@@ -38,11 +38,13 @@ actually set the method up and run it.
 
 ## Graphical Models
 
+:::{container} nl-prompt
 > Walk me through graphical models in PyAutoFit before we run anything. What is
 > a factor graph, what counts as a local parameter versus a global one, and how
 > do I recognise that my datasets share a parameter? Cover the inputs it needs
 > and how to read the result. Go into more detail than this docs page, using the
 > three low signal-to-noise 1D Gaussian datasets as the running example.
+:::
 
 When you have many datasets, you are often not interested in each fit on its
 own. You want the trend across the whole sample: a parameter that is the same
@@ -65,10 +67,12 @@ connects them. Deliberately low signal-to-noise data are used in the example
 because that is where the difference shows: individually the datasets say
 little about the centre, together they say a great deal.
 
+:::{container} nl-prompt
 > Fit the three low signal-to-noise 1D Gaussian datasets with a graphical model
 > in which the centre is shared and the normalization and width stay local to
 > each dataset. Report the shared centre and its uncertainty, and compare it
 > with what I get by fitting the three datasets individually.
+:::
 
 :::{container} ai-first-design
 **AI First Design:** A node in the factor graph is just a named model paired with an analysis — the same two objects a single-dataset fit already uses. The assistant can therefore extend a working one-dataset fit into a graphical one by declaring which parameters are shared, without rewriting your likelihood.
@@ -78,11 +82,13 @@ Full example: [graphical_models.ipynb](https://github.com/PyAutoLabs/autofit_wor
 
 ## Hierarchical Models
 
+:::{container} nl-prompt
 > Give me a run-through of hierarchical models in PyAutoFit: what a parent
 > distribution is, when I should assume my parameters are drawn from one, what
 > gets inferred and how the result differs from fitting each dataset alone. Go
 > into more detail than the docs page and use the 1D Gaussian datasets as the
 > running example.
+:::
 
 A hierarchical model is a particular kind of graphical model. Instead of
 asserting that a parameter is exactly the same in every dataset, you assert
@@ -103,20 +109,24 @@ draws each dataset's parameter from it, and fits everything together, so the
 parent and the individual parameters are inferred consistently rather than in
 two disconnected stages.
 
+:::{container} nl-prompt
 > Fit the sample of 1D Gaussian datasets with a hierarchical model in which
 > each centre is drawn from a parent Gaussian. Report the inferred mean and
 > scatter of the parent, show how each dataset's centre shifts relative to
 > fitting it in isolation, and say which datasets are affected most.
+:::
 
 Full example: [tutorial_4_hierachical_models.ipynb](https://github.com/PyAutoLabs/HowToFit/blob/main/notebooks/chapter_3_graphical_models/tutorial_4_hierachical_models.ipynb).
 
 ## Expectation Propagation
 
+:::{container} nl-prompt
 > Explain expectation propagation to me before we use it. Why does a joint fit
 > to a graphical model stop working as datasets are added, what does EP do
 > instead, what are messages and damping, and how do I tell whether it has
 > converged or gone wrong? Use the three shared-centre 1D Gaussian datasets and
 > go beyond what this page says.
+:::
 
 Graphical and hierarchical models both have a ceiling. Fitting them with a
 single non-linear search means sampling one joint parameter space, and that
@@ -139,10 +149,12 @@ mean-field approximation, the cavity distribution, the tilted fit, moment
 matching and the damped message update — before running the same loop
 end-to-end through the high-level interface.
 
+:::{container} nl-prompt
 > Refit the shared-centre graphical model with expectation propagation instead
 > of a single joint search. Report the shared centre and each dataset's local
 > parameters, show how the estimate changed over the EP iterations, and tell me
 > whether the run converged.
+:::
 
 Full example: [expectation_propagation.ipynb](https://github.com/PyAutoLabs/autofit_workspace/blob/main/notebooks/features/expectation_propagation.ipynb),
 with a dedicated tutorial in
@@ -150,11 +162,13 @@ with a dedicated tutorial in
 
 ## Model Comparison
 
+:::{container} nl-prompt
 > Before we compare anything, explain Bayesian model comparison in PyAutoFit:
 > what the Bayesian evidence is, how it differs from the log likelihood, how
 > priors enter it and what would make a comparison misleading. Use the
 > two-Gaussian dataset as the example and give me more detail than the docs
 > page.
+:::
 
 What model should I use? How many components should it have? Is it too complex
 or too simple? These are the questions model comparison answers, by fitting
@@ -176,10 +190,12 @@ comparison honest: evidence values are only comparable within the same dataset
 and likelihood convention, and they depend on the priors, so ask what the
 priors were doing before accepting a verdict.
 
+:::{container} nl-prompt
 > Fit the two-Gaussian dataset with models of one, two and three Gaussians,
 > keeping the likelihood, priors and search settings the same. Give me a table
 > of log likelihood and Bayesian evidence for each, say which model is
 > favoured, and show the residuals so I can see what the rejected models miss.
+:::
 
 :::{container} ai-first-design
 **AI First Design:** Because the model is a separate, named object from the likelihood and the search, a comparison changes only the model. The assistant reuses the identical analysis and search for every candidate, so the differences it reports are differences in the model rather than in how it was fitted.
@@ -189,10 +205,12 @@ Full example: [model_comparison.ipynb](https://github.com/PyAutoLabs/autofit_wor
 
 ## Interpolation
 
+:::{container} nl-prompt
 > Talk me through PyAutoFit's interpolation feature: what it takes as input,
 > what it produces, when interpolating fitted parameters is legitimate and when
 > it is not. Use the 1D Gaussian datasets observed at different times, and give
 > more detail than this page.
+:::
 
 It is common to fit the same model to many similar datasets in which one or
 more parameters are expected to vary smoothly — observations taken at different
@@ -212,20 +230,24 @@ the intervening data, so it is only as good as the smoothness assumption. Ask
 for the fitted values and their uncertainties alongside the interpolated curve
 so you can judge that.
 
+:::{container} nl-prompt
 > Fit the three time-ordered 1D Gaussian datasets individually, build a linear
 > interpolator over the results, and report the interpolated centre at a time
 > between two of the observations. Plot the fitted centres with their
 > uncertainties against the interpolated curve.
+:::
 
 Full example: [interpolate.ipynb](https://github.com/PyAutoLabs/autofit_workspace/blob/main/notebooks/features/interpolate.ipynb).
 
 ## Search Grid Search
 
+:::{container} nl-prompt
 > Explain the search grid search before we use it. How does it differ from a
 > plain grid over the likelihood, what happens to the gridded parameters during
 > each cell's fit, when does it help with multimodality, and how should I choose
 > the grid resolution? Use the Gaussian dataset with the small feature and go
 > deeper than this page.
+:::
 
 A classic grid search divides parameters onto a grid and samples the likelihood
 at each point. For low-dimensional problems this is enough, but it scales
@@ -246,20 +268,24 @@ The workspace example uses 1D data containing a main Gaussian plus a small
 feature near pixel 70, and grids the feature's position so that each cell asks
 whether the feature belongs there.
 
+:::{container} nl-prompt
 > Run a search grid search on the Gaussian dataset with the feature, gridding
 > the feature's centre and fitting everything else with a non-linear search in
 > each cell. Give me the evidence map over the grid, point out which cells
 > favour the feature, and run the cells in parallel.
+:::
 
 Full example: [search_grid_search.ipynb](https://github.com/PyAutoLabs/autofit_workspace/blob/main/notebooks/features/search_grid_search.ipynb).
 
 ## Search Chaining
 
+:::{container} nl-prompt
 > Give me a proper introduction to search chaining: what can be handed from one
 > search to the next, the difference between passing a fitted instance and
 > passing updated priors, how to choose the width of a passed prior, and how a
 > chain can go wrong by locking in an early mistake. Use the two split
 > Gaussians as the example and go beyond this page.
+:::
 
 Fitting a complex model with a single search is often slower and less reliable
 than fitting a sequence of simpler ones. Search chaining breaks the problem
@@ -284,11 +310,13 @@ search, never bias it: a prior tight enough to lock in an early systematic has
 replaced inference with anchoring. Ask the assistant to state what was passed
 and how tightly at every link.
 
+:::{container} nl-prompt
 > Fit the two split Gaussians as a three-search chain: left Gaussian, right
 > Gaussian, then both together. For each link tell me exactly what was passed
 > as a fixed instance and what was passed as updated priors, including the
 > prior widths, and compare the final result with fitting all six parameters in
 > one search.
+:::
 
 :::{container} ai-first-design
 **AI First Design:** Each search returns a structured `Result` that exposes both an `instance` and a `model` built from the same named components. Prior passing is therefore a one-line hand-off the assistant can compose from your description of the stages, and it can say in plain language what each link fixed and what it left free.
@@ -298,11 +326,13 @@ Full example: [search_chaining.ipynb](https://github.com/PyAutoLabs/autofit_work
 
 ## Sensitivity Mapping
 
+:::{container} nl-prompt
 > Before we map anything, explain sensitivity mapping: how it differs from
 > model comparison, what the base and perturbed models are, what the grid is
 > over, what is simulated and fitted at each grid point, and what the resulting
 > map does and does not prove. Use the Gaussian dataset with the small feature
 > as the example, in more detail than this page.
+:::
 
 Model comparison can tell you that a complex model is not favoured, but it
 cannot tell you why. The complex model may be wrong — or it may be right, and
@@ -324,11 +354,13 @@ The result is a statement about your experiment, not only about the dataset in
 hand. It tells you what your current data could have detected, and by extension
 what a deeper or cleaner observation would buy you.
 
+:::{container} nl-prompt
 > Run sensitivity mapping on the Gaussian-with-feature data. Use the single
 > Gaussian as the base model and the feature as the perturbation, grid over the
 > feature's normalization, and simulate and fit a dataset at each grid point
 > with both models. Give me the map of evidence difference and tell me the
 > normalization above which the feature would be detected.
+:::
 
 :::{container} ai-first-design
 **AI First Design:** Sensitivity mapping runs on the simulate function and analysis you already wrote for your own science. The assistant supplies the grid, the base and perturbed models and the bookkeeping, so the simulated datasets are generated by your code and not by a generic stand-in.
