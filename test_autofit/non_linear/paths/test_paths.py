@@ -121,6 +121,10 @@ def test__preserve_in_zip__file_survives_restore(tmp_path):
     import zipfile
 
     paths = af.DirectoryPaths(name="preserve_test", path_prefix=str(tmp_path))
+    # The output directory is the primary store, so the loose copy stays put;
+    # ``test__preserve_in_zip__removes_the_loose_copy_under_remove_files`` covers
+    # the other setting.
+    paths.remove_files = False
 
     files_path = Path(paths._files_path)
     files_path.mkdir(parents=True, exist_ok=True)
@@ -147,6 +151,69 @@ def test__preserve_in_zip__file_survives_restore(tmp_path):
     # The restore cycle (rmtree + re-extract) keeps the preserved file.
     paths.restore()
     assert cache_file.exists()
+
+
+def test__preserve_in_zip__removes_the_loose_copy_under_remove_files(tmp_path):
+    """
+    Under ``remove_files`` the zip is the search's only store, so once the file
+    is a member the loose copy — and every directory it emptied, up to and
+    including ``output_path`` — is removed. Left behind, that directory shadows
+    the zip for ``Aggregator.from_directory`` and, carrying no ``.completed``
+    file, silently drops the search under ``completed_only``.
+    """
+    import zipfile
+
+    paths = af.DirectoryPaths(name="preserve_remove_test", path_prefix=str(tmp_path))
+    paths.remove_files = True
+
+    files_path = Path(paths._files_path)
+    files_path.mkdir(parents=True, exist_ok=True)
+    (files_path / "samples_summary.json").write_text("{}")
+
+    paths.zip_remove()
+    assert Path(paths._zip_path).exists()
+    assert not Path(paths.output_path).exists()
+
+    # A post-completion cache write recreates ``<search>/files/``.
+    cache_file = Path(paths._files_path) / "cache_artifact.json"
+    cache_file.write_text('{"cached": true}')
+
+    paths.preserve_in_zip(cache_file)
+
+    with zipfile.ZipFile(paths._zip_path) as f:
+        assert f.read("files/cache_artifact.json") == b'{"cached": true}'
+
+    assert not cache_file.exists()
+    assert not files_path.exists()
+    assert not Path(paths.output_path).exists()
+
+    # The restore cycle still brings it back from the zip.
+    paths.restore()
+    assert cache_file.exists()
+
+
+def test__preserve_in_zip__keeps_the_loose_copy_without_remove_files(tmp_path):
+    """
+    With ``remove_files`` unset the output directory is the primary store, so
+    the loose copy is left where the writer put it.
+    """
+    paths = af.DirectoryPaths(name="preserve_keep_test", path_prefix=str(tmp_path))
+    paths.remove_files = False
+
+    files_path = Path(paths._files_path)
+    files_path.mkdir(parents=True, exist_ok=True)
+    (files_path / "samples_summary.json").write_text("{}")
+
+    paths.zip_remove()
+    assert Path(paths._zip_path).exists()
+
+    cache_file = Path(paths._files_path) / "cache_artifact.json"
+    cache_file.write_text('{"cached": true}')
+
+    paths.preserve_in_zip(cache_file)
+
+    assert cache_file.exists()
+    assert cache_file.read_text() == '{"cached": true}'
 
 
 def test__preserve_in_zip__replaces_stale_member(tmp_path):

@@ -12,6 +12,7 @@ Example:
 ./aggregator.py ../output pipeline=data_mass_x1_source_x1_positions
 """
 
+import logging
 import os
 import zipfile
 from collections import defaultdict
@@ -28,6 +29,8 @@ from .search_output import (
     GridSearch,
     TemporaryExtraction,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class AggregatorGroup:
@@ -203,13 +206,21 @@ class Aggregator:
             A dictionary mapping paths to types to be used when loading models from disk.
         unzip_temporary
             If `True` zips are extracted into a temporary directory that is cleaned up automatically,
-            leaving the aggregated directory untouched. A zip that already has an extracted directory
-            beside it still uses that directory and is not extracted again.
+            leaving the aggregated directory untouched. A zip whose extracted directory already sits
+            beside it and carries a ``.completed`` file still uses that directory and is not extracted
+            again; one whose sibling directory has no ``.completed`` file is extracted, because such a
+            directory is written after the search was archived and does not stand for the search.
+
+        Returns
+        -------
+        An aggregator whose search outputs are ordered by path, so that the same results tree gives
+        the same order on every machine regardless of the filesystem's directory-entry order.
         """
         print("Aggregator loading search_outputs... could take some time.")
 
         temporary_directory = None
         temporary_roots = []
+        incomplete_count = 0
 
         def temporary_path(zip_path: Path, scan_root: Path) -> Path:
             """
@@ -236,13 +247,31 @@ class Aggregator:
             search_outputs = []
             grid_search_outputs = []
 
+            nonlocal incomplete_count
+
             for root, dirs, filenames in os.walk(scan_directory, topdown=True):
                 for filename in filenames:
                     if filename.endswith(".zip"):
                         zip_path = Path(root) / filename
-                        extracted = Path(root) / filename[:-4]
-                        if extracted.exists():
-                            continue
+                        sibling = Path(root) / filename[:-4]
+                        extracted = sibling
+                        if sibling.exists():
+                            if (sibling / ".completed").exists():
+                                continue
+                            # A directory beside the zip that carries no
+                            # ``.completed`` is not the extraction of a finished
+                            # search: post-completion writers (cache artifacts
+                            # derived from a finished result) recreate
+                            # ``<search>/files/`` after the real directory was
+                            # zipped and removed. Preferring it over the zip
+                            # silently loses the search under ``completed_only``,
+                            # so the zip wins and its contents are authoritative.
+                            logger.warning(
+                                f"Aggregator: {sibling} has no .completed file but "
+                                f"{zip_path.name} does; the zip was used. The "
+                                f"directory holds files written after the search "
+                                f"was archived."
+                            )
                         if extract_temporary:
                             extracted = temporary_path(zip_path, scan_directory)
                         try:
@@ -250,12 +279,19 @@ class Aggregator:
                                 f.extractall(extracted)
                         except zipfile.BadZipFile:
                             raise zipfile.BadZipFile(
-                                f"File is not a zip file: \n " f"{root} \n" f"{filename}"
+                                f"File is not a zip file: \n "
+                                f"{root} \n"
+                                f"{filename}"
                             )
                         if extract_temporary:
                             # Outside the tree being walked, so it is scanned separately.
                             temporary_roots.append(extracted)
-                        else:
+                            if filename[:-4] in dirs:
+                                # The incomplete sibling is superseded by the
+                                # temporary extraction; walking it too would
+                                # yield the same search a second time.
+                                dirs.remove(filename[:-4])
+                        elif filename[:-4] not in dirs:
                             dirs.append(filename[:-4])
 
                 def should_add():
@@ -270,6 +306,8 @@ class Aggregator:
                                 temporary_directory=owner,
                             )
                         )
+                    else:
+                        incomplete_count += 1
                 if ".is_grid_search" in filenames:
                     if should_add():
                         grid_search_outputs.append(
@@ -288,6 +326,16 @@ class Aggregator:
             Temporary extractions sit outside the walked tree, so each is scanned in
             turn. Any zip nested inside one extracts beside itself, which is still
             inside the temporary directory and removed with it.
+
+            The collected outputs are sorted by path before they are returned.
+            ``os.walk`` yields directory entries in whatever order the filesystem
+            reports — hash order on ext4, insertion order on tmpfs — so without
+            this an aggregator's outputs come back in a machine-dependent order,
+            and anything that pairs a row to an output by index (the summary CSV
+            writers, ``add_label_column``) pairs them differently on different
+            machines. The sort is applied to the collected lists rather than to
+            ``dirs`` inside the walk because the temporary extractions are
+            scanned separately and so never pass through that walk.
             """
             search_outputs, grid_search_outputs = scan(
                 scan_directory,
@@ -301,6 +349,10 @@ class Aggregator:
                 )
                 search_outputs.extend(extra_search_outputs)
                 grid_search_outputs.extend(extra_grid_search_outputs)
+
+            search_outputs.sort(key=lambda output: str(output.directory))
+            grid_search_outputs.sort(key=lambda output: str(output.directory))
+
             return search_outputs, grid_search_outputs
 
         search_outputs, grid_search_outputs = scan_all(directory)
@@ -315,6 +367,7 @@ class Aggregator:
             directory = Path(directory)
             test_mode_directory = directory.parent / "test_mode" / directory.name
             if test_mode_directory.exists():
+                incomplete_count = 0
                 search_outputs, grid_search_outputs = scan_all(test_mode_directory)
 
         if len(search_outputs) == 0:
@@ -322,6 +375,15 @@ class Aggregator:
         else:
             print(
                 f"\n A total of {str(len(search_outputs))} search_outputs and results were found."
+            )
+
+        # A search dropped for having no ``.completed`` file is invisible in the
+        # count above, so a run that aggregates a fraction of its searches looks
+        # like a complete one. Say how many were left out.
+        if completed_only and incomplete_count > 0:
+            print(
+                f" {incomplete_count} further search_outputs were excluded because "
+                f"they have no .completed file."
             )
 
         return cls(
