@@ -7,6 +7,8 @@ These cover the NEW class-based path (subclass ``af.Latent``, declare
 (``compute_latent_variables`` / ``LATENT_KEYS``) is covered by
 ``test_latent_variables.py``, which also exercises the back-compat shim.
 """
+import logging
+
 import numpy as np
 import pytest
 
@@ -129,12 +131,38 @@ class RaisingAnalysis(af.Analysis):
         return 1.0
 
 
-def test_new_path_skips_arbitrary_exception_samples():
-    latent = RaisingAnalysis().compute_latent_samples(
-        _samples([_sample(centre=1.0), _sample(centre=-1.0, weight=0.0)])
-    )
+def test_new_path_skips_arbitrary_exception_samples(caplog):
+    with caplog.at_level(logging.WARNING, logger="autofit.non_linear.analysis.latent"):
+        latent = RaisingAnalysis().compute_latent_samples(
+            _samples([_sample(centre=1.0), _sample(centre=-1.0, weight=0.0)])
+        )
     assert len(latent.sample_list) == 1
     assert latent.sample_list[0].kwargs == {("fwhm",): FWHM_SIGMA_3}
+
+    # The swallowed raise is reported, with its count and traceback, rather
+    # than vanishing into a NaN row.
+    assert "raised on 1 of 2 samples" in caplog.text
+    assert "boom from latent function" in caplog.text
+    assert "ValueError" in caplog.text
+
+
+def test_every_sample_raising_names_the_cause_instead_of_a_blank_block(caplog):
+    """
+    The Euclid ``vis_lp`` failure mode: the latent function raised on every
+    sample (a ``jax.jit`` trace failure), the engine turned each into a NaN
+    row, and the only trace was "no finite latent samples remained" -- the
+    cause was lost. Every-sample failure must say the function is broken and
+    show the first traceback.
+    """
+    with caplog.at_level(logging.WARNING, logger="autofit.non_linear.analysis.latent"):
+        latent = RaisingAnalysis().compute_latent_samples(
+            _samples([_sample(centre=-1.0), _sample(centre=-2.0)])
+        )
+    assert latent is None
+    assert "raised on 2 of 2 samples" in caplog.text
+    assert "boom from latent function" in caplog.text
+    assert "raised on EVERY sample" in caplog.text
+    assert "latent function is broken" in caplog.text
 
 
 class AntiCorrelatedNaNLatent(af.Latent):
