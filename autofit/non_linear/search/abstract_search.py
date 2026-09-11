@@ -364,6 +364,42 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 f" AnalysisFactors, HierarchicalFactors and PriorFactors"
             )
 
+        # A deliberate refusal, not a silent downgrade. `number_of_cores` is the
+        # user's stated intent, and the *same* search instance is re-entered once
+        # per factor per EP step — so quietly rewriting it to 1 here would mutate
+        # shared state the caller still owns and would hide the misconfiguration
+        # rather than fix it. Raising makes the operator change the search they
+        # built.
+        #
+        # The guard lives here, in `AbstractSearch.optimise`, rather than in any
+        # one search: `optimise` is the single door every factor optimisation
+        # passes through, so every search type (Nautilus, Dynesty, Emcee, the MLE
+        # searches) is covered by one check instead of N.
+        #
+        # `getattr` with a default of 1: a handful of search doubles subclass
+        # `NonLinearSearch` without running its `__init__` (e.g. the regression
+        # suite's `StaticSearch`), and they run nothing in parallel anyway.
+        number_of_cores = getattr(self, "number_of_cores", 1)
+
+        if number_of_cores > 1:
+            raise exc.SearchException(
+                f"Expectation propagation never runs a factor search through a "
+                f"Python multiprocessing pool (human ruling 2026-09-09), but the "
+                f"factor optimiser {self.__class__.__name__} was built with "
+                f"number_of_cores={number_of_cores}.\n\n"
+                f"Why: a forked likelihood worker that dies (a segfault, an OOM "
+                f"kill) is silently replaced by `multiprocessing.Pool`, but the "
+                f"task it was running is never re-issued, so the `Pool.map` "
+                f"driving the fit blocks forever and the EP run hangs to the wall "
+                f"clock rather than failing. RAL job 342351_0 burned 27 hours "
+                f"exactly this way.\n\n"
+                f"Fix, either of:\n"
+                f"  - build the factor search with number_of_cores=1;\n"
+                f"  - get parallelism from a vectorised JAX likelihood instead, "
+                f"`Analysis(use_jax=True)` — Nautilus then takes `fit_x1_cpu` "
+                f"with vectorized=True and no pool at all."
+            )
+
         model = factor.prior_model.mapper_from_prior_arguments(
             {
                 prior: prior.with_message(message)
@@ -372,6 +408,21 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         )
 
         analysis = factor.analysis
+
+        uses_jax = getattr(analysis, "_use_jax", False)
+
+        self.logger.info(
+            f"EP factor step [{factor.name}]: running the factor search "
+            f"{self.__class__.__name__} serially (number_of_cores=1); "
+            + (
+                "parallelism comes from the vectorised JAX likelihood "
+                "(analysis.use_jax=True)."
+                if uses_jax
+                else "the likelihood is not JAX-vectorised, so this factor step "
+                "is single-threaded (set `Analysis(use_jax=True)` for "
+                "parallelism)."
+            )
+        )
 
         number = self.optimisation_counter[factor.name]
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import multiprocessing
 import numpy as np
 import logging
 import os
@@ -9,6 +10,7 @@ from pathlib import Path
 from typing import Dict, Optional, Tuple, TYPE_CHECKING
 
 
+from autofit import exc
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior.vectorized import PriorVectorized
 from autofit.non_linear.fitness import Fitness
@@ -26,6 +28,12 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+# How often `_LikelihoodWorkerPool.map` wakes up to check that the pool's
+# workers are the ones it was built with. Read at call time (not bound at
+# import) so tests can monkeypatch the module attribute.
+LIKELIHOOD_POOL_POLL_INTERVAL = 1.0
+
+
 class _LikelihoodWorkerPool:
     """
     A `multiprocessing.Pool` wrapper handed to nautilus as its likelihood pool
@@ -39,10 +47,34 @@ class _LikelihoodWorkerPool:
     every likelihood call. This class ignores the function it is mapped with
     and dispatches `likelihood_worker` instead, which reads the worker-global
     likelihood, exactly as nautilus does for a `pool=<int>` argument (#1547).
+
+    It also carries a **dead-worker watchdog**. `multiprocessing.Pool` silently
+    replaces a worker that dies (`Pool._maintain_pool` -> `_repopulate_pool`)
+    but never re-issues the task that worker was running, so a plain
+    `Pool.map` blocks forever and the whole fit hangs to the wall clock — RAL
+    job 342351_0 burned 27 hours after two likelihood workers segfaulted
+    (#1608, and the same mechanism as #1547). `map` therefore dispatches via
+    `map_async` and polls; on every poll it checks the exit code of every
+    worker captured at construction. A replacement restores the worker
+    *count*, but the original worker stays dead, so the loss is detectable,
+    and the fit fails with a diagnosable `SearchException` (naming the PID and
+    the signal) in seconds instead of hanging.
     """
 
     def __init__(self, pool):
         self._pool = pool
+        # The construction-time worker `Process` objects. Watching *these* is
+        # what makes a `_repopulate_pool` replacement detectable: the pool
+        # restores the number of workers, so counting them proves nothing,
+        # while an original worker that died stays dead. Holding the objects
+        # (not just their PIDs) matters because the pool's maintenance thread
+        # joins and drops a dead worker from `pool._pool` within ~0.1 s; the
+        # retained object still reports its cached `exitcode` after that.
+        #
+        # `getattr` rather than `pool._pool` directly, so a pool-like test
+        # double without a `_pool` attribute still works (the watchdog then
+        # simply has nothing to watch).
+        self._workers = list(getattr(pool, "_pool", []))
 
     @property
     def size(self):
@@ -58,7 +90,57 @@ class _LikelihoodWorkerPool:
         # task chunk (#1547).
         from nautilus.pool import likelihood_worker
 
-        return self._pool.map(likelihood_worker, iterable)
+        result = self._pool.map_async(likelihood_worker, iterable)
+
+        while True:
+            try:
+                return result.get(timeout=LIKELIHOOD_POOL_POLL_INTERVAL)
+            except multiprocessing.TimeoutError:
+                # Not done yet — which is the normal case for a long chunk of
+                # likelihood evaluations, and also exactly what a hang looks
+                # like. Only the worker check can tell them apart.
+                self._check_workers_alive()
+
+    def _check_workers_alive(self):
+        """
+        Raise if any worker the pool was built with is gone.
+
+        `multiprocessing.Pool` replaces a dead worker behind our back and drops
+        its in-flight task on the floor, so the `map_async` above would never
+        complete. Detect the replacement and fail loudly instead.
+        """
+        dead = [worker for worker in self._workers if worker.exitcode is not None]
+
+        if not dead:
+            return
+
+        def _describe(worker):
+            code = worker.exitcode
+            if code < 0:
+                return f"pid {worker.pid} (exit code {code}, killed by signal {-code})"
+            return f"pid {worker.pid} (exit code {code})"
+
+        detail = ", ".join(_describe(worker) for worker in dead)
+
+        self._pool.terminate()
+
+        raise exc.SearchException(
+            f"A Nautilus likelihood worker died mid-fit: {detail}.\n\n"
+            f"A negative exit code is the signal that killed the worker "
+            f"(-11 SIGSEGV, -9 SIGKILL — typically an out-of-memory kill on a "
+            f"cluster).\n\n"
+            f"`multiprocessing.Pool` has already replaced the worker, but it "
+            f"never re-issues the task that worker was running, so the "
+            f"`Pool.map` driving this fit would otherwise block forever and the "
+            f"fit would hang to the wall clock rather than fail (RAL job "
+            f"342351_0 hung 27 hours this way). Failing now instead.\n\n"
+            f"Fix, either of:\n"
+            f"  - run the search with number_of_cores=1, which builds no pool "
+            f"at all;\n"
+            f"  - get parallelism from a vectorised JAX likelihood instead, "
+            f"`Analysis(use_jax=True)` — Nautilus then takes `fit_x1_cpu` with "
+            f"vectorized=True and no pool."
+        )
 
     def __enter__(self):
         return self
@@ -150,6 +232,14 @@ class Nautilus(abstract_nest.AbstractNest):
             The number of iterations performed between update (e.g. output latest model to hard-disk, visualization).
         number_of_cores
             The number of cores sampling is performed using a Python multiprocessing Pool instance.
+
+            Not used by expectation-propagation factor searches, which refuse
+            `number_of_cores > 1` outright (`AbstractSearch.optimise`, human
+            ruling 2026-09-09): a forked worker that dies is replaced by
+            `multiprocessing.Pool` while its in-flight task is never re-issued,
+            so the fit hangs instead of failing. EP parallelism comes from a
+            JAX-vectorised likelihood (`Analysis(use_jax=True)`), which takes
+            the pool-free `fit_x1_cpu` path.
         silence
             If True, the default print output of the non-linear search is silenced.
         force_x1_cpu
