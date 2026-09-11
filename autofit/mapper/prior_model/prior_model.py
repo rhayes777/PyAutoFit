@@ -29,6 +29,7 @@ logger = logging.getLogger(__name__)
 
 class_args_dict = dict()
 
+
 class Model(AbstractPriorModel):
     """
     @DynamicAttrs
@@ -348,13 +349,20 @@ class Model(AbstractPriorModel):
     def constructor_argument_names(self) -> List[str]:
         """
         The argument names of the constructor of the class of this model.
+
+        The **bound** first argument is not a model parameter and is dropped:
+        ``self`` for an ordinary ``__init__``, and ``cls`` when
+        ``inspect.getfullargspec`` resolves the class through a custom
+        ``__new__`` instead (e.g. ``Redshift(float)``, whose
+        ``__new__(cls, redshift)`` otherwise made ``cls`` a parameter and
+        overwrote ``Model.cls`` with its own ``ConfigException``).
         """
         if self.cls not in class_args_dict:
             try:
                 class_args_dict[self.cls] = [
                     arg
                     for arg in inspect.getfullargspec(self.cls).args
-                    if arg != "self"
+                    if arg not in ("self", "cls")
                 ]
             except TypeError:
                 class_args_dict[self.cls] = []
@@ -503,12 +511,10 @@ class Model(AbstractPriorModel):
             )
         for prior_model_tuple in self.direct_prior_model_tuples:
             prior_model = prior_model_tuple.prior_model
-            model_arguments[
-                prior_model_tuple.name
-            ] = prior_model.instance_for_arguments(
-                arguments,
-                ignore_assertions=ignore_assertions,
-                xp=xp
+            model_arguments[prior_model_tuple.name] = (
+                prior_model.instance_for_arguments(
+                    arguments, ignore_assertions=ignore_assertions, xp=xp
+                )
             )
 
         prior_arguments = dict()
@@ -565,9 +571,7 @@ class Model(AbstractPriorModel):
             ):
                 if isinstance(value, Model):
                     value = value.instance_for_arguments(
-                        arguments,
-                        ignore_assertions=ignore_assertions,
-                        xp=xp
+                        arguments, ignore_assertions=ignore_assertions, xp=xp
                     )
                 elif isinstance(value, Constant):
                     value = value.value

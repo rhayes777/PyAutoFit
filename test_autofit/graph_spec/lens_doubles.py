@@ -24,9 +24,14 @@ the acceptance can assert the ``missing`` state.
 Known divergences from today's libraries, kept because the epic's acceptance
 model needs them (see ``PyAutoFit#1605``):
 
-* ``Hilbert`` no longer takes ``areas_factor`` in autoarray -- the modern
-  signature is ``(pixels, weight_power, weight_floor)``.  The epic's ``missing``
-  case is that parameter, so the double keeps it.
+* ``Hilbert`` no longer takes ``areas_factor`` in autoarray -- the modern image
+  mesh signature is ``(pixels, weight_power, weight_floor)``, and
+  ``areas_factor`` now lives on the **mesh** instead (``Delaunay``,
+  ``DelaunayNN`` and ``KNN`` all take it, defaulting to ``0.5``).  The epic's
+  ``missing`` case *is* that parameter, so the double deliberately keeps its old
+  ``Hilbert.areas_factor`` shape: what is asserted here is the ``missing``
+  state, not where autoarray currently declares the parameter (the real-class
+  version of the same assertion lives in PyAutoGalaxy's semantics tests).
 * the group dataset shipped with the workspace has *two* extra-galaxy centres;
   the epic's acceptance model has **eight**, so eight distinct fixed centres are
   used here.
