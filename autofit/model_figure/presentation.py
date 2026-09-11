@@ -24,6 +24,29 @@ bearing ideas:
   ``fixed, varies by member``; a free prior repeated independently across a
   plate's members is badged ``independent``.
 
+Plate notation for a factor graph
+---------------------------------
+
+When the spec's root is a ``GlobalPriorModel`` (``kind == "global"``) the same
+vocabulary is arranged as **plate notation**, and three further claims are kept
+apart:
+
+* **a draw is not sharing.**  A ``hierarchical-draw`` row is a violet
+  ``centre . drawn`` pill badged with the hyper node it came from, and a violet
+  **arrow** lands on that pill.  ``->  shared`` says *the same number in every
+  dataset*; the draw arrow says *a different number in every dataset, from a
+  common population*.  They never share a colour or a marker.
+* **what is shared is drawn once, above the plate.**  The priors every dataset
+  carries move into a hoisted ``shared across datasets`` card
+  (``kind="hoist"``) and the plate's own pill becomes a blue reference to it.
+* **observed data is not a fixed constant.**  An ``observed`` row is a green
+  ``data . observed`` pill, never the grey fixed one.
+
+The plate reads ``3 datasets`` / ``dataset 0 - 2``, the hyper nodes are
+``kind="hyper"`` cards titled ``HierarchicalFactor0 . GaussianPrior``, and the
+footer counts hyper-parameters separately from the per-dataset parameters.
+Nothing above applies to a non-graphical model, whose presentation is unchanged.
+
 Everything a card or pill stands for is keyed by its
 :attr:`~autofit.graph_spec.GraphSpec.path_index` key (the ``"/"``-joined path),
 so a static PNG stays navigable against ``model.info``.
@@ -53,8 +76,8 @@ __all__ = [
     "compact_prior",
 ]
 
-#: Pill states.  ``observed`` and ``drawn`` are reserved for phases 4/5 and are
-#: emitted only if layer 1 ever reports the matching provenance kinds.
+#: Pill states.  ``observed`` and ``drawn`` come from the graphical pass' own
+#: provenance kinds, and appear only on a factor graph's figure.
 STATES = (
     "free",
     "fixed",
@@ -332,10 +355,28 @@ class _Context:
                     self.order.setdefault(_key(component.path), len(self.order))
                     self._record_occurrences(component)
 
+        #: row key -> the row itself, for the rules that need it back.
+        self.row_of: Dict[str, Any] = {}
+        for node, _, _ in _walk(spec.root):
+            for row in node.rows:
+                self.row_of.setdefault(_key(row.path), row)
+                for component in row.components:
+                    self.row_of.setdefault(_key(component.path), component)
+
+        #: drawn pill key -> the key of the hyper card it is drawn from.  The
+        #: draw is looked up on the *representative*, because a plate draws only
+        #: its first member (the draw is the same statement for every member).
+        self.draws: Dict[str, str] = {}
+        for edge in getattr(spec, "draws", ()) or ():
+            target = _key(self.representative(edge.target_path))
+            self.draws.setdefault(target, _key(edge.source_path))
+
         self.states: set = set()
         self.badges: set = set()
         #: referring pill key -> owner pill key, for the cross links.
         self.references: Dict[str, str] = {}
+        #: drawn pill key -> hyper card key, for the violet draw links.
+        self.draw_references: Dict[str, str] = {}
 
     def _record_occurrences(self, row):
         key = _key(row.path)
@@ -482,8 +523,31 @@ def _is_group_shared(row, plate, context) -> bool:
     return False
 
 
+def _draw_descriptor(row, context) -> Optional[str]:
+    """
+    The badge a hierarchically drawn row carries: ``↗ HierarchicalFactor0``.
+
+    It is deliberately *not* blue -- the pill is violet and so is its arrow,
+    because "drawn from a common population" and "the same number" are opposite
+    claims (review: "replace the shared marker with a hierarchical-draw
+    annotation").
+    """
+    if row.provenance.kind != "hierarchical-draw":
+        return None
+    key = _key(row.path)
+    source = context.draws.get(key)
+    if source is None:
+        return None
+    context.draw_references[key] = source
+    return f"↗ {_dotted(source)}"
+
+
 def _badge(row, node, plate, context) -> Optional[str]:
-    """The badge of a single (scalar) row: sharing first, independence second."""
+    """The badge of a single (scalar) row: a draw first, then sharing, then
+    independence."""
+    drawn = _draw_descriptor(row, context)
+    if drawn is not None:
+        return drawn
     shared = _shared_descriptor(row, node, plate, context)
     if shared is not None:
         return shared
@@ -535,6 +599,12 @@ def _text(row, state, context) -> str:
             row.provenance.expression, row.provenance.operands
         )
         return f"{name} = {expression}"
+    if state == "drawn":
+        # "drawn", never a sharing marker: a drawn parameter is a *different*
+        # number in every dataset, from a common population.
+        return f"{name} · drawn"
+    if state == "observed":
+        return f"{name} · observed"
     if state == "missing":
         return f"{name} · missing"
     if state == "solved":
@@ -583,10 +653,22 @@ def _pill(row, node, plate, context) -> Pill:
     )
     context.states.add(state)
     if pill.badge:
-        context.badges.add(
-            pill.badge.split(" ")[0] if pill.badge.startswith("↗") else pill.badge
-        )
+        context.badges.add(_badge_token(pill))
     return pill
+
+
+def _badge_token(pill) -> str:
+    """
+    The legend token a badge contributes.
+
+    A draw badge is ``draw``, never ``↗``: it must not make the legend claim a
+    blue sharing badge is on the figure when nothing on it is shared.
+    """
+    if pill.state == "drawn":
+        return "draw"
+    if pill.badge.startswith("↗"):
+        return "↗"
+    return pill.badge
 
 
 def _tuple_is_uniform(row, node, plate, context) -> bool:
@@ -702,6 +784,12 @@ def _fold_summary(node) -> str:
     return f"… {components} components / {priors} priors"
 
 
+def _is_dataset_plate(node) -> bool:
+    """Whether this plate's members are one ``AnalysisFactor``'s model each."""
+    factor = getattr(node, "factor", None)
+    return node.plate is not None and factor is not None and factor.kind == "analysis"
+
+
 def _card(node, plate, depth, context, show_fixed, max_depth) -> Tuple[Card, int]:
     pills, hidden, redshift = _pills(node, plate, context, show_fixed)
 
@@ -724,9 +812,16 @@ def _card(node, plate, depth, context, show_fixed, max_depth) -> Tuple[Card, int
         children.append(card)
         hidden += child_hidden
 
+    datasets = _is_dataset_plate(node)
+
     subtitle = None
     if node.plate is not None:
+        # A plate over a factor graph's model factors repeats *datasets*, and a
+        # reader looking for dataset 2 must be able to find it: "dataset 0 - 2",
+        # not a bare index range.
         subtitle = node.plate.representative_key
+        if datasets and subtitle:
+            subtitle = f"dataset {subtitle}"
         if redshift:
             subtitle = f"{subtitle} · {redshift}" if subtitle else redshift
     elif redshift:
@@ -741,9 +836,9 @@ def _card(node, plate, depth, context, show_fixed, max_depth) -> Tuple[Card, int
     if node.plate is not None:
         # "30 components", never "x30": a plate counts components, a badge on a
         # parameter counts uses of a parameter (review point 2).
-        badge = f"{node.plate.count} components"
+        badge = _plural(node.plate.count, "dataset" if datasets else "component")
         note = node.plate.repeats[0] if node.plate.repeats else None
-        context.badges.add("plate")
+        context.badges.add("datasets" if datasets else "plate")
 
     return (
         Card(
@@ -866,6 +961,15 @@ def _links(spec, presentation_keys, context) -> Tuple[Link, ...]:
         if pill_key in drawn and target in context.order:
             seen.add((pill_key, target))
             links.append(Link(pill_key, target, "shared"))
+    for pill_key in sorted(
+        context.draw_references, key=lambda key: context.order.get(key, 0)
+    ):
+        # The arrow runs *from* the hyper card *to* the drawn pill, and lands on
+        # the pill -- not on the dataset frame (review, A_08).  Its target is a
+        # card key, which the layout resolves like any other anchor.
+        source = context.draw_references[pill_key]
+        if pill_key in drawn:
+            links.append(Link(source, pill_key, "draw"))
     for relation in spec.relations:
         target = context.rendered(relation.target_path)
         if target is None:
@@ -879,6 +983,128 @@ def _links(spec, presentation_keys, context) -> Tuple[Link, ...]:
             seen.add((target, source))
             links.append(Link(target, source, "relation"))
     return tuple(links)
+
+
+# -- rule: hoisting the shared priors of a factor graph ----------------------
+
+
+#: The key of the synthetic hoisted card.  It cannot collide with a model path:
+#: a ``GlobalPriorModel``'s children are list indices.
+HOIST_KEY = "shared across datasets"
+
+
+def _dataset_nodes(spec) -> List[Any]:
+    """The root children that stand for an ``AnalysisFactor``'s dataset model."""
+    return [
+        child
+        for child in spec.root.children
+        if getattr(child, "factor", None) is not None
+        and child.factor.kind == "analysis"
+    ]
+
+
+def _shared_across_datasets(spec, nodes) -> List[int]:
+    """
+    The prior ids drawn **once** above the plate.
+
+    From the dataset plate's ``shared_in_all`` when the plate formed -- the ids
+    every member carries, which is exactly "one prior, N datasets" -- and
+    otherwise from the ids every dataset child holds directly.
+    """
+    plate = next((node for node in nodes if node.plate is not None), None)
+    if plate is not None:
+        return list(plate.plate.shared_in_all)
+    if len(nodes) < 2:
+        return []
+    per_node = []
+    for node in nodes:
+        ids = set()
+        for current, _, _ in _walk(node):
+            for row in current.rows:
+                for candidate in (row,) + tuple(row.components):
+                    if candidate.prior_id is not None and candidate.shared:
+                        ids.add(candidate.prior_id)
+        per_node.append(ids)
+    common = set.intersection(*per_node)
+    return sorted(common)
+
+
+def _hoist_shared(spec, cards, context) -> Tuple[Tuple[Card, ...], Tuple[Link, ...]]:
+    """
+    Draw a factor graph's shared priors **once**, above the plate.
+
+    Plate notation's whole point: a parameter outside the plate is one number
+    for every dataset.  The owning pill moves to a hoisted
+    ``shared across datasets`` card and the plate's own pill becomes a
+    reference (``↗ shared``) with a blue link to it, so the figure states the
+    sharing in its layout rather than only in a badge.
+    """
+    if spec.root.kind != "global":
+        return cards, ()
+    nodes = _dataset_nodes(spec)
+    if not nodes:
+        return cards, ()
+    shared_ids = _shared_across_datasets(spec, nodes)
+    if not shared_ids:
+        return cards, ()
+
+    drawn_pills = {
+        pill.key: pill for card in _cards_of(cards) for pill in card.pills
+    }
+    hoisted: List[Pill] = []
+    links: List[Link] = []
+    moved: Dict[str, Pill] = {}
+    keys_of: Dict[int, str] = {}
+    for key, pill in drawn_pills.items():
+        row = context.row_of.get(key)
+        if row is None or row.prior_id not in shared_ids:
+            continue
+        hoist_key = keys_of.get(row.prior_id)
+        if hoist_key is None:
+            hoist_key = f"{HOIST_KEY}/{row.name}"
+            while any(existing.key == hoist_key for existing in hoisted):
+                hoist_key = f"{hoist_key}'"
+            keys_of[row.prior_id] = hoist_key
+            hoisted.append(
+                Pill(text=pill.text, state=pill.state, dim2d=pill.dim2d, key=hoist_key)
+            )
+        # *Every* occurrence points at the hoisted pill, not at whichever member
+        # happened to come first: the parameter now lives above the plate.
+        moved[key] = Pill(
+            text=pill.text,
+            state=pill.state,
+            dim2d=pill.dim2d,
+            badge="↗ shared",
+            key=key,
+        )
+        context.references.pop(key, None)
+        links.append(Link(key, hoist_key, "shared"))
+    if not hoisted:
+        return cards, ()
+
+    context.badges.add("↗")
+
+    def _rewrite(card: Card) -> Card:
+        return Card(
+            title=card.title,
+            kind=card.kind,
+            subtitle=card.subtitle,
+            pills=tuple(moved.get(pill.key, pill) for pill in card.pills),
+            children=tuple(_rewrite(child) for child in card.children),
+            badge=card.badge,
+            note=card.note,
+            key=card.key,
+        )
+
+    hoist = Card(
+        title=HOIST_KEY,
+        kind="hoist",
+        subtitle="one value across "
+        + _plural(spec.counts.get("datasets", len(nodes)), "dataset"),
+        pills=tuple(hoisted),
+        key=HOIST_KEY,
+    )
+    return (hoist,) + tuple(_rewrite(card) for card in cards), tuple(links)
 
 
 # -- rule: legend and footer -------------------------------------------------
@@ -900,10 +1126,14 @@ def _legend(context, constraints=()) -> str:
     parts = [_LEGEND_WORDS[state] for state in STATES if state in context.states]
     if any(badge.startswith("shared") or badge == "↗" for badge in context.badges):
         parts.append("blue badge = shared prior")
+    if "draw" in context.badges:
+        parts.append("violet arrow = the distribution it is drawn from")
     if "independent" in context.badges:
         parts.append("independent = one prior per member")
     if "plate" in context.badges:
         parts.append("dashed frame = repeated components")
+    if "datasets" in context.badges:
+        parts.append("dashed frame = one component per dataset")
     if constraints:
         parts.append("dashed orange = constraint (assertion)")
     return "Legend:  " + "  ·  ".join(parts)
@@ -914,14 +1144,41 @@ def _plate_members(spec) -> int:
     return sum(node.plate.count for node in spec.components() if node.plate is not None)
 
 
+def _graphical_footer_parts(counts) -> List[str]:
+    """
+    The graphical split of the accounting.
+
+    ``hyper-parameters`` are counted **separately** from the per-dataset
+    parameters (review, A_08: "include the two free hyperparameters in the
+    accounting, separately from the three parameters per dataset"), and the
+    three terms reconcile to the unique sampled total that follows them.
+    """
+    parts: List[str] = []
+    if counts.get("hyper_parameters"):
+        parts.append(_plural(counts["hyper_parameters"], "hyper-parameter"))
+    parts.append(f"{counts.get('shared_across_datasets', 0)} shared across datasets")
+    parts.append(
+        f"{counts.get('per_dataset', 0)} per dataset × "
+        f"{_plural(counts.get('datasets', 0), 'dataset')}"
+    )
+    return parts
+
+
 def _footer(spec, hidden_fixed: int) -> str:
     counts = spec.counts
-    parts = [
-        _plural(counts.get("unique_sampled_scalars", 0), "unique sampled scalar"),
-        _plural(counts.get("fixed_leaf_slots", 0), "fixed leaf slot"),
-        _plural(counts.get("shared_priors", 0), "shared prior")
-        + " (unique variables, not references)",
-    ]
+    graphical = "datasets" in counts
+    parts = _graphical_footer_parts(counts) if graphical else []
+    parts.append(
+        _plural(counts.get("unique_sampled_scalars", 0), "unique sampled scalar")
+    )
+    parts.append(_plural(counts.get("fixed_leaf_slots", 0), "fixed leaf slot"))
+    if not graphical:
+        parts.append(
+            _plural(counts.get("shared_priors", 0), "shared prior")
+            + " (unique variables, not references)"
+        )
+    if counts.get("observed"):
+        parts.append(_plural(counts["observed"], "observed dataset"))
     if counts.get("missing"):
         parts.append(f"{counts['missing']} missing")
     if counts.get("solved"):
@@ -991,7 +1248,7 @@ def build_presentation(
 
     hidden_fixed = 0
     cards: List[Card] = []
-    if root.kind == "collection" and not root.rows and root.children:
+    if root.kind in ("collection", "global") and not root.rows and root.children:
         for child in root.children:
             plate = child if child.plate is not None else None
             card, hidden = _card(child, plate, 1, context, show_fixed, max_depth)
@@ -1002,14 +1259,19 @@ def build_presentation(
         card, hidden_fixed = _card(root, plate, 1, context, show_fixed, max_depth)
         cards.append(card)
 
+    cards, hoist_links = _hoist_shared(spec, tuple(cards), context)
+    cards = list(cards)
     presentation_keys = [
         (pill.key, pill.badge) for card in _cards_of(cards) for pill in card.pills
     ]
     drawn = {key for key, _ in presentation_keys}
+    # A draw link lands on a pill but leaves a *card*, so card keys are anchors
+    # too; every other link kind resolves to a pill at both ends.
+    anchors = drawn | {card.key for card in _cards_of(cards)}
     links = tuple(
         link
-        for link in _links(spec, presentation_keys, context)
-        if link.source_key in drawn and link.target_key in drawn
+        for link in _links(spec, presentation_keys, context) + hoist_links
+        if link.source_key in anchors and link.target_key in anchors
     )
     constraints = _constraints(spec, cards, context)
 
