@@ -1646,6 +1646,33 @@ class AbstractPriorModel(AbstractModel):
             from .prior_model import Model
 
             try:
+                instance_dict = instance.__dict__
+            except AttributeError:
+                return instance
+
+            # Only attributes that are constructor arguments may become model
+            # arguments. Attributes an `__init__` derives from its arguments
+            # (e.g. `self.centre = (0.0, 0.0)` in a class with no `centre`
+            # parameter) are recomputed when the instance is rebuilt; passing
+            # them back to the constructor raises a TypeError, which breaks
+            # `Model.from_dict` and therefore aggregator loading of a
+            # `model.json` written from such a model (issue #1607).
+            try:
+                spec = inspect.getfullargspec(instance.__class__)
+            except TypeError:
+                # Uninspectable constructor: keep every attribute.
+                allowed_keys = None
+            else:
+                if spec.varkw is not None:
+                    # The constructor accepts **kwargs, so any attribute may
+                    # legitimately be passed back to it.
+                    allowed_keys = None
+                else:
+                    allowed_keys = {
+                        arg for arg in spec.args if arg != "self"
+                    } | set(spec.kwonlyargs)
+
+            try:
                 result = Model(
                     instance.__class__,
                     **{
@@ -1654,8 +1681,9 @@ class AbstractPriorModel(AbstractModel):
                             model_classes=model_classes,
                             exclude_classes=exclude_classes,
                         )
-                        for key, value in instance.__dict__.items()
+                        for key, value in instance_dict.items()
                         if key != "cls"
+                        and (allowed_keys is None or key in allowed_keys)
                     },
                 )
             except AttributeError:

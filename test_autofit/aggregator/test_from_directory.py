@@ -370,3 +370,45 @@ def test_non_linear_search_from_search_json(directory):
         output.directory.name
         for output in aggregator.query(aggregator.non_linear_search == "emcee")
     ] == ["search_output_derived"]
+
+
+class DerivedAttributeModel:
+    """
+    A class whose ``__init__`` sets an attribute that is not one of its own
+    arguments. Defined at module level so ``class_path`` resolves when the
+    aggregator reads ``model.json`` back (issue #1607).
+    """
+
+    def __init__(self, gamma_1=0.0, gamma_2=0.0):
+        self.gamma_1 = gamma_1
+        self.gamma_2 = gamma_2
+        self.centre = (0.0, 0.0)
+
+
+def test_model_written_from_instance_is_loaded(scan_directory):
+    """
+    ``model.json`` written from ``Model.from_instance`` of an object with a
+    derived attribute must load: before #1607 the derived attribute was written
+    into the arguments and the constructor rejected it on read.
+    """
+    import autofit as af
+
+    model_json = scan_directory / "search_output" / "files" / "model.json"
+    model_json.write_text(
+        json.dumps(
+            af.Model.from_instance(
+                DerivedAttributeModel(gamma_1=0.02, gamma_2=0.03)
+            ).dict()
+        )
+    )
+
+    aggregator = Aggregator.from_directory(scan_directory)
+
+    assert len(aggregator) == 1
+
+    model = list(aggregator)[0].model
+
+    assert isinstance(model, DerivedAttributeModel)
+    assert model.gamma_1 == 0.02
+    assert model.gamma_2 == 0.03
+    assert model.centre == (0.0, 0.0)
