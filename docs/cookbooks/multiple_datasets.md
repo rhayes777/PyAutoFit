@@ -172,6 +172,22 @@ To inspect the model, we print `factor_graph.global_prior_model.info`.
 print(factor_graph.global_prior_model.info)
 ```
 
+The figure is the **map** of this global model and the `info` is its **legend**: the map shows the structure, meaning
+which dataset gets which component and which parameters are shared between them, while the `info` lists the priors.
+
+```python
+af.ModelPlotter(factor_graph.global_prior_model).figure()
+```
+
+```{image} https://raw.githubusercontent.com/PyAutoLabs/PyAutoFit/main/docs/images/model_figures/multiple_datasets_shared.png
+:alt: The model figure of a global model in which one Gaussian is shared by all three datasets, drawn as a single collapsed frame whose parameters each carry a shared badge.
+:width: 600
+```
+
+Because every dataset is fitted by the same `Gaussian`, the three components collapse into one frame and each of
+`centre`, `normalization` and `sigma` carries a shared badge, which is the picture of a three-parameter fit to three
+datasets.
+
 To fit multiple datasets, we pass the `FactorGraphModel` to a non-linear search.
 
 Unlike single-dataset fitting, we now pass the `factor_graph.global_prior_model` as the model and
@@ -395,6 +411,20 @@ model                                                                           
     sigma                                                                       GaussianPrior [11], mean = 10.0, sigma = 5.0
 ```
 
+The map shows the same thing without the indentation having to be read:
+
+```python
+af.ModelPlotter(factor_graph.global_prior_model).figure()
+```
+
+```{image} https://raw.githubusercontent.com/PyAutoLabs/PyAutoFit/main/docs/images/model_figures/multiple_datasets_variable.png
+:alt: The model figure of a global model whose centre is shared across the three datasets while normalization and sigma are independent per dataset.
+:width: 600
+```
+
+Only `centre` now carries the shared badge; `normalization` and `sigma` are marked as independent, meaning one prior
+per dataset, and the footer counts the seven unique sampled scalars this makes.
+
 Fit this model to the data using dynesty.
 
 ```python
@@ -529,6 +559,21 @@ factor
             self
                 x                                                               3.0
 ```
+
+The relational model is the case where the map is worth the most, because the relation is structure and the `info`
+can only express it as nesting:
+
+```python
+af.ModelPlotter(factor_graph.global_prior_model).figure()
+```
+
+```{image} https://raw.githubusercontent.com/PyAutoLabs/PyAutoFit/main/docs/images/model_figures/multiple_datasets_relational.png
+:alt: The model figure of a relational model, with one card per dataset whose sigma pill carries the sigma_m times x plus sigma_c expression and whose centre and normalization carry shared badges.
+:width: 600
+```
+
+Each dataset's `sigma` pill states the expression that defines it, and `centre` and `normalization` are badged as
+shared, so the map says directly that adding a fourth dataset would add a fourth card and no new parameters.
 
 We can fit the model as per usual.
 

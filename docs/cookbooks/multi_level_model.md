@@ -107,6 +107,23 @@ gaussian_list
         sigma                      UniformPrior [4], lower_limit = 0.0, upper_limit = 25.0
 ```
 
+The hierarchy the `info` indents is what the model figure draws as containment:
+
+```python
+af.ModelPlotter(model).figure()
+```
+
+```{image} https://raw.githubusercontent.com/PyAutoLabs/PyAutoFit/main/docs/images/model_figures/multi_level.png
+:alt: The model figure of a multi-level model, with the gaussian_list frame and its repeated Gaussian components nested inside the MultiLevelGaussians card that owns higher_level_centre.
+:width: 600
+```
+
+The figure is the **map** of the model and the `info` above is its **legend**: the map shows which component owns
+which parameters, so `higher_level_centre` sits in the outer `MultiLevelGaussians` card while the two `Gaussian`'s
+sit inside the `gaussian_list` frame nested within it. That is exactly the reason to use a multi-level model, drawn
+rather than indented, and the repeated `Gaussian`'s are collapsed into a single frame labelled with how many
+components it stands for.
+
 ## Instances
 
 Instances of a multi-level model can be created, where an input `vector` of parameters is mapped to create an instance

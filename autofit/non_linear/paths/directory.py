@@ -16,6 +16,8 @@ from autofit.text import formatter
 from autofit.tools.util import open_, open_atomic, NumpyEncoder
 from autofit.non_linear.samples.samples import Samples
 
+from autofit.non_linear.test_mode import skip_visualization
+
 from .abstract import AbstractPaths, _test_mode_segment
 
 from ..samples import load_from_table
@@ -25,6 +27,26 @@ from autofit.non_linear.samples.summary import SamplesSummary
 from ...visualise import VisualiseGraph
 
 logger = logging.getLogger(__name__)
+
+
+def _model_figure_enabled() -> bool:
+    """
+    Whether `model.png` -- the model figure drawn beside `model.info` -- is written.
+
+    The `output.yaml` key `model_figure` is read **strictly**: an absent key means
+    off.
+
+    This deliberately does NOT use `autonerves.output.should_output`
+    (`autonerves/output.py:should_output`), which falls back to `output.yaml`'s
+    `default:` entry whenever a key is absent. That entry is `true` in every
+    workspace, so a brand new key that so far only exists in the library's own
+    default config would silently switch the figure ON in every config which has
+    not yet added it. Only a config that explicitly opts in writes the file.
+    """
+    try:
+        return bool(conf.instance["output"]["model_figure"])
+    except KeyError:
+        return False
 
 
 class DirectoryPaths(AbstractPaths):
@@ -501,6 +523,18 @@ class DirectoryPaths(AbstractPaths):
         if should_output("model_graph") and hasattr(model, "graph_info"):
             with open_(self.output_path / "model.graph", "w+") as f:
                 f.write(model.graph_info)
+
+        if _model_figure_enabled() and not skip_visualization():
+            try:
+                from autofit.model_figure import ModelPlotter
+
+                ModelPlotter(model).figure(
+                    path=self.output_path,
+                    filename="model",
+                    format="png",
+                )
+            except Exception as e:
+                logger.info(f"model.png not written: {e!r}")
 
     def _save_model_start_point(self, info):
         """
