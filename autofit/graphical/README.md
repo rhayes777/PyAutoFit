@@ -122,6 +122,16 @@ tilted distribution is then *fitted* by the factor's optimiser:
   and the update is the closed-form natural-parameter sum — no sampler.
   `EPOptimiser.from_meanfield` auto-selects this path.
 
+**No process pool inside a factor search.** The sampling path refuses a
+factor optimiser built with `number_of_cores > 1` (`AbstractSearch.optimise`
+raises `SearchException`; human ruling 2026-09-09). A forked likelihood worker
+that dies is silently replaced by `multiprocessing.Pool`, but the task it was
+running is never re-issued, so the `Pool.map` driving the fit blocks forever
+and the EP run hangs to the wall clock rather than failing (RAL job 342351_0,
+27 hours). Factor searches are therefore built with `number_of_cores=1`, and
+parallelism comes from a vectorised JAX likelihood — `Analysis(use_jax=True)`,
+which puts Nautilus on `fit_x1_cpu` with `vectorized=True` and no pool at all.
+
 ### 3.3 Projection (moment matching) — `AbstractMessage.project`
 
 Find the family member closest to the tilted distribution in inclusive

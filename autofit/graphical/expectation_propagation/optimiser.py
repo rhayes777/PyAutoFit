@@ -681,13 +681,32 @@ class ParallelEPOptimiser(EPOptimiser):
         Optimises all factors simultaneously on parallel processes, combines the results
         and repeats.
 
+        Notes
+        -----
+        This is EP's own *explicit opt-in* process pool, parallelising **across**
+        factors — it is not the thing refused by `AbstractSearch.optimise`, which
+        refuses a multiprocessing pool **inside** a single factor search (human
+        ruling 2026-09-09). The two are distinct, but the failure mode is the
+        same: a worker that dies mid-`starmap` is replaced by
+        `multiprocessing.Pool` while the task it was running is never re-issued,
+        so the sweep blocks forever rather than failing.
+
+        The ruling's recommended configuration is therefore the serial
+        `EPOptimiser` with a JAX-vectorised likelihood
+        (`Analysis(use_jax=True)`), which parallelises the likelihood itself
+        without forking anything. Reach for `ParallelEPOptimiser` only knowing
+        the above.
+
         Parameters
         ----------
         factor_graph
             A graph describing the relationships between multiple factors
         n_cores
             How many cores are available? The main process takes one core so the
-            multiprocessing pool has n_cores - 1 processes. Should be at least 3
+            multiprocessing pool has n_cores - 1 processes. Should be at least 3.
+            This pool is EP's explicit opt-in parallelism across factors and is
+            subject to the dead-worker hang described above; it is unrelated to
+            (and does not licence) a `number_of_cores > 1` factor search.
         default_optimiser
             An optimiser that is used if no specific optimiser is provided for a factor
         factor_optimisers

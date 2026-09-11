@@ -124,6 +124,10 @@ def test__multi_core_passes_serial_sampler_pool(monkeypatch):
 
     class StubPool:
         _processes = 2
+        # `_LikelihoodWorkerPool` reads the pool's worker list at construction
+        # to capture the workers its watchdog checks; an empty list simply
+        # gives it nothing to watch.
+        _pool = []
 
         def close(self):
             captured["closed"] = True
@@ -256,3 +260,116 @@ class _UnpicklableLikelihood:
 
 def _must_not_be_dispatched(*args):
     raise AssertionError("the mapped function must be ignored")
+
+
+def _sleepy_likelihood(args):
+    """
+    A module-level (and therefore picklable) stand-in for the `Fitness`, slow
+    enough that a worker can be killed while the map is still in flight.
+    """
+    import time
+
+    time.sleep(0.2)
+    return args
+
+
+def _ignored(*args):
+    raise AssertionError("the mapped function must be ignored")
+
+
+@requires_nautilus
+def test__likelihood_pool_raises_when_worker_dies(monkeypatch):
+    """
+    A worker that dies mid-`map` must fail the fit, not hang it.
+
+    `multiprocessing.Pool` replaces a dead worker (`_maintain_pool` ->
+    `_repopulate_pool`) but never re-issues the task it was running, so a plain
+    `Pool.map` blocks to the wall clock — RAL job 342351_0 hung 27 hours this
+    way (#1608). `_LikelihoodWorkerPool.map` polls the exit code of every
+    worker captured at construction, so the replacement is detectable (the
+    count is restored, the original worker stays dead) and raises within
+    seconds.
+    """
+    import multiprocessing
+    import os
+    import signal
+    import threading
+    import time
+
+    from nautilus.pool import initialize_worker
+
+    from autofit.non_linear.search.nest.nautilus import search as nautilus_search
+
+    if "fork" not in multiprocessing.get_all_start_methods():
+        pytest.skip("requires the fork start method")
+
+    monkeypatch.setattr(nautilus_search, "LIKELIHOOD_POOL_POLL_INTERVAL", 0.1)
+
+    context = multiprocessing.get_context("fork")
+    pool = context.Pool(
+        2,
+        initializer=initialize_worker,
+        initargs=(_sleepy_likelihood,),
+    )
+
+    try:
+        wrapper = nautilus_search._LikelihoodWorkerPool(pool)
+
+        victim_pid = pool._pool[0].pid
+
+        killer = threading.Timer(0.3, os.kill, args=(victim_pid, signal.SIGKILL))
+        killer.start()
+
+        start = time.time()
+
+        try:
+            with pytest.raises(af.exc.SearchException) as error:
+                wrapper.map(_ignored, list(range(40)))
+        finally:
+            killer.cancel()
+
+        elapsed = time.time() - start
+
+        assert elapsed < 5.0
+
+        message = str(error.value)
+
+        assert str(victim_pid) in message
+        assert "-9" in message
+        assert "multiprocessing.Pool" in message
+    finally:
+        pool.terminate()
+        pool.join()
+
+
+@requires_nautilus
+def test__likelihood_pool_healthy_map_completes(monkeypatch):
+    """
+    The `map_async` + polling loop must be transparent when nothing dies: the
+    results come back complete and in order, across more tasks than workers.
+    """
+    import multiprocessing
+
+    from nautilus.pool import initialize_worker
+
+    from autofit.non_linear.search.nest.nautilus import search as nautilus_search
+
+    if "fork" not in multiprocessing.get_all_start_methods():
+        pytest.skip("requires the fork start method")
+
+    monkeypatch.setattr(nautilus_search, "LIKELIHOOD_POOL_POLL_INTERVAL", 0.1)
+
+    context = multiprocessing.get_context("fork")
+    pool = context.Pool(
+        2,
+        initializer=initialize_worker,
+        initargs=(_sleepy_likelihood,),
+    )
+
+    try:
+        wrapper = nautilus_search._LikelihoodWorkerPool(pool)
+
+        assert list(wrapper.map(_ignored, list(range(40)))) == list(range(40))
+    finally:
+        pool.terminate()
+        pool.join()
