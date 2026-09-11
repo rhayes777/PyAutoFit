@@ -348,7 +348,7 @@ relation holds exactly inside each factor), while `factor_out` trades
 that exactness for modularity (the deterministic variable receives its
 own messages and `q(z)` factorises from its parents). The declarative
 surface for deterministic quantities is the explicit compound pattern
-(e.g. `model.sigma * 2.355`), pinned by the seam tests (§8); the
+(e.g. `model.sigma * 2.355`), pinned by the seam tests (§7); the
 `model.<property>` sugar from #1153 was deliberately retired.
 
 1. **Graph-level deterministic variables**: `Factor(..., factor_out=v)`
@@ -364,19 +364,10 @@ surface for deterministic quantities is the explicit compound pattern
 3. **Free shared variables**: share a prior across factors and encode
    the relation inside the likelihood.
 
-## 7. Parallel EP — `ParallelEPOptimiser`
-
-All factor approximations for a sweep are built from the **same**
-mean field, factor optimisations run in a process pool, and the updates
-are applied sequentially afterwards. This is standard "parallel EP"
-semantics: cavities within a sweep are stale relative to serial EP, so
-serial and parallel runs converge along different trajectories (to the
-same fixed points when EP converges).
-
-## 8. The lowering contract (declarative → graph)
+## 7. The lowering contract (declarative → graph)
 
 `autofit.graphical` is two layers: the **inner layer** above (factor
-graphs, messages, EP updates — this document's §1–§7) and the
+graphs, messages, EP updates — this document's §1–§6) and the
 **declarative layer** (`declarative/`: `FactorGraphModel`,
 `AnalysisFactor`, `HierarchicalFactor`) that scientists actually use.
 This section is the seam contract: what every declarative concept
@@ -402,7 +393,7 @@ declarative expression, or an explicit "not exposed" entry with the
 reason. Capabilities that exist below but are silently absent above
 (the `PriorFactor` exact-hooks row) are the seam's known failure mode.
 
-## 9. Reading
+## 8. Reading
 
 - T. Minka (2001), *Expectation Propagation for Approximate Bayesian
   Inference* — the algorithm of §3.

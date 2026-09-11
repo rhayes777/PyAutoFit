@@ -173,23 +173,17 @@ def test_no_collapse_on_healthy_run():
     assert graph.check_sigma_collapse(opt.diagnostics) == []
 
 
-def test_parallel_end_of_run_guards():
+def test_end_of_run_guards_no_paths():
     """
-    F3: a real ParallelEPOptimiser run needs n_cores >= 3 and spins up a
-    multiprocessing.Pool. The only existing ParallelEPOptimiser test in
-    this repo, `_test_parallel_laplace` in
-    test_autofit/graphical/regression/test_linear_regression.py, is
-    prefixed with an underscore so pytest never collects it -- i.e. a
-    real parallel run is already established as impractical to exercise
-    routinely under this test suite (pool startup cost / environment
-    flakiness), so we don't add a second one here.
+    `EPOptimiser.run` calls `self._output_diagnostics(...)` and
+    `self._warn_sigma_collapse()` once the main loop has finished, both
+    of them unconditionally on the final pass. With `paths=False`,
+    `self.visualiser` and `self.output_path` both stay None, so those
+    end-of-run calls must guard on them and be no-ops rather than
+    raising.
 
-    Instead we verify directly the end-of-run diagnostics guards that
-    ParallelEPOptimiser.run shares with EPOptimiser.run (both call
-    self._output_diagnostics(...) and self._warn_sigma_collapse() after
-    the main loop): with paths=False, self.visualiser stays None and
-    self.output_path stays None, and both calls must be no-ops rather
-    than raising.
+    This exercises those guards directly, without running a full fit to
+    reach them.
     """
     model_approx, x = make_model_approx()
 
@@ -199,8 +193,8 @@ def test_parallel_end_of_run_guards():
     assert opt.output_path is None
 
     # no snapshots taken yet -- factor_rows/variable_rows are empty, which
-    # is the same state ParallelEPOptimiser.run's guards must tolerate
-    # before touching self.output_path / self.visualiser.
+    # is the emptiest state these guards must tolerate before touching
+    # self.output_path / self.visualiser.
     opt._output_diagnostics()
     opt._output_diagnostics(final=True, model_approx=model_approx)
     opt._warn_sigma_collapse()

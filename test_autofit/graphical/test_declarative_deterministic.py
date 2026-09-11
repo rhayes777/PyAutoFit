@@ -1,6 +1,6 @@
 """
 Seam tests for the declarative → graph lowering contract
-(`autofit/graphical/README.md` §8), focused on deterministic quantities
+(`autofit/graphical/README.md` §7), focused on deterministic quantities
 expressed as compound priors.
 
 History: PR #1153 introduced this pattern with an illustration test that
@@ -44,7 +44,7 @@ def test_compound_lowering_adds_no_variables(factor_graph_pieces):
     """
     A compound prior lowers to *no* graph variable: only its component
     priors are variables, and they are shared with the source models
-    (README §8 — the relation is enforced exactly inside each factor).
+    (README §7 — the relation is enforced exactly inside each factor).
     """
     model_1, model_2, deterministic_model, _, factor_graph = factor_graph_pieces
 

@@ -76,7 +76,7 @@ nautilus; MLE: LBFGS/BFGS/drawer), `mapper/` (model + priors),
   factor-graph/message engine and the `declarative/` user layer. A new
   statistical capability in the inner layer must land **in the same PR**
   with its declarative expression *or* an explicit "not exposed" row in
-  the lowering-contract table (`autofit/graphical/README.md` §8), plus a
+  the lowering-contract table (`autofit/graphical/README.md` §7), plus a
   seam test where behaviour crosses the boundary
   (`test_autofit/graphical/test_declarative_deterministic.py` is the
   pattern). Capabilities that exist below but are silently absent above
