@@ -447,3 +447,57 @@ def test_the_footer_defines_its_counts():
     assert "6 shared priors (unique variables, not references)" in presentation.footer
     assert "2 plates standing for 60 components" in presentation.footer
     assert "totals include every hidden and collapsed element" in presentation.footer
+
+
+# ---------------------------------------------------------------- solved
+
+
+def test_a_solved_pill_says_solved_at_every_detail_level():
+    """
+    A solved quantity is absent from the model: there is no prior to summarise
+    and no value to print, so the annotation *is* the pill's whole text --
+    including under ``detail="priors"``, where every other pill gains a summary.
+    """
+    from test_autofit.graph_spec.test_solved import linear_gaussian
+
+    model = af.Collection(bulge=linear_gaussian())
+
+    for detail in ("names", "priors"):
+        presentation = _presentation(model, detail=detail)
+        pill = _pill(presentation, "bulge/intensity")
+
+        # `solved` is the dashed state of the vocabulary.
+        assert pill.state == "solved"
+        assert pill.text == "intensity · solved"
+
+
+def test_an_unmatched_solved_path_is_drawn_too():
+    presentation = _presentation(
+        af.Collection(gaussian=af.Model(af.ex.Gaussian)),
+        solved_paths=("gaussian.intensity",),
+    )
+    pill = _pill(presentation, "gaussian/intensity")
+
+    assert (pill.state, pill.text) == ("solved", "intensity · solved")
+
+
+def test_the_solved_legend_and_footer_entries_appear_only_when_a_solved_row_does():
+    from test_autofit.graph_spec.test_solved import linear_gaussian
+
+    without = _presentation(af.Model(af.ex.Gaussian))
+    assert "solved during fitting" not in without.legend
+    assert "solved during fitting" not in without.footer
+
+    with_solved = _presentation(af.Collection(bulge=linear_gaussian()))
+    assert "solved during fitting (dashed)" in with_solved.legend
+    assert "1 parameter solved during fitting" in with_solved.footer
+
+
+def test_the_footer_counts_every_solved_parameter_a_plate_stands_for():
+    from test_autofit.graph_spec.test_solved import linear_gaussian
+
+    basis = af.Collection(linear_gaussian(0.1 * (index + 1)) for index in range(30))
+    presentation = _presentation(af.Collection(basis=basis))
+
+    assert "30 parameters solved during fitting" in presentation.footer
+    assert "intensity solved" in _card(presentation, "basis/0").note

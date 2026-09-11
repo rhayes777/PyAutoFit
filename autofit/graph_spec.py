@@ -107,12 +107,40 @@ Provenance kinds
 ``latent``
     A row derived from ``type(analysis).Latent.keys(analysis)``.  Not part of
     the model, hence ``in_model_info=False``.
+``solved-by-fit``
+    A row a *class* declared through ``__solved_parameters__``, or a
+    ``solved_paths=`` entry that matched no row and was synthesised.  Not part
+    of the model, hence ``in_model_info=False``.
 ``user-prior``, ``assertion``, ``hierarchical-draw``, ``observed``
     **Reserved and not emitted by phase 1.**  ``assertion`` operands are carried
     by :class:`AssertionEdge` (assertions are edges, never rows);
     ``hierarchical-draw`` is phase 4 (a ``_HierarchicalFactor`` draw is *not* a
     sharing marker); ``observed`` is phase 4/5 (observed data must not be
     encoded as ``fixed``).
+
+Class-declared semantics -- the ``__solved_parameters__`` protocol
+------------------------------------------------------------------
+
+Two class attributes are **probed, never imported** -- this module knows no
+domain class names:
+
+``__exclude_identifier_fields__``
+    Attributes a class has already declared "not part of the model's identity"
+    (see :func:`_skipped_attributes`); they do not leak into the figure either.
+``__solved_parameters__``
+    A tuple of attribute names: *a class declares the quantities a fit solves
+    for it* -- e.g. a linear light profile's ``intensity`` -- so the figure can
+    show them as ``solved`` without PyAutoFit knowing the class.  Read off
+    ``obj.cls`` (:func:`_solved_parameter_names`) and consumed in
+    :meth:`_Extractor._node`: a declared name with no row and no child of its
+    own is **appended** as a ``solved`` row with provenance ``solved-by-fit``;
+    a declared name that *is* an existing row is **re-tagged**, never
+    duplicated.  Anything that is not a tuple/list of ``str`` is ignored.
+
+The caller-supplied ``solved_paths=`` is the same semantics from the outside,
+and is **additive**: a path that matched no row is synthesised as a
+``solved-by-fit`` row on its owner node (on the root when the owner is not a
+component), never silently ignored.
 
 Relations and the ``sampling`` axis
 -----------------------------------
@@ -578,12 +606,45 @@ def _numeric(value) -> Optional[float]:
     return None
 
 
+def _solved_parameter_names(obj) -> Tuple[str, ...]:
+    """
+    The ``__solved_parameters__`` a component's class declares.
+
+    The protocol probe of the module docstring: *a class declares the quantities
+    a fit solves for it* -- e.g. a linear light profile's ``intensity`` -- so the
+    figure can show them as ``solved`` without PyAutoFit knowing the class.  Read
+    off ``obj.cls`` exactly as :func:`_skipped_attributes` reads
+    ``__exclude_identifier_fields__`` off the type.  Subclasses inherit it.
+
+    Anything that is not a tuple (or list) of ``str`` -- a bare string included,
+    since iterating one would declare its characters -- is ignored, so a
+    malformed declaration can never corrupt the figure.
+    """
+    declared = getattr(getattr(obj, "cls", None), "__solved_parameters__", ())
+    if not isinstance(declared, (tuple, list)):
+        return ()
+    if not all(isinstance(name, str) for name in declared):
+        return ()
+    return tuple(declared)
+
+
 def _is_dropped_model(obj) -> bool:
     """
     Rule R7 -- ``Model(int)`` / ``Model(float)`` is a row on its owner, never a
     component of its own.
+
+    A **subclass** of ``int`` / ``float`` is dropped identically: autogalaxy's
+    ``Redshift(float)`` is a wrapper around one scalar, so ``af.Model(Redshift)``
+    is the ordinary ``redshift`` row (free or fixed) on the galaxy that owns it,
+    not a one-pill child card.  The row is named for the **attribute**; the class
+    name is not shown (see :meth:`_Extractor._int_model_row`).
     """
-    return isinstance(obj, Model) and getattr(obj, "cls", None) in (int, float)
+    if not isinstance(obj, Model):
+        return False
+    cls = getattr(obj, "cls", None)
+    return cls in (int, float) or (
+        isinstance(cls, type) and issubclass(cls, (int, float))
+    )
 
 
 def _cls_name(obj) -> str:
@@ -913,6 +974,8 @@ class _Extractor:
                 )
             )
 
+        self._declared_solved(path, obj, rows, children)
+
         return ComponentNode(
             path=path,
             name=name,
@@ -922,6 +985,48 @@ class _Extractor:
             rows=tuple(rows),
             children=tuple(children),
         )
+
+    def _declared_solved(
+        self,
+        path: Path,
+        obj,
+        rows: List[ParamRow],
+        children: List[ComponentNode],
+    ) -> None:
+        """
+        Consume the ``__solved_parameters__`` protocol on this component.
+
+        A declared name that is **not** already a row and not a child component
+        of its own is appended as a ``solved`` row with provenance
+        ``solved-by-fit`` and ``in_model_info=False`` -- the quantity is absent
+        from the model, which is exactly what the annotation says.  A declared
+        name that *is* an existing row (a subclass that re-exposes it as a
+        prior, say) is **re-tagged** in place, never duplicated.
+        """
+        declared = _solved_parameter_names(obj)
+        if not declared:
+            return
+        positions = {row.name: index for index, row in enumerate(rows)}
+        child_names = {child.path[-1] for child in children if child.path}
+        for name in declared:
+            if name in positions:
+                index = positions[name]
+                rows[index] = replace(
+                    rows[index], sampling="solved", in_model_info=False
+                )
+                continue
+            if name in child_names:
+                continue
+            rows.append(
+                ParamRow(
+                    name=name,
+                    path=path + (name,),
+                    sampling="solved",
+                    provenance=Provenance("solved-by-fit"),
+                    in_model_info=False,
+                )
+            )
+            positions[name] = len(rows) - 1
 
     def _promoted_entries(self, path: Path, obj) -> Dict[Path, Any]:
         entries = {path: obj}
@@ -1235,11 +1340,11 @@ class _Extractor:
         keys = self.latent_keys()
         if not keys:
             return root
-        by_path: Dict[Path, List[ParamRow]] = {}
+        by_owner: Dict[Path, List[ParamRow]] = {}
         for key in keys:
             parts = tuple(key.split("."))
             owner, name = parts[:-1], parts[-1]
-            by_path.setdefault(owner, []).append(
+            by_owner.setdefault(owner, []).append(
                 ParamRow(
                     name=name,
                     path=owner + (name,),
@@ -1248,21 +1353,40 @@ class _Extractor:
                     in_model_info=False,
                 )
             )
-        known = _paths_of(root)
+        return _attach_rows(root, by_owner)
 
-        def _attach(node: ComponentNode) -> ComponentNode:
-            extra = list(by_path.get(node.path, ()))
-            if node.path == ():
-                for owner, rows in by_path.items():
-                    if owner not in known:
-                        extra.extend(rows)
-            return replace(
-                node,
-                rows=node.rows + tuple(extra),
-                children=tuple(_attach(child) for child in node.children),
+    # -- solved paths -------------------------------------------------------
+
+    def attach_solved_paths(self, root: ComponentNode) -> ComponentNode:
+        """
+        ``solved_paths=`` is **additive**, never silently ignored.
+
+        A path that matched a row is already re-tagged by :meth:`_solved`
+        during extraction.  Any path left over names a quantity that is absent
+        from the model -- which is the whole point of the annotation -- so it is
+        synthesised here as a ``solved`` row with provenance ``solved-by-fit``
+        on its owner node, or on the root when the owner is not a component.
+        """
+        if not self.solved_paths:
+            return root
+        present = _row_paths_of(root)
+        by_owner: Dict[Path, List[ParamRow]] = {}
+        # `solved_paths` is a set: sort it so the synthesised rows are emitted
+        # in a stable order (the determinism contract).
+        for path in sorted(self.solved_paths):
+            if not path or path in present:
+                continue
+            owner, name = path[:-1], path[-1]
+            by_owner.setdefault(owner, []).append(
+                ParamRow(
+                    name=name,
+                    path=path,
+                    sampling="solved",
+                    provenance=Provenance("solved-by-fit"),
+                    in_model_info=False,
+                )
             )
-
-        return _attach(root)
+        return _attach_rows(root, by_owner)
 
 
 def _tuple_sampling(components: Tuple[ParamRow, ...]) -> str:
@@ -1285,6 +1409,44 @@ def _paths_of(node: ComponentNode) -> set:
     for child in node.children:
         paths |= _paths_of(child)
     return paths
+
+
+def _row_paths_of(node: ComponentNode) -> set:
+    """Every row path in the tree, tuple components included."""
+    paths = set()
+    for current in _walk_nodes(node):
+        for row in current.rows:
+            paths.add(row.path)
+            for component in row.components:
+                paths.add(component.path)
+    return paths
+
+
+def _attach_rows(root: ComponentNode, by_owner: Dict[Path, List[ParamRow]]):
+    """
+    Attach rows built *outside* the model walk -- latents and unmatched
+    ``solved_paths`` -- to the node that owns them.
+
+    An owner path that is not a component of the tree cannot carry the row, so
+    the row goes on the root rather than being dropped.
+    """
+    if not by_owner:
+        return root
+    known = _paths_of(root)
+
+    def _attach(node: ComponentNode) -> ComponentNode:
+        extra = list(by_owner.get(node.path, ()))
+        if node.path == ():
+            for owner, rows in by_owner.items():
+                if owner not in known:
+                    extra.extend(rows)
+        return replace(
+            node,
+            rows=node.rows + tuple(extra),
+            children=tuple(_attach(child) for child in node.children),
+        )
+
+    return _attach(root)
 
 
 # ----------------------------------------------------------------------------
@@ -1759,11 +1921,16 @@ class GraphSpec:
             uncollapsed tree.
         solved_paths
             Paths -- tuples or dotted strings -- whose rows are re-stated as
-            ``solved`` and marked absent from ``model.info``.  Phase 3 supplies
-            the domain rules that populate this.
+            ``solved`` and marked absent from ``model.info``.  **Additive**: a
+            path that matches no row is synthesised as a ``solved-by-fit`` row
+            on its owner (on the root when the owner is not a component), never
+            silently ignored.  Classes may declare the same thing for
+            themselves through ``__solved_parameters__`` (module docstring).
         """
         extractor = _Extractor(model, analysis=analysis, solved_paths=solved_paths)
-        raw_root = extractor.attach_latents(extractor.build_root())
+        raw_root = extractor.attach_solved_paths(
+            extractor.attach_latents(extractor.build_root())
+        )
         root = (
             _collapse_tree(raw_root, _CollapseContext(extractor))
             if collapse
@@ -1986,15 +2153,21 @@ def _counts(model, spec: GraphSpec, raw_root: ComponentNode) -> Dict[str, int]:
     """
     The reconciling counts.
 
-    The row-derived counts (``fixed_leaf_slots``, ``missing``) are of the
-    **uncollapsed** tree: a plate stands for every one of its members, so
+    The row-derived counts (``fixed_leaf_slots``, ``missing``, ``solved``) are
+    of the **uncollapsed** tree: a plate stands for every one of its members, so
     collapsing must not make a fixed value look absent from the model.  Only the
     component counts are of both trees -- ``components`` after collapse,
     ``components_raw`` before, and ``plates`` how many of the former stand for
     more than one of the latter.
+
+    ``solved`` counts the quantities the fit determines that are absent from the
+    model -- ``__solved_parameters__`` declarations, unmatched ``solved_paths``,
+    re-tagged rows and latents alike -- per scalar, exactly as ``missing`` is
+    counted (a tuple row counts its components).
     """
     fixed_leaf_slots = 0
     missing = 0
+    solved = 0
     for node in _walk_nodes(raw_root):
         for row in node.rows:
             if row.dimensionality == "tuple":
@@ -2003,16 +2176,21 @@ def _counts(model, spec: GraphSpec, raw_root: ComponentNode) -> Dict[str, int]:
                         fixed_leaf_slots += 1
                     if component.sampling == "missing":
                         missing += 1
+                    if component.sampling == "solved":
+                        solved += 1
                 continue
             if row.sampling == "fixed":
                 fixed_leaf_slots += 1
             if row.sampling == "missing":
                 missing += 1
+            if row.sampling == "solved":
+                solved += 1
     return {
         "unique_sampled_scalars": model.prior_count,
         "fixed_leaf_slots": fixed_leaf_slots,
         "shared_priors": len(spec.shared),
         "missing": missing,
+        "solved": solved,
         "components_raw": _node_count(raw_root),
         "components": _node_count(spec.root),
         "plates": _plate_count(spec.root),

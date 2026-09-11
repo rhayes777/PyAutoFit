@@ -537,6 +537,11 @@ def _text(row, state, context) -> str:
         return f"{name} = {expression}"
     if state == "missing":
         return f"{name} · missing"
+    if state == "solved":
+        # A solved quantity is absent from the model, so there is no prior and
+        # no value to summarise -- the annotation *is* the whole text, at every
+        # detail level.
+        return f"{name} · solved"
     if state == "fixed-varies":
         return f"{name} · fixed, varies by member"
     if context.detail != "priors":
@@ -919,6 +924,14 @@ def _footer(spec, hidden_fixed: int) -> str:
     ]
     if counts.get("missing"):
         parts.append(f"{counts['missing']} missing")
+    if counts.get("solved"):
+        parts.append(
+            _plural(
+                counts["solved"],
+                "parameter solved during fitting",
+                "parameters solved during fitting",
+            )
+        )
     plates = counts.get("plates") or 0
     if plates:
         # What the plates stand for, not how many boxes the tree lost: the
