@@ -111,6 +111,25 @@ normalization                 LogUniformPrior [2], lower_limit = 1e-06, upper_li
 sigma                         UniformPrior [3], lower_limit = 0.0, upper_limit = 25.0
 ```
 
+We can also draw the model, via `af.ModelPlotter`:
+
+```python
+af.ModelPlotter(model).figure()
+```
+
+```{image} https://raw.githubusercontent.com/PyAutoLabs/PyAutoFit/main/docs/images/model_figures/gaussian.png
+:alt: The model figure of a single Gaussian, drawn as one component card containing a pill for each of its three free parameters.
+:width: 600
+```
+
+The figure is the **map** of a model and the `info` above is its **legend**: the map shows the structure, meaning
+which components own which parameters and which of those parameters are fixed, shared, related to one another or
+constrained, whereas the `info` lists the priors and values themselves. For a model this simple the two say much the
+same thing, but the map is what stays readable as models grow.
+
+Setting `model_figure: true` in a workspace's `config/output.yaml` writes this figure as a `model.png` beside
+`model.info` for every search, so every fit keeps its own map.
+
 ## Priors (Model)
 
 The model has a set of default priors, which have been loaded from a config file in the PyAutoFit workspace.
@@ -285,6 +304,25 @@ centre
 normalization                    LogUniformPrior [14], lower_limit = 1e-06, upper_limit = 1000000.0
 sigma                            UniformPrior [15], lower_limit = 0.0, upper_limit = 25.0
 ```
+
+Customization is where the model figure starts to earn its place, because fixing a parameter or overwriting a prior
+changes a model's structure and not just its numbers:
+
+```python
+model = af.Model(Gaussian)
+model.centre = 0.0
+model.normalization = af.UniformPrior(lower_limit=0.0, upper_limit=10.0)
+
+af.ModelPlotter(model).figure()
+```
+
+```{image} https://raw.githubusercontent.com/PyAutoLabs/PyAutoFit/main/docs/images/model_figures/gaussian_customised.png
+:alt: The model figure of a customized Gaussian, with the fixed centre drawn as a greyed out pill and normalization and sigma left as free white pills.
+:width: 600
+```
+
+The fixed `centre` is drawn greyed out and the footer counts it as a fixed leaf slot rather than a sampled scalar, so
+the map says at a glance that this model is fitted with two free parameters and not three.
 
 The overwriting of priors shown above can be achieved via the following alternative API:
 
@@ -626,6 +664,21 @@ Total Free Parameters = 4
 > : centre 50.0
 >   normalization LogUniformPrior [72], lower_limit = 1e-06, upper_limit = 1000000.0
 >   rate UniformPrior [73], lower_limit = 0.0, upper_limit = 1.0
+
+A `Collection` is drawn as one card per component, with any assertion attached to the component it constrains:
+
+```python
+af.ModelPlotter(model).figure()
+```
+
+```{image} https://raw.githubusercontent.com/PyAutoLabs/PyAutoFit/main/docs/images/model_figures/gaussian_collection.png
+:alt: The model figure of a Collection of a Gaussian and an Exponential, with their fixed parameters greyed out and the rate assertion drawn inside the Exponential card.
+:width: 600
+```
+
+The map puts the two fixed values (`gaussian.normalization` and `exponential.centre`) and the assertion
+`exponential.rate > 5.0` into a single read. The assertion in particular does not appear in the `info` above at all,
+which is the clearest case of the map carrying something the legend cannot.
 
 Below is an alternative API that can be used to create the same model as above.
 

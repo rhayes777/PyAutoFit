@@ -122,6 +122,7 @@ from .text import formatter
 from .text import samples_text
 from .visualise import VisualiseGraph
 from .graph_spec import GraphSpec, graph_spec_from
+from .model_figure import ModelPlotter
 from .interpolator import (
     LinearInterpolator,
     SplineInterpolator,

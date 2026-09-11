@@ -45,3 +45,8 @@ derived_quantities: true # `latent/samples.csv`: Values of every derived quantit
 data: true # `data.json`: The value of every data point in the data.
 noise_map: true # `noise_map.json`: The value of every RMS noise map value.
 
+# `model.png`: the model figure drawn beside `model.info`. Absent key means off (read strictly).
+
+model_figure: false
+
+

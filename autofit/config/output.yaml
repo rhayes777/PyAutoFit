@@ -102,3 +102,9 @@ noise_map: true # `noise_map.json`: The value of every RMS noise map value.
 search_log: true # `search.log`: logging produced whilst running the fit method
 
 model_graph: false # `model.graph`: graphical-model factor graph summary. Only meaningful for graphical models (autofit.graphical); empty for ordinary PriorModel/Collection fits, so disabled by default.
+
+# `model.png`: the model figure drawn beside `model.info` (autofit.model_figure / af.ModelPlotter).
+# Opt-in until the lens acceptance renders pass (model-figures epic phase 3). Unlike other keys this
+# one does NOT fall back to `default` when absent -- an absent key means off.
+
+model_figure: false
