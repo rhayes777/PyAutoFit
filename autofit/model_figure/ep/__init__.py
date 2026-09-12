@@ -10,11 +10,16 @@ split, each layer importable and testable on its own:
   variable nodes, which edges, which plates.
 * :mod:`autofit.model_figure.ep.state` -- overlay: what the EP run did to each
   factor (updates, sweeps, age, reverted variables).
-* ``presentation`` / ``layout`` / ``render`` -- what is drawn, where it goes,
-  and matplotlib (phase-5 steps 3 onwards).
+* :mod:`autofit.model_figure.ep.presentation` -- what is drawn and what it
+  says.
+* :mod:`autofit.model_figure.ep.layout` -- where it goes, measured in inches.
+* :mod:`autofit.model_figure.ep.render` -- matplotlib.
 
-Nothing here imports a drawing library at module level, so ``import autofit``
-stays drawing-free.
+:class:`~autofit.model_figure.ep.plotter.EPPlotter` is the public entry point
+and is re-exported as ``af.EPPlotter``.  Nothing here imports a drawing library
+at module level, so ``import autofit`` stays drawing-free.
 """
 
-__all__ = []
+from .plotter import EPPlotter
+
+__all__ = ["EPPlotter"]
