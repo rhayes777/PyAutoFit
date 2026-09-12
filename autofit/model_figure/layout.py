@@ -574,6 +574,7 @@ def _pill_index(cards) -> Dict[str, Tuple[PillBox, CardBox]]:
 
     for card in cards:
         _walk(card, card)
+
     # A card is an anchor too: a hierarchical draw leaves the hyper card as a
     # whole (its parameters *jointly* define the distribution) and lands on one
     # pill.  Pills win any collision, so this only ever adds anchors.
@@ -722,8 +723,7 @@ def build_layout(presentation, style: Optional[Style] = None) -> LayoutTree:
             placed
             and x > style.margin
             and (
-                x + card.width > style.margin + budget + 1e-9
-                or (hoisted and not above)
+                x + card.width > style.margin + budget + 1e-9 or (hoisted and not above)
             )
         ):
             x = style.margin

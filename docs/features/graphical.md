@@ -141,8 +141,23 @@ We combine our `AnalysisFactor`'s into one, to compose the factor graph.
 factor_graph = g.FactorGraphModel(*analysis_factor_list)
 ```
 
-So, what does our factor graph looks like? Unfortunately, we haven't yet build visualization of this into **PyAutoFit**,
-so you'll have to make do with a description for now.
+So, what does our factor graph look like? The `ModelPlotter` draws it, taking the factor graph's global model exactly
+like it takes an ordinary model:
+
+```bash
+af.ModelPlotter(factor_graph.global_prior_model).figure()
+```
+
+```{image} https://raw.githubusercontent.com/PyAutoLabs/PyAutoFit/main/docs/images/model_figures/graphical_variable.png
+:alt: The model figure of the graphical model above, with the shared centre hoisted into a card above a dashed plate standing for the three datasets.
+:width: 600
+```
+
+The dashed frame is a **plate**: one `Gaussian` drawn once, standing for all three datasets, labelled `3 datasets`. The
+`centre` shared by every dataset is hoisted out into the card above, joined to the plate by a blue line, and its chip
+inside the plate carries a blue `shared` badge. The `normalization` and `sigma` chips are marked `independent`, because
+each dataset gets a prior of its own, and the green `data` chip is the observed dataset. The footer counts the fit the
+prose below describes: 1 shared across datasets, 2 per dataset × 3 datasets, 7 unique sampled scalars.
 
 The factor graph above is made up of two components:
 
@@ -170,6 +185,34 @@ This will fit the N=7 dimension parameter space where every Gaussian has a share
 This is all expanded upon in the [HowToFit chapter on graphical models](https://github.com/PyAutoLabs/HowToFit/blob/main/notebooks/chapter_3_graphical_models), where we will give a
 more detailed description of why this approach to model-fitting extracts a lot more information than fitting each
 dataset one-by-one.
+
+## Shared Or Hierarchical
+
+Sharing a parameter and drawing it hierarchically sound alike in words but are different models, and the figure is
+the quickest way to tell them apart.
+
+A **shared** parameter is one prior object used by every dataset, so the datasets fit literally the same number. Share
+all three of `centre`, `normalization` and `sigma` and every chip carries the blue `shared` badge, the hoisted card
+holds all three, and 3 datasets cost 3 sampled scalars:
+
+```{image} https://raw.githubusercontent.com/PyAutoLabs/PyAutoFit/main/docs/images/model_figures/graphical_shared.png
+:alt: The model figure of a fully shared graphical model, with centre, normalization and sigma hoisted into one shared card and each chip badged shared.
+:width: 600
+```
+
+A **hierarchical** parameter is different for every dataset, but each one is *drawn* from a parent distribution whose
+own parameters are fitted. Drawn is not shared. Give each dataset's `centre` an `af.HierarchicalFactor` parent and the
+figure hoists that parent into a violet card of its own, holding the `mean` and `sigma` of the distribution, with a
+violet arrow running into the `centre` chip, which reads `centre · drawn`:
+
+```{image} https://raw.githubusercontent.com/PyAutoLabs/PyAutoFit/main/docs/images/model_figures/graphical_hierarchical.png
+:alt: The model figure of a hierarchical graphical model, with a violet HierarchicalFactor card holding mean and sigma and a violet arrow into the drawn centre chip inside the plate.
+:width: 600
+```
+
+The footers say what this costs: the shared figure counts 3 unique sampled scalars, the hierarchical one 2
+hyper-parameters plus 3 per dataset × 3 datasets, so 11. This hierarchical composition is the model built in
+[HowToFit chapter 3, tutorial 4](https://github.com/PyAutoLabs/HowToFit/blob/main/notebooks/chapter_3_graphical_models/tutorial_4_hierachical_models.ipynb).
 
 ## Expectation Propagation
 

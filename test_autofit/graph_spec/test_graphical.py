@@ -119,9 +119,11 @@ def test_the_hyper_node_records_the_model_info_paths_it_replaces():
     spec = GraphSpec.from_model(hierarchical_graph().global_prior_model)
 
     entry = spec.path_index["HierarchicalFactor0"]
-    paths = entry["figure"] if isinstance(entry, dict) else [
-        "/".join(path) for path in entry
-    ]
+    paths = (
+        entry["figure"]
+        if isinstance(entry, dict)
+        else ["/".join(path) for path in entry]
+    )
     # The three `_HierarchicalFactor` collections, grouped as `model.info`
     # groups them -- recorded rather than hidden.
     assert paths and all("distribution_model" in path for path in paths)
@@ -158,8 +160,7 @@ def test_variable_model_shares_only_the_centre():
     assert counts["shared_across_datasets"] == 1
     assert counts["per_dataset"] == 2
     assert (
-        counts["shared_across_datasets"]
-        + counts["per_dataset"] * counts["datasets"]
+        counts["shared_across_datasets"] + counts["per_dataset"] * counts["datasets"]
         == counts["unique_sampled_scalars"]
     )
 
@@ -252,9 +253,13 @@ def test_a_plain_model_is_untouched_by_the_graphical_pass():
 
 
 def test_graphical_extraction_is_deterministic():
-    first = json.dumps(GraphSpec.from_model(hierarchical_graph().global_prior_model).to_dict())
+    first = json.dumps(
+        GraphSpec.from_model(hierarchical_graph().global_prior_model).to_dict()
+    )
     _reset_ids()
-    second = json.dumps(GraphSpec.from_model(hierarchical_graph().global_prior_model).to_dict())
+    second = json.dumps(
+        GraphSpec.from_model(hierarchical_graph().global_prior_model).to_dict()
+    )
 
     assert first == second
 
@@ -273,7 +278,9 @@ def test_graphical_extraction_is_deterministic_in_a_fresh_process():
     )
 
     assert json.loads(result.stdout) == json.loads(
-        json.dumps(GraphSpec.from_model(hierarchical_graph().global_prior_model).to_dict())
+        json.dumps(
+            GraphSpec.from_model(hierarchical_graph().global_prior_model).to_dict()
+        )
     )
 
 

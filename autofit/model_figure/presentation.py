@@ -1048,9 +1048,7 @@ def _hoist_shared(spec, cards, context) -> Tuple[Tuple[Card, ...], Tuple[Link, .
     if not shared_ids:
         return cards, ()
 
-    drawn_pills = {
-        pill.key: pill for card in _cards_of(cards) for pill in card.pills
-    }
+    drawn_pills = {pill.key: pill for card in _cards_of(cards) for pill in card.pills}
     hoisted: List[Pill] = []
     links: List[Link] = []
     moved: Dict[str, Pill] = {}
