@@ -7,7 +7,6 @@ from autofit.graphical import (
     EPOptimiser,
     Factor,
 )
-from autofit.graphical.expectation_propagation.optimiser import ParallelEPOptimiser
 from autofit.messages import FixedMessage, NormalMessage
 
 np.random.seed(1)
@@ -124,25 +123,6 @@ def test_laplace(
 ):
     laplace = LaplaceOptimiser()
     opt = EPOptimiser(model_approx.factor_graph, default_optimiser=laplace)
-    model_approx = opt.run(model_approx)
-    mean_field = model_approx.mean_field
-    check_model_approx(mean_field, a_, b_, z_, x_, y_)
-
-
-def _test_parallel_laplace(
-    model_approx,
-    a_,
-    b_,
-    x_,
-    y_,
-    z_,
-):
-    laplace = LaplaceOptimiser()
-    opt = ParallelEPOptimiser(
-        model_approx.factor_graph,
-        n_cores=len(model_approx.factors) + 1,
-        default_optimiser=laplace,
-    )
     model_approx = opt.run(model_approx)
     mean_field = model_approx.mean_field
     check_model_approx(mean_field, a_, b_, z_, x_, y_)
