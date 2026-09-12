@@ -27,7 +27,7 @@ Examples
 --------
 .. code-block:: python
 
-    optimiser = af.EPOptimiser(model.graph)
+    optimiser = af.graphical.EPOptimiser(model.graph)
     result = optimiser.run(model_approx)
 
     af.EPPlotter(optimiser.factor_graph).figure(path="output", format="png")
