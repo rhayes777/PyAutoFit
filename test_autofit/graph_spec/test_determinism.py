@@ -15,13 +15,24 @@ import sys
 import autofit as af
 from autofit.example.model import PhysicalNFW
 from autofit.graph_spec import GraphSpec
+from autofit.tools.namer import namer
 
 from .conftest import NullAnalysis
 
 
 def _reset_ids():
+    """
+    Reset the global counters a rebuilt model's serialisation depends on.
+
+    ``namer`` is the third of them: a declarative factor's ``name`` -- which the
+    graphical pass records as :class:`~autofit.graph_spec.FactorInfo` and which
+    ``graph.info`` prints -- comes from it, so a model *rebuilt* without
+    resetting it is genuinely a model whose factors are named differently (this
+    is why ``test_autofit/graphical/info/conftest.py`` resets it too).
+    """
     af.ModelObject._ids = itertools.count()
     af.Prior._ids = itertools.count()
+    namer.reset()
 
 
 class Wrapper:

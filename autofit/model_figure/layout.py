@@ -574,6 +574,17 @@ def _pill_index(cards) -> Dict[str, Tuple[PillBox, CardBox]]:
 
     for card in cards:
         _walk(card, card)
+
+    # A card is an anchor too: a hierarchical draw leaves the hyper card as a
+    # whole (its parameters *jointly* define the distribution) and lands on one
+    # pill.  Pills win any collision, so this only ever adds anchors.
+    def _anchor(card, top):
+        index.setdefault(card.key, (card, top))
+        for child in card.children:
+            _anchor(child, top)
+
+    for card in cards:
+        _anchor(card, card)
     return index
 
 
@@ -601,10 +612,24 @@ def _route(links, cards, content_right: float, style: Style):
             continue
         sy = round(source[0].y + source[0].height / 2, 4)
         ty = round(target[0].y + target[0].height / 2, 4)
-        if abs(sy - ty) < source[0].height:
+        if abs(sy - ty) < min(source[0].height, target[0].height):
             # Same visual row: the route would collapse to a meaningless stub in
             # the gutter, and the pill's own badge already names its owner.
+            # (``min`` so that a link anchored on a *card* -- a draw -- is judged
+            # by the pill it lands on, not by the height of the whole card.)
             continue
+        if link.kind == "draw":
+            route = _draw_route(source, target, style)
+            if route is not None:
+                routes.append(
+                    LinkRoute(
+                        source_key=link.source_key,
+                        target_key=link.target_key,
+                        kind=link.kind,
+                        points=route,
+                    )
+                )
+                continue
         lane = round(content_right + 0.12 + (number % lanes) * 0.17, 4)
         # Each end touches the right edge of the top-level card that holds its
         # pill, so the bracket is visibly attached to the frame it belongs to --
@@ -621,6 +646,34 @@ def _route(links, cards, content_right: float, style: Style):
             )
         )
     return tuple(routes)
+
+
+def _draw_route(source, target, style: Style):
+    """
+    A hierarchical draw's route: **into the plate, onto the pill**.
+
+    The review is explicit that the parent distribution connects to ``centre_i``
+    and not to the dataset frame, so this route does what the right-hand gutter
+    never does -- it crosses one card boundary and ends on the pill itself.  It
+    hooks down the narrow lane in the left margin, which no card occupies, and
+    is used only when the pill starts its row, so the last segment runs over the
+    card's padding and nothing else.  Any other pill falls back to the ordinary
+    gutter route (``None``).
+    """
+    pill, top = target
+    if pill.x - (top.x + top.pad) > 0.03:
+        return None
+    lane = round(max(0.06, style.margin - 0.1), 4)
+    if source[1].x - lane < 0.05:  # pragma: no cover - defensive
+        return None
+    sy = round(source[0].y + source[0].height / 2, 4)
+    ty = round(pill.y + pill.height / 2, 4)
+    return (
+        (round(source[1].x, 4), sy),
+        (lane, sy),
+        (lane, ty),
+        (round(pill.x, 4), ty),
+    )
 
 
 def _exit_edge(card: CardBox, cards, y: float) -> float:
@@ -660,11 +713,18 @@ def build_layout(presentation, style: Optional[Style] = None) -> LayoutTree:
     x = style.margin
     y = style.margin
     row_height = 0.0
+    hoisted = False
     for card in measured:
+        # Plate notation draws what is *above* the plate above it: the hoisted
+        # shared priors and the hyper-parameter nodes take the first row, and
+        # the plate starts the next one.
+        above = card.kind in ("hoist", "hyper")
         if (
             placed
             and x > style.margin
-            and x + card.width > style.margin + budget + 1e-9
+            and (
+                x + card.width > style.margin + budget + 1e-9 or (hoisted and not above)
+            )
         ):
             x = style.margin
             y += row_height + style.card_gap
@@ -672,6 +732,7 @@ def build_layout(presentation, style: Optional[Style] = None) -> LayoutTree:
         placed.append(_translate(card, x, y))
         x += card.width + style.card_gap
         row_height = max(row_height, card.height)
+        hoisted = above
     content_bottom = y + row_height
     content_right = max((card.x + card.width for card in placed), default=style.margin)
 

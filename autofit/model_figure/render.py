@@ -41,6 +41,9 @@ PALETTE = {
     "pill_border": "#b4b4c0",
     "red": "#a81f16",
     "red_fill": "#fceceb",
+    "violet": "#6a4b8c",
+    "violet_fill": "#f1eaf8",
+    "green": "#3c6b3c",
     "tag_fill": "#ececf1",
 }
 
@@ -57,8 +60,8 @@ _PILL_STYLE = {
     "relation": (PALETTE["cream"], PALETTE["orange"], PALETTE["text"], False),
     "solved": ("#ffffff", PALETTE["muted"], PALETTE["text"], True),
     "missing": (PALETTE["red_fill"], PALETTE["red"], PALETTE["red"], False),
-    "observed": ("#e9f1e9", "#3c6b3c", PALETTE["text"], False),
-    "drawn": ("#f1eaf8", "#6a4b8c", PALETTE["text"], False),
+    "observed": ("#e9f1e9", PALETTE["green"], PALETTE["text"], False),
+    "drawn": (PALETTE["violet_fill"], PALETTE["violet"], PALETTE["text"], False),
     "folded": ("#f4f4f8", PALETTE["pill_border"], PALETTE["muted"], True),
 }
 
@@ -98,8 +101,14 @@ def _text(ax, x, y, text, *, size, colour, weight="normal", z=3):
     )
 
 
-def _badge_colours(badge: str):
-    """Blue for sharing; neutral for everything else (repetition is not sharing)."""
+def _badge_colours(badge: str, state: str = "free"):
+    """
+    Blue for sharing; **violet** for a hierarchical draw; neutral for everything
+    else (repetition is not sharing, and a draw is not sharing either -- the two
+    say opposite things, so they never share a colour).
+    """
+    if state == "drawn":
+        return PALETTE["violet_fill"], PALETTE["violet"]
     if badge.startswith("shared") or badge.startswith("↗"):
         return PALETTE["blue_fill"], PALETTE["blue"]
     return PALETTE["tag_fill"], PALETTE["muted"]
@@ -157,7 +166,7 @@ def _draw_pill(ax, pill, style, card_level=1):
             z=60 + card_level,
         )
     if pill.badge_offset is not None:
-        fill, colour = _badge_colours(pill.badge)
+        fill, colour = _badge_colours(pill.badge, pill.state)
         _box(
             ax,
             pill.x + pill.badge_offset,
@@ -185,6 +194,16 @@ def _draw_card(ax, card, style):
 
     tint = PALETTE["tints"][min(card.level - 1, len(PALETTE["tints"]) - 1)]
     plate = card.kind == "plate"
+    # A hyper card is the source of every violet draw arrow, and a hoisted card
+    # holds what is shared: each is outlined in its own edge's colour so the
+    # reader can follow the arrow back to the box it comes from.
+    edge = PALETTE["border"]
+    if plate:
+        edge = PALETTE["plate_border"]
+    elif card.kind == "hyper":
+        edge = PALETTE["violet"]
+    elif card.kind == "hoist":
+        edge = PALETTE["blue"]
     _box(
         ax,
         card.x,
@@ -192,7 +211,7 @@ def _draw_card(ax, card, style):
         card.width,
         card.height,
         face=tint,
-        edge=PALETTE["plate_border"] if plate else PALETTE["border"],
+        edge=edge,
         dashed=plate,
         lw=1.1 if card.level == 1 or plate else 0.8,
         z=card.level,
@@ -289,28 +308,54 @@ def _draw_card(ax, card, style):
         _draw_card(ax, child, style)
 
 
+_LINK_COLOURS = {
+    "shared": PALETTE["blue"],
+    "draw": PALETTE["violet"],
+    "relation": PALETTE["orange"],
+}
+
+
 def _draw_link(ax, route):
     from matplotlib.lines import Line2D
+    from matplotlib.patches import FancyArrowPatch
 
-    colour = PALETTE["blue"] if route.kind == "shared" else PALETTE["orange"]
+    draw = route.kind == "draw"
+    colour = _LINK_COLOURS.get(route.kind, PALETTE["orange"])
     xs = [x for x, _ in route.points]
     ys = [y for _, y in route.points]
+    # A draw is **directed**: the last segment carries an arrowhead that lands
+    # on the drawn pill, because "centre_i is drawn from this distribution" is a
+    # claim with a direction, unlike sharing.
     ax.add_line(
         Line2D(
-            xs,
-            ys,
+            xs[:-1] if draw else xs,
+            ys[:-1] if draw else ys,
             color=colour,
-            linewidth=0.9 if route.kind == "shared" else 0.7,
-            linestyle="solid" if route.kind == "shared" else (0, (3, 1.6)),
+            linewidth=0.9 if route.kind in ("shared", "draw") else 0.7,
+            linestyle="solid" if route.kind in ("shared", "draw") else (0, (3, 1.6)),
             solid_capstyle="round",
             zorder=80,
         )
     )
+    if draw:
+        ax.add_patch(
+            FancyArrowPatch(
+                (xs[-2], ys[-2]),
+                (xs[-1], ys[-1]),
+                arrowstyle="-|>",
+                mutation_scale=7.0,
+                linewidth=0.9,
+                color=colour,
+                shrinkA=0.0,
+                shrinkB=0.0,
+                zorder=81,
+            )
+        )
     # A filled dot where each end touches the card it belongs to.
     ax.add_line(
         Line2D(
-            [xs[0], xs[-1]],
-            [ys[0], ys[-1]],
+            [xs[0]] if draw else [xs[0], xs[-1]],
+            [ys[0]] if draw else [ys[0], ys[-1]],
             linestyle="none",
             marker="o",
             markersize=2.6,

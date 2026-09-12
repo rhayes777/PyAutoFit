@@ -118,10 +118,15 @@ class _Analysis(af.Analysis):
     """
     A do-nothing analysis. ``AnalysisFactor`` only needs an analysis object to
     pair with the model; nothing here is ever fitted.
+
+    It carries a ``data`` attribute because that is what makes the figure draw
+    an **observed** node for the dataset: observed data and a fixed model
+    constant are different concepts and must not share the grey pill.
     """
 
     def __init__(self, index):
         self.index = index
+        self.data = [0.0, 1.0, 2.0]
 
     def log_likelihood_function(self, instance):
         return 0.0
@@ -192,6 +197,82 @@ def multiple_datasets_relational():
     return _factor_graph(model_list).global_prior_model
 
 
+# -- the graphical models ---------------------------------------------------
+
+
+def _graphical_model():
+    """One dataset's ``Gaussian``, with a centre that a hyper-prior can draw."""
+    model = af.Model(af.ex.Gaussian)
+    model.centre = af.TruncatedGaussianPrior(
+        mean=50.0, sigma=20.0, lower_limit=0.0, upper_limit=100.0
+    )
+    model.normalization = af.LogUniformPrior(lower_limit=1e-2, upper_limit=1e2)
+    model.sigma = af.GaussianPrior(mean=10.0, sigma=5.0)
+    return model
+
+
+def graphical_shared():
+    """
+    Plate notation, **shared**: one ``centre``, ``normalization`` and ``sigma``
+    for all three datasets -- literally the same three numbers.
+    """
+    model = _graphical_model()
+    return _factor_graph([model, model, model]).global_prior_model
+
+
+def graphical_variable():
+    """
+    Plate notation, **partly shared**: one ``centre`` for every dataset, with a
+    ``normalization`` and ``sigma`` of its own per dataset.
+    """
+    model = _graphical_model()
+
+    model_list = []
+    for _ in range(3):
+        model_analysis = model.copy()
+        model_analysis.normalization = af.LogUniformPrior(
+            lower_limit=1e-2, upper_limit=1e2
+        )
+        model_analysis.sigma = af.GaussianPrior(mean=10.0, sigma=5.0)
+        model_list.append(model_analysis)
+
+    return _factor_graph(model_list).global_prior_model
+
+
+def graphical_hierarchical():
+    """
+    Plate notation, **hierarchical**: three *different* centres, each drawn from
+    one parent ``GaussianPrior`` whose ``mean`` and ``sigma`` are themselves
+    free (HowToFit chapter 3, tutorial 4).
+
+    The teaching pair of the epic: put this figure beside ``graphical_shared``
+    and the difference between "the same number" and "from a common population"
+    is the difference between a blue reference and a violet arrow.
+    """
+    model_list = [_graphical_model() for _ in range(3)]
+
+    hierarchical_factor = af.HierarchicalFactor(
+        af.GaussianPrior,
+        mean=af.TruncatedGaussianPrior(
+            mean=50.0, sigma=10, lower_limit=0.0, upper_limit=100.0
+        ),
+        sigma=af.TruncatedGaussianPrior(
+            mean=10.0, sigma=5.0, lower_limit=0.0, upper_limit=100.0
+        ),
+    )
+    for model in model_list:
+        hierarchical_factor.add_drawn_variable(model.centre)
+
+    factor_graph = af.FactorGraphModel(
+        *[
+            af.AnalysisFactor(prior_model=model, analysis=_Analysis(index))
+            for index, model in enumerate(model_list)
+        ],
+        hierarchical_factor,
+    )
+    return factor_graph.global_prior_model
+
+
 def composite_shared_relation_assertion():
     """
     All three of sharing, relation and assertion at once -- acceptance case 3.
@@ -232,6 +313,9 @@ FIGURES = {
     "multiple_datasets_variable": multiple_datasets_variable,
     "multiple_datasets_relational": multiple_datasets_relational,
     "composite_shared_relation_assertion": composite_shared_relation_assertion,
+    "graphical_shared": graphical_shared,
+    "graphical_variable": graphical_variable,
+    "graphical_hierarchical": graphical_hierarchical,
 }
 
 

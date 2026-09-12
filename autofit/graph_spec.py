@@ -72,9 +72,13 @@ A :class:`ParamRow` carries **independent properties** rather than a single
     ``float`` / plain ``int`` / plain ``tuple`` leaf, or a raw instance),
     ``solved`` (a quantity the fit determines that is absent from the model --
     supplied by ``solved_paths=`` or by an analysis' latent catalogue; phase 3
-    supplies the domain rules) or ``missing`` (a required configuration value
+    supplies the domain rules), ``missing`` (a required configuration value
     that is unset, i.e. a ``ConfigException`` sitting in the model tree, which
-    ``model.info`` prints as *Prior Missing: Enter Manually or Add to Config*).
+    ``model.info`` prints as *Prior Missing: Enter Manually or Add to Config*)
+    or ``observed`` (the data an ``AnalysisFactor``'s analysis carries -- not a
+    parameter at all, and emitted only by the graphical pass below, because
+    observed data and a fixed model constant are different concepts and must
+    not share an encoding).
 ``sharing``
     ``prior_id`` plus :attr:`ParamRow.occurrences`, *every* path at which the
     same ``Prior`` object appears, and :attr:`ParamRow.direct_occurrences`, the
@@ -111,12 +115,58 @@ Provenance kinds
     A row a *class* declared through ``__solved_parameters__``, or a
     ``solved_paths=`` entry that matched no row and was synthesised.  Not part
     of the model, hence ``in_model_info=False``.
-``user-prior``, ``assertion``, ``hierarchical-draw``, ``observed``
-    **Reserved and not emitted by phase 1.**  ``assertion`` operands are carried
-    by :class:`AssertionEdge` (assertions are edges, never rows);
-    ``hierarchical-draw`` is phase 4 (a ``_HierarchicalFactor`` draw is *not* a
-    sharing marker); ``observed`` is phase 4/5 (observed data must not be
-    encoded as ``fixed``).
+``hierarchical-draw``
+    A parameter **drawn** from a hierarchical factor's distribution: it carries
+    the expression ``"~ GaussianPrior(mean, sigma)"`` and, as its one operand,
+    the dotted path of the hyper node it is drawn from.  Emitted by the
+    graphical pass below, and paired with a :class:`DrawEdge`.  A draw is
+    **not** sharing.
+``observed``
+    The observed data an analysis carries, emitted by the graphical pass.  Not
+    part of the model, hence ``in_model_info=False``.
+``user-prior``, ``assertion``
+    **Reserved and not emitted.**  ``assertion`` operands are carried by
+    :class:`AssertionEdge` (assertions are edges, never rows).
+
+The graphical pass
+------------------
+
+A ``FactorGraphModel``'s ``global_prior_model`` is a ``GlobalPriorModel``: a
+``Collection`` of one prior model per *model factor*, carrying the declarative
+factor ``graph`` it was built from.  When the root is one,
+:meth:`_Extractor._graphical_pass` rewrites the raw walk as **plate notation**,
+after the walk and before the collapse.  Nothing of the ``graphical`` package is
+imported: the factor graph is duck-typed exactly as ``__solved_parameters__`` is
+probed, and ``factor.graph`` -- which **rebuilds on every access** and renames
+its ``PriorFactor``s -- is read **exactly once**.
+
+*A draw is not sharing.*  A ``HierarchicalFactor`` generates one
+``_HierarchicalFactor`` per drawn variable, and each is a ``Collection`` of the
+shared ``distribution_model`` and the ``drawn_prior`` -- and that drawn prior
+**is the dataset model's own parameter object**.  Left alone, the walk therefore
+reports the dataset's ``centre`` as a prior shared with the factor collection,
+which claims the exact opposite of what a draw says: sharing means *the same
+number in every dataset*, a draw means *a different number in every dataset,
+from a common population*.  So those occurrences are stripped from the
+occurrence maps (no :class:`SharedEdge`, no broken plate), the row is re-tagged
+``hierarchical-draw`` while staying ``free``, and the relationship is carried by
+a :class:`DrawEdge` instead.
+
+*Hyper nodes are hoisted.*  The per-draw collections are dropped and replaced by
+**one** ``kind="hyper"`` node per distinct distribution model, emitted at the
+**front** of the root's children.  This is the single documented exception to
+the ordering contract above, and it applies to the graphical view only; the
+``model.info`` paths each hyper node stands for are recorded in
+:attr:`GraphSpec.path_index`.
+
+*Observed data is its own state.*  Each ``AnalysisFactor`` child records a
+:class:`FactorInfo`, and an analysis exposing ``data`` / ``dataset`` contributes
+one ``observed`` row.
+
+The counts gain ``datasets``, ``hyper_parameters``, ``shared_across_datasets``,
+``per_dataset`` and ``observed``, so a footer can say *two free
+hyper-parameters* **plus** *three parameters per dataset* rather than one
+undifferentiated total.
 
 Class-declared semantics -- the ``__solved_parameters__`` protocol
 ------------------------------------------------------------------
@@ -294,10 +344,12 @@ __all__ = [
     "Provenance",
     "ParamRow",
     "PlateInfo",
+    "FactorInfo",
     "ComponentNode",
     "SharedEdge",
     "RelationEdge",
     "AssertionEdge",
+    "DrawEdge",
     "GraphSpec",
     "graph_spec_from",
 ]
@@ -488,6 +540,25 @@ class PlateInfo:
 
 
 @dataclass(frozen=True)
+class FactorInfo:
+    """
+    The declarative factor a node stands for (the graphical pass only).
+
+    ``kind`` is ``analysis`` for an ``AnalysisFactor``'s dataset model and
+    ``hierarchical`` for the hyper-parameter node a ``HierarchicalFactor``'s
+    distribution model becomes.  ``name`` is the factor's own name
+    (``AnalysisFactor0``, ``HierarchicalFactor0``), which is stable and unique
+    for an ``AnalysisFactor``.
+    """
+
+    name: str
+    kind: str
+
+    def to_dict(self) -> dict:
+        return {"name": self.name, "kind": self.kind}
+
+
+@dataclass(frozen=True)
 class ComponentNode:
     """
     One ``Model`` / ``Collection`` / ``GlobalPriorModel`` in the nesting tree.
@@ -497,6 +568,10 @@ class ComponentNode:
     ``path=()`` and ``name="model"``.  ``obj_id`` is the ``ModelObject`` id
     counter: the same ``obj_id`` at several paths is how a component shared
     across datasets is detected.
+
+    ``kind`` is ``model`` / ``collection`` / ``global`` / ``hyper``, the last
+    being a hyper-parameter node synthesised by the graphical pass (the module
+    docstring).  ``factor`` is set by that pass only.
     """
 
     path: Path
@@ -507,6 +582,7 @@ class ComponentNode:
     rows: Tuple[ParamRow, ...] = ()
     children: Tuple["ComponentNode", ...] = ()
     plate: Optional[PlateInfo] = None
+    factor: Optional[FactorInfo] = None
 
     def to_dict(self) -> dict:
         return {
@@ -518,6 +594,7 @@ class ComponentNode:
             "rows": [row.to_dict() for row in self.rows],
             "children": [child.to_dict() for child in self.children],
             "plate": self.plate.to_dict() if self.plate is not None else None,
+            "factor": self.factor.to_dict() if self.factor is not None else None,
         }
 
 
@@ -550,6 +627,31 @@ class RelationEdge:
             "expression": self.expression,
             "operand_paths": [list(path) for path in self.operand_paths],
             "prior_id": self.prior_id,
+        }
+
+
+@dataclass(frozen=True)
+class DrawEdge:
+    """
+    A hierarchical **draw**: ``target_path`` is drawn *from* the distribution
+    parameterised at ``source_path``.
+
+    A draw is **not** sharing (module docstring, "The graphical pass"): the two
+    claims are opposites, so a drawn parameter never carries a
+    :class:`SharedEdge` for the draw and its row is not ``shared``.
+    """
+
+    source_path: Path
+    target_path: Path
+    prior_id: Optional[int] = None
+    expression: Optional[str] = None
+
+    def to_dict(self) -> dict:
+        return {
+            "source_path": list(self.source_path),
+            "target_path": list(self.target_path),
+            "prior_id": self.prior_id,
+            "expression": self.expression,
         }
 
 
@@ -861,6 +963,125 @@ class _Extractor:
             self.prior_config[prior.id] = _prior_configuration(prior)
 
         self._known_component_paths = set()
+        self._read_factor_graph()
+        self._rewrite_graphical_occurrences()
+
+    # -- the graphical pass -------------------------------------------------
+
+    def _read_factor_graph(self) -> None:
+        """
+        Read the declarative factor graph **exactly once**, if there is one.
+
+        ``FactorGraphModel.graph`` rebuilds on every access and renames its
+        ``PriorFactor``s, so a second read would silently change the names a
+        figure quotes.  ``hasattr(type(factor), "graph")`` probes the *class*,
+        which does not invoke the property -- nothing here imports the
+        ``graphical`` package (duck typing, exactly as the
+        ``__solved_parameters__`` protocol probes a class attribute).
+        """
+        self.graph = None
+        self.model_factors: List[Any] = []
+        #: ``(dataset index, distribution model, drawn prior)`` per draw.
+        self.draws: List[Tuple[int, Any, Prior]] = []
+        #: distribution model -> the path its hyper node is emitted at.
+        self.hyper_models: List[Any] = []
+        self.hyper_paths: Dict[int, Path] = {}
+        #: hyper node path -> the ``model.info`` paths it replaces.
+        self.hyper_info_paths: Dict[Path, Tuple[Path, ...]] = {}
+        #: one edge per draw, in dataset order; filled by :meth:`_tag_draws`.
+        self.draw_edges: Tuple[DrawEdge, ...] = ()
+
+        if _kind(self.model) != "global":
+            return
+        factor = getattr(self.model, "factor", None)
+        if factor is None or not hasattr(type(factor), "graph"):
+            return
+        self.graph = factor.graph
+        self.model_factors = list(getattr(factor, "model_factors", ()) or ())
+
+        for index, model_factor in enumerate(self.model_factors):
+            distribution = getattr(model_factor, "distribution_model", None)
+            drawn = getattr(model_factor, "drawn_prior", None)
+            if distribution is not None and isinstance(drawn, Prior):
+                self.draws.append((index, distribution, drawn))
+
+        # One hyper node per *distinct* distribution model, in the order the
+        # graph declares its hierarchical factors (falling back to the order the
+        # draws appear in).
+        declared = list(getattr(self.graph, "hierarchical_factors", ()) or ())
+        ordered: List[Any] = []
+        for distribution in declared + [draw[1] for draw in self.draws]:
+            if not any(distribution is seen for seen in ordered):
+                ordered.append(distribution)
+        ordered = [
+            distribution
+            for distribution in ordered
+            if any(distribution is draw[1] for draw in self.draws)
+        ]
+        self.hyper_models = ordered
+
+        used: set = set()
+        for number, distribution in enumerate(ordered):
+            name = str(getattr(distribution, "name", "") or "") or f"hyper_{number}"
+            while name in used:
+                name = f"{name}_{number}"
+            used.add(name)
+            self.hyper_paths[id(distribution)] = (name,)
+        self.hyper_info_paths = {
+            self.hyper_paths[id(distribution)]: tuple(
+                (str(index), "distribution_model")
+                for index, drawn_from, _ in self.draws
+                if drawn_from is distribution
+            )
+            for distribution in ordered
+        }
+
+    def _rewrite_graphical_occurrences(self) -> None:
+        """
+        Fold the ``_HierarchicalFactor`` collections out of the occurrence maps.
+
+        Two rewrites, both of them statements about *sharing*:
+
+        * every occurrence under ``("i", "drawn_prior")`` is **dropped** -- the
+          draw is carried by a :class:`DrawEdge` and the ``hierarchical-draw``
+          provenance, and counting it as a second use of the parameter would
+          emit a :class:`SharedEdge` claiming the opposite (the datasets have
+          *the same* centre) of what a draw says, and would break the dataset
+          plate's safety condition into the bargain;
+        * every occurrence under ``("i", "distribution_model")`` is **rewritten**
+          onto the one hyper node those collections collapse into, so the
+          distribution's own ``mean`` and ``sigma`` are one occurrence each
+          rather than one per draw.
+        """
+        if not self.draws:
+            return
+        drop: List[Path] = []
+        rewrite: List[Tuple[Path, Path]] = []
+        for index, distribution, _ in self.draws:
+            drop.append((str(index), "drawn_prior"))
+            rewrite.append(
+                (
+                    (str(index), "distribution_model"),
+                    self.hyper_paths[id(distribution)],
+                )
+            )
+
+        def _rewritten(paths: Tuple[Path, ...]) -> Tuple[Path, ...]:
+            out: List[Path] = []
+            for path in paths:
+                if any(path[: len(prefix)] == prefix for prefix in drop):
+                    continue
+                for prefix, replacement in rewrite:
+                    if path[: len(prefix)] == prefix:
+                        path = replacement + path[len(prefix) :]
+                        break
+                if path not in out:
+                    out.append(path)
+            return tuple(out)
+
+        for mapping in (self.occurrences, self.direct_occurrences):
+            for prior_id, paths in list(mapping.items()):
+                mapping[prior_id] = _rewritten(paths)
 
     # -- components ---------------------------------------------------------
 
@@ -904,9 +1125,169 @@ class _Extractor:
                 if parent in children_of:
                     children_of[parent].append(path)
                     break
-        return self._node(
-            (), by_path[()], "model", by_path=by_path, children_of=children_of
+        return self._graphical_pass(
+            self._node(
+                (), by_path[()], "model", by_path=by_path, children_of=children_of
+            )
         )
+
+    # -- the graphical pass -------------------------------------------------
+
+    def _graphical_pass(self, root: ComponentNode) -> ComponentNode:
+        """
+        Rewrite the raw walk of a ``GlobalPriorModel`` as plate notation.
+
+        Runs **after** the walk and **before** the collapse, so the plate rules
+        read a tree in which a draw is already a draw rather than a shared
+        prior.  Four things happen, and nothing happens at all when the model is
+        not a factor graph:
+
+        1. the ``_HierarchicalFactor`` children -- one ``Collection`` per drawn
+           variable -- are dropped, and one ``hyper`` node per distinct
+           distribution model is emitted at the **front** of the root's
+           children.  This hoist is the one documented exception to the
+           ordering contract, and it applies to the graphical view only;
+        2. every drawn row is re-tagged ``hierarchical-draw`` and gains a
+           :class:`DrawEdge`, keeping ``sampling="free"`` -- it is still a
+           sampled parameter;
+        3. each ``AnalysisFactor`` child records its :class:`FactorInfo`;
+        4. an analysis exposing ``data`` / ``dataset`` contributes an
+           ``observed`` row, so observed data is never encoded as ``fixed``.
+        """
+        if not self.model_factors:
+            return root
+
+        drawn_children = {str(index) for index, _, _ in self.draws}
+        children = [
+            self._dataset_child(child)
+            for child in root.children
+            if child.name not in drawn_children
+        ]
+        hyper_nodes = [
+            self._hyper_node(distribution) for distribution in self.hyper_models
+        ]
+        root = replace(root, children=tuple(hyper_nodes) + tuple(children))
+        return self._tag_draws(root, hyper_nodes)
+
+    def _hyper_node(self, distribution) -> ComponentNode:
+        """
+        The hyper-parameter node one ``HierarchicalFactor`` becomes.
+
+        Its rows are the distribution model's own priors, walked exactly as any
+        other component's are -- ``mean`` and ``sigma`` of the
+        ``GaussianPrior`` the drawn variables come from.
+        """
+        path = self.hyper_paths[id(distribution)]
+        node = self._node(path, distribution, path[-1], by_path={}, children_of={})
+        return replace(
+            node,
+            kind="hyper",
+            factor=FactorInfo(name=path[-1], kind="hierarchical"),
+        )
+
+    def _dataset_child(self, child: ComponentNode) -> ComponentNode:
+        """The ``AnalysisFactor`` info, and the observed-data row if there is one."""
+        model_factor = self._model_factor_for(child)
+        if model_factor is None:
+            return child
+        rows = list(child.rows)
+        analysis = getattr(model_factor, "analysis", None)
+        if analysis is not None and analysis is not model_factor:
+            for attribute in ("data", "dataset"):
+                try:
+                    observed = getattr(analysis, attribute, None)
+                except Exception:  # pragma: no cover - a broken analysis
+                    observed = None
+                if observed is None:
+                    continue
+                rows.append(
+                    ParamRow(
+                        name=attribute,
+                        path=child.path + (attribute,),
+                        sampling="observed",
+                        provenance=Provenance("observed"),
+                        in_model_info=False,
+                    )
+                )
+                break
+        return replace(
+            child,
+            rows=tuple(rows),
+            factor=FactorInfo(
+                name=str(getattr(model_factor, "name", "") or child.name),
+                kind="analysis",
+            ),
+        )
+
+    def _model_factor_for(self, child: ComponentNode):
+        """The model factor a root child was built from, by position."""
+        if not child.path or not child.name.isdigit():
+            return None
+        index = int(child.name)
+        if index >= len(self.model_factors):
+            return None
+        return self.model_factors[index]
+
+    def _tag_draws(
+        self, root: ComponentNode, hyper_nodes: List[ComponentNode]
+    ) -> ComponentNode:
+        """
+        Re-tag every drawn row and record one :class:`DrawEdge` per draw.
+
+        The drawn ``Prior`` *is* the dataset model's own parameter object, so
+        the row is found by prior id inside the dataset child the draw names.
+        """
+        by_distribution = {
+            id(distribution): node
+            for distribution, node in zip(self.hyper_models, hyper_nodes)
+        }
+        targets: Dict[int, Tuple[Path, Provenance]] = {}
+        for index, distribution, prior in self.draws:
+            hyper = by_distribution.get(id(distribution))
+            if hyper is None:  # pragma: no cover - defensive
+                continue
+            expression = "~ {}({})".format(
+                hyper.cls_name, ", ".join(row.name for row in hyper.rows)
+            )
+            targets[prior.id] = (
+                hyper.path,
+                Provenance(
+                    "hierarchical-draw",
+                    expression=expression,
+                    operands=(_dotted(hyper.path),),
+                ),
+            )
+
+        drawn_paths: Dict[int, Path] = {}
+
+        def _row(row: ParamRow) -> ParamRow:
+            target = targets.get(row.prior_id)
+            if target is None or row.provenance.kind != "config-default":
+                return row
+            drawn_paths.setdefault(row.prior_id, row.path)
+            return replace(row, provenance=target[1])
+
+        def _walk(node: ComponentNode) -> ComponentNode:
+            if node.kind == "hyper":
+                return node
+            return replace(
+                node,
+                rows=tuple(_row(row) for row in node.rows),
+                children=tuple(_walk(child) for child in node.children),
+            )
+
+        root = _walk(root)
+        self.draw_edges = tuple(
+            DrawEdge(
+                source_path=targets[prior.id][0],
+                target_path=drawn_paths[prior.id],
+                prior_id=prior.id,
+                expression=targets[prior.id][1].expression,
+            )
+            for _, _, prior in self.draws
+            if prior.id in drawn_paths and prior.id in targets
+        )
+        return root
 
     def _node(self, path: Path, obj, name: str, by_path, children_of) -> ComponentNode:
         rows: List[ParamRow] = []
@@ -1355,6 +1736,69 @@ class _Extractor:
             )
         return _attach_rows(root, by_owner)
 
+    # -- graphical counts ---------------------------------------------------
+
+    def graphical_counts(self, raw_root: ComponentNode) -> Dict[str, int]:
+        """
+        The graphical half of the reconciling counts, of the **uncollapsed**
+        tree -- so they are the same whether or not the plate formed.
+
+        ``hyper_parameters`` + ``shared_across_datasets`` +
+        ``per_dataset`` x ``datasets`` reconciles to
+        ``unique_sampled_scalars``: the point of the split is that a
+        hyper-parameter is *not* one of the per-dataset parameters, and the
+        footer must say so (review: "include the two free hyperparameters in
+        the accounting, separately from the three parameters per dataset").
+
+        A prior counts as **shared across datasets** when it occurs under every
+        dataset child -- through a relation too, which is how
+        ``sigma = sigma_m * x + sigma_c`` adds no parameters per dataset.
+        """
+        if not self.model_factors:
+            return {}
+        datasets = [
+            child
+            for child in raw_root.children
+            if child.factor is not None and child.factor.kind == "analysis"
+        ]
+        if not datasets:
+            return {}
+
+        owners: Dict[int, set] = {}
+        for prior_id, paths in self.occurrences.items():
+            for path in paths:
+                if path and any(path[0] == child.name for child in datasets):
+                    owners.setdefault(prior_id, set()).add(path[0])
+        shared = {
+            prior_id
+            for prior_id, names in owners.items()
+            if len(names) == len(datasets) and len(datasets) > 1
+        }
+        first = datasets[0].name
+        per_dataset = len(
+            {
+                prior_id
+                for prior_id, names in owners.items()
+                if first in names and prior_id not in shared
+            }
+        )
+        hyper = sum(
+            _free_scalars(child) for child in raw_root.children if child.kind == "hyper"
+        )
+        observed = sum(
+            1
+            for node in _walk_nodes(raw_root)
+            for row in node.rows
+            if row.provenance.kind == "observed"
+        )
+        return {
+            "datasets": len(datasets),
+            "hyper_parameters": hyper,
+            "shared_across_datasets": len(shared),
+            "per_dataset": per_dataset,
+            "observed": observed,
+        }
+
     # -- solved paths -------------------------------------------------------
 
     def attach_solved_paths(self, root: ComponentNode) -> ComponentNode:
@@ -1387,6 +1831,20 @@ class _Extractor:
                 )
             )
         return _attach_rows(root, by_owner)
+
+
+def _free_scalars(node: ComponentNode) -> int:
+    """Every sampled scalar in a subtree, tuple slots counted one by one."""
+    total = 0
+    for current in _walk_nodes(node):
+        for row in current.rows:
+            if row.dimensionality == "tuple":
+                total += sum(
+                    1 for component in row.components if component.sampling == "free"
+                )
+            elif row.sampling == "free":
+                total += 1
+    return total
 
 
 def _tuple_sampling(components: Tuple[ParamRow, ...]) -> str:
@@ -1744,7 +2202,12 @@ def _repeats(
         prior_ids = {row.prior_id} | {
             component.prior_id for component in row.components
         }
-        if prior_ids & shared_within:
+        if row.provenance.kind == "hierarchical-draw":
+            # A draw is not sharing, so it is never described as one.
+            described.append(f"{name} \u25c2 drawn")
+        elif row.provenance.kind == "observed":
+            described.append(f"{name} observed")
+        elif prior_ids & shared_within:
             described.append(f"{name} \u21c4 shared")
         elif row.sampling == "fixed" and name in varies:
             described.append(f"{name} fixed (varies by member)")
@@ -1888,6 +2351,8 @@ class GraphSpec:
     shared: Tuple[SharedEdge, ...] = ()
     relations: Tuple[RelationEdge, ...] = ()
     assertions: Tuple[AssertionEdge, ...] = ()
+    #: hierarchical draws, in dataset order (the graphical pass only).
+    draws: Tuple[DrawEdge, ...] = ()
     #: element key -> the ``model.info`` paths it resolves to.  See
     #: :func:`_path_index` for the two value shapes.
     path_index: Dict[str, Any] = field(default_factory=dict)
@@ -1941,9 +2406,14 @@ class GraphSpec:
             shared=extractor.shared_edges(),
             relations=extractor.relation_edges(),
             assertions=extractor.assertion_edges(),
+            draws=extractor.draw_edges,
         )
-        object.__setattr__(spec, "path_index", _path_index(spec, model))
-        object.__setattr__(spec, "counts", _counts(model, spec, raw_root))
+        object.__setattr__(
+            spec, "path_index", _path_index(spec, model, extractor.hyper_info_paths)
+        )
+        counts = _counts(model, spec, raw_root)
+        counts.update(extractor.graphical_counts(raw_root))
+        object.__setattr__(spec, "counts", counts)
         return spec
 
     # -- convenience --------------------------------------------------------
@@ -1991,6 +2461,7 @@ class GraphSpec:
             "shared": [edge.to_dict() for edge in self.shared],
             "relations": [edge.to_dict() for edge in self.relations],
             "assertions": [edge.to_dict() for edge in self.assertions],
+            "draws": [edge.to_dict() for edge in self.draws],
             "path_index": {
                 key: (
                     entry if isinstance(entry, dict) else [list(path) for path in entry]
@@ -2061,7 +2532,7 @@ def _group_paths(paths: Sequence[Path]) -> Tuple[Path, ...]:
     )
 
 
-def _path_index(spec: GraphSpec, model) -> Dict[str, Any]:
+def _path_index(spec: GraphSpec, model, hyper_paths=None) -> Dict[str, Any]:
     """
     element key -> the ``model.info`` paths it resolves to.
 
@@ -2080,6 +2551,7 @@ def _path_index(spec: GraphSpec, model) -> Dict[str, Any]:
       than hiding it").  When the two agree the plain tuple shape is used.
     """
     index: Dict[str, Any] = {}
+    hyper_paths = hyper_paths or {}
     info_map = _info_group_map(model) if _has_plate(spec.root) else {}
 
     def _entry(concrete: Tuple[Path, ...]) -> Any:
@@ -2118,6 +2590,13 @@ def _path_index(spec: GraphSpec, model) -> Dict[str, Any]:
             suffix = row.path[len(node.path) :]
             _add_row(row, tuple(path + suffix for path in concrete))
         for child in node.children:
+            if child.path in hyper_paths:
+                # The correspondence contract for a hoisted hyper node: it
+                # stands for the ``_HierarchicalFactor`` collections
+                # ``model.info`` prints, one per draw, and that mapping is
+                # recorded rather than hidden.
+                _walk(child, hyper_paths[child.path])
+                continue
             if child.plate is not None:
                 suffixes = [
                     member[len(node.path) :] for member in child.plate.member_paths
