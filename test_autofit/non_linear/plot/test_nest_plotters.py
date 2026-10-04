@@ -78,3 +78,36 @@ def test__corner_anesthetic__reserved_kwarg_is_not_swallowed_by_the_decorator(sa
         nest_plotters.corner_anesthetic(samples=samples, weights=[1.0])
 
     assert "weights" in str(error.value)
+
+
+def test__corner_anesthetic__repeated_labels_still_plot(monkeypatch):
+    # A model with several components of one type repeats its LaTeX labels
+    # (every Gaussian of a basis is "$\\epsilon_{1}^{g}$"). Keyed by label,
+    # anesthetic raised KeyError, @log_plot_exception logged it as an
+    # unconverged posterior and no plot was ever written.
+    rng = np.random.default_rng(1)
+    samples = MockSamples()
+    samples.model = MockModel(["$x$", "$e$", "$e$"])
+    samples.parameter_lists = rng.normal(size=(200, 3)).tolist()
+    samples.weight_list = rng.random(200).tolist()
+
+    written = []
+    monkeypatch.setattr(
+        nest_plotters, "output_figure", lambda *args, **kwargs: written.append(kwargs)
+    )
+
+    import matplotlib.pyplot as plt
+
+    nest_plotters.corner_anesthetic(samples=samples)
+
+    assert written, "corner_anesthetic gave up without writing the figure"
+    ylabels = [ax.get_ylabel() for ax in plt.gcf().axes if ax.get_ylabel()]
+    assert ylabels.count("$e$") >= 2  # the repeated label is still what is displayed
+    plt.close("all")
+
+
+def test__corner_anesthetic__labels_kwarg_is_reserved(samples):
+    with pytest.raises(PlotKwargsError) as error:
+        nest_plotters.corner_anesthetic(samples=samples, labels=["a", "b"])
+
+    assert "labels" in str(error.value)

@@ -31,10 +31,20 @@ def corner_anesthetic(samples, path=None, filename="corner_anesthetic", format="
         model.total_free_parameters * config_dict["figsize_per_parammeter"],
     )
 
+    # anesthetic keys its columns by name, but LaTeX labels repeat whenever a model
+    # has several components of one type -- every Gaussian of a multi-Gaussian basis
+    # is labelled $\epsilon_{1}^{g}$. A repeated key makes plot_2d raise KeyError,
+    # which @log_plot_exception reports as an unconverged posterior, so the plot
+    # silently never appears. Key the columns by position, which is always unique,
+    # and pass the LaTeX labels for display only.
+    labels = model.parameter_labels_with_superscripts_latex
+    columns = [f"p{i}" for i in range(len(labels))]
+
     nested_samples = NestedSamples(
         np.asarray(samples.parameter_lists),
         weights=samples.weight_list,
-        columns=model.parameter_labels_with_superscripts_latex,
+        columns=columns,
+        labels=labels,
     )
 
     try:
@@ -63,7 +73,7 @@ def corner_anesthetic(samples, path=None, filename="corner_anesthetic", format="
     }
     kwargs = checked_kwargs(
         kwargs,
-        reserved=("data", "weights", "columns"),
+        reserved=("data", "weights", "columns", "labels"),
         target="anesthetic",
     )
 
@@ -78,7 +88,8 @@ def corner_anesthetic(samples, path=None, filename="corner_anesthetic", format="
     )
 
     fig, axes = make_2d_axes(
-        model.parameter_labels_with_superscripts_latex,
+        columns,
+        labels=nested_samples.get_labels_map(),
         **axes_settings,
     )
 
