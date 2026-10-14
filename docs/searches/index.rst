@@ -291,13 +291,13 @@ What each search's objective returns, the coordinates its backend proposes point
      - ``physical``
      - ``inf``
      - ``dill``
-     - --
+     - ``maxiter=10``
    * - :class:`~autofit.LBFGS`
      - ``neg2_log_posterior``
      - ``physical``
      - ``inf``
      - ``dill``
-     - --
+     - ``maxiter=10``
    * - :class:`~autofit.MultiStartAdam`
      - ``neg2_log_posterior``
      - ``physical``

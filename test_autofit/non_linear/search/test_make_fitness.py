@@ -92,6 +92,7 @@ def _fitness_constructions():
 def test_only_make_fitness_constructs_a_fitness():
     """
     NSS, the last search that built its own ``Fitness``, moved onto ``run(ctx)`` in
-    search-extensibility A3b; ``make_fitness`` is now the only construction site.
+    search-extensibility A3b; ``make_fitness`` is now the only construction site. It
+    lives in ``execution.py`` (a base of ``NonLinearSearch``) since A4.
     """
-    assert sorted(_fitness_constructions()) == ["abstract_search.py"]
+    assert sorted(_fitness_constructions()) == ["execution.py"]

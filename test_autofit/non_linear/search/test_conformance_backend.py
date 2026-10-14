@@ -409,7 +409,7 @@ class BackendRun:
 
 def _samples_from_outcome(search, model) -> SamplesFromOutcome:
     handler = _RecordHandler()
-    logger = logging.getLogger("autofit.non_linear.search.abstract_search")
+    logger = logging.getLogger("autofit.non_linear.search.internal_state")
     logger.addHandler(handler)
     outcome = SamplesFromOutcome()
     try:

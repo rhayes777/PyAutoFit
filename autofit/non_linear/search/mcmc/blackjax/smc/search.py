@@ -23,7 +23,6 @@ from autofit.non_linear.search.mcmc.blackjax.chains import (
     stack_initial_positions,
 )
 from autofit.non_linear.search.mcmc.blackjax.smc.samples import SamplesSMC
-from autofit.non_linear.test_mode import is_test_mode
 from autofit.non_linear.samples.adapter import RawSamples
 from autofit.non_linear.search import capabilities as cap
 
@@ -310,9 +309,6 @@ class SMC(AbstractMCMC):
         self.inverse_mass_matrix = inverse_mass_matrix_kind_from(
             self._inverse_mass_matrix_spec
         )
-
-        if is_test_mode():
-            self.apply_test_mode()
 
         self.logger.debug("Creating SMC Search")
 

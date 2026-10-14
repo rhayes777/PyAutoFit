@@ -22,7 +22,6 @@ from autofit.non_linear.search.mcmc.blackjax.chains import (
     split_chain_diagnostics,
     stack_initial_positions,
 )
-from autofit.non_linear.test_mode import is_test_mode
 from autofit.non_linear.samples.adapter import ChainPosterior, RawSamples
 from autofit.non_linear.search import capabilities as cap
 
@@ -257,9 +256,6 @@ class BlackJAXNUTS(AbstractMCMC):
         )
         self.mass_matrix_shrinkage = mass_matrix_shrinkage
         self.share_adaptation = share_adaptation
-
-        if is_test_mode():
-            self.apply_test_mode()
 
         self.logger.debug("Creating BlackJAXNUTS Search")
 

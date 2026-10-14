@@ -108,9 +108,6 @@ class DynestyStatic(AbstractDynesty):
         self.maxiter = maxiter
         self.logl_max = logl_max
 
-        from autofit.non_linear.test_mode import is_test_mode
-        if is_test_mode():
-            self.apply_test_mode()
 
     @property
     def run_kwargs(self) -> Dict:
