@@ -1,0 +1,313 @@
+"""
+The search-level ``seed`` (search-extensibility A4b, decision D4;
+``autofit.non_linear.search.seed``).
+
+``seed_golden.json`` freezes, per search, what PyAutoFit main 8437a3b76 computed
+(``main_*``: default and ``seed=7`` identifiers, output-path identifiers for a model,
+the default ``hash_list`` and the default ``search.json``) next to the identifiers this
+phase gives an explicit seed (``seed7``, ``seed42``). Identifiers are computed with
+``PYAUTO_TEST_MODE`` unset.
+
+The cases, kept separate as the A4 witness asks:
+
+- **default** and **explicit-None** constructions: byte-identical to main for all 15
+  (explicit None equals the default everywhere except NSS, as on main).
+- **old incomplete output**: a default-constructed search (and a seeded Nautilus/NSS)
+  resolves the same output folder as main, so an interrupted fit resumes into it.
+- **explicit seed**: Nautilus and NSS unchanged (``"seed"`` is a static field). Every
+  other search now hashes a seed it is given; for BlackJAXNUTS and SMC (which took an
+  unhashed ``seed`` before) and the four MultiStart searches (likewise) this is the
+  accepted re-key of existing explicit-seed output folders.
+- **old JSON**: a main ``search.json`` loads and round-trips; its identifier is the
+  default one except for BlackJAXNUTS and SMC, whose old JSON records ``seed: 42``,
+  which now reads as a user-supplied seed.
+"""
+
+import json
+import zipfile
+from pathlib import Path
+
+import numpy as np
+import pytest
+
+import autofit as af
+from autonerves.conf import with_config
+from autofit.mapper.identifier import Identifier
+from autofit.non_linear.search.seed import (
+    backend_generator,
+    backend_seed_sequences,
+    initializer_rng,
+)
+
+from test_autofit.non_linear.search.conformance_roster import searches_under_test
+
+pytestmark = [
+    pytest.mark.filterwarnings("ignore::FutureWarning"),
+    pytest.mark.filterwarnings("ignore::UserWarning"),
+]
+
+GOLDEN = json.loads((Path(__file__).parent / "seed_golden.json").read_text())
+
+ROSTER = {entry.name: entry for entry in searches_under_test()}
+
+STATIC_SEED = {"Nautilus", "NSS"}
+UNHASHED_DEFAULT_42 = {"BlackJAXNUTS", "SMC"}
+HAD_UNHASHED_SEED = UNHASHED_DEFAULT_42 | {
+    "MultiStartAdam",
+    "MultiStartADABelief",
+    "MultiStartLion",
+    "MultiStartProdigy",
+}
+
+
+@pytest.fixture(autouse=True)
+def no_test_mode(monkeypatch):
+    monkeypatch.delenv("PYAUTO_TEST_MODE", raising=False)
+
+
+def _cls(name):
+    entry = ROSTER[name]
+    missing = entry.missing_requirements()
+    if missing:
+        pytest.skip(f"{name} cannot be constructed without {missing}")
+    return entry.resolve()
+
+
+def _path_identifier(search):
+    search.paths.model = af.Model(af.ex.Gaussian)
+    return search.paths.identifier
+
+
+NAMES = sorted(GOLDEN)
+
+
+def test_golden_covers_the_roster():
+    assert set(NAMES) == set(ROSTER)
+    assert len(NAMES) == 15
+
+
+@pytest.mark.parametrize("name", NAMES)
+def test_default_and_explicit_none_identifiers_unchanged(name):
+    cls = _cls(name)
+
+    assert str(Identifier(cls())) == GOLDEN[name]["main_default"]
+    # Equal to the default for every search but NSS, whose static "seed" field
+    # defaults to 42 (an explicit None hashes differently there, as on main).
+    assert str(Identifier(cls(seed=None))) == GOLDEN[name]["main_none"]
+
+
+@pytest.mark.parametrize("name", NAMES)
+def test_default_hash_list_unchanged(name):
+    """`Nautilus().hash_list` (and every other search's) is unchanged."""
+    assert Identifier(_cls(name)()).hash_list == GOLDEN[name]["main_hash_list"]
+
+
+@pytest.mark.parametrize("name", NAMES)
+def test_old_incomplete_output_resolves_the_same_folder(name):
+    cls = _cls(name)
+
+    assert (
+        _path_identifier(cls(name="seed_case", path_prefix="golden"))
+        == GOLDEN[name]["main_default_path"]
+    )
+    if name in STATIC_SEED:
+        assert (
+            _path_identifier(cls(name="seed_case", path_prefix="golden", seed=7))
+            == GOLDEN[name]["main_seed7_path"]
+        )
+
+
+@pytest.mark.parametrize("name", NAMES)
+def test_explicit_seed(name):
+    cls = _cls(name)
+    identifier = str(Identifier(cls(seed=7)))
+
+    assert identifier == GOLDEN[name]["seed7"]
+    assert cls(seed=7).seed == 7
+
+    if name in STATIC_SEED:
+        assert identifier == GOLDEN[name]["main_seed7"]
+    else:
+        assert identifier != GOLDEN[name]["main_default"]
+
+    if name in HAD_UNHASHED_SEED:
+        # The accepted re-key: main ignored this seed in the identifier.
+        assert GOLDEN[name]["main_seed7"] == GOLDEN[name]["main_default"]
+        assert identifier != GOLDEN[name]["main_seed7"]
+
+
+@pytest.mark.parametrize("name", sorted(UNHASHED_DEFAULT_42))
+def test_nuts_smc_default_is_an_unhashed_42(name):
+    cls = _cls(name)
+
+    assert cls().seed is None
+    assert cls().backend_seed == 42
+    assert cls(seed=42).backend_seed == 42
+    assert str(Identifier(cls(seed=42))) == GOLDEN[name]["seed42"]
+    assert GOLDEN[name]["seed42"] != GOLDEN[name]["main_default"]
+
+
+@pytest.mark.parametrize("name", NAMES)
+def test_old_search_json_loads(name):
+    _cls(name)
+    old = GOLDEN[name]["main_search_json"]
+
+    loaded = af.from_dict(json.loads(json.dumps(old)))
+
+    assert af.to_dict(af.from_dict(af.to_dict(loaded))) == af.to_dict(loaded)
+    if name in UNHASHED_DEFAULT_42:
+        assert loaded.seed == 42
+        assert str(Identifier(loaded)) == GOLDEN[name]["seed42"]
+    else:
+        assert str(Identifier(loaded)) == GOLDEN[name]["main_default"]
+
+
+def _start_points(search):
+    model = af.Model(af.ex.Gaussian)
+    model.centre = af.UniformPrior(lower_limit=0.0, upper_limit=100.0)
+    model.normalization = af.UniformPrior(lower_limit=1.0, upper_limit=10.0)
+    model.sigma = af.UniformPrior(lower_limit=1.0, upper_limit=20.0)
+    analysis = af.ex.Analysis(data=np.ones(20), noise_map=np.ones(20))
+    fitness = search.make_fitness(analysis=analysis, model=model)
+    _, parameters, _ = search.start_points(model=model, fitness=fitness, n=4, plot=False)
+    return np.asarray(parameters)
+
+
+@pytest.mark.parametrize("name", NAMES)
+def test_same_seed_same_initial_points(name):
+    cls = _cls(name)
+
+    first = _start_points(cls(seed=11))
+    again = _start_points(cls(seed=11))
+    other = _start_points(cls(seed=12))
+
+    assert np.array_equal(first, again)
+    assert not np.array_equal(first, other)
+
+
+def test_initializer_never_uses_the_global_random_module(monkeypatch):
+    import random
+
+    def forbidden(*args, **kwargs):
+        raise AssertionError("the initializer used the global random module")
+
+    monkeypatch.setattr(random, "uniform", forbidden)
+    monkeypatch.setattr(random, "random", forbidden)
+
+    _start_points(af.Emcee(seed=1))
+    _start_points(af.BFGS(seed=1))
+    _start_points(af.DynestyStatic(seed=1))
+
+
+def test_streams_are_independent_and_stable():
+    search = af.Emcee(seed=3)
+
+    zero = initializer_rng(search).random(3)
+    one, two = backend_seed_sequences(search, k=2)
+
+    assert np.array_equal(zero, initializer_rng(search).random(3))
+    assert not np.array_equal(zero, np.random.default_rng(one).random(3))
+    assert not np.array_equal(
+        np.random.default_rng(one).random(3), np.random.default_rng(two).random(3)
+    )
+    assert backend_generator(af.Emcee()) is None
+
+
+def test_fit_context_hands_the_backend_streams_one_onwards():
+    from autofit.non_linear.search.fit_context import FitContext
+
+    search = af.Drawer(seed=5)
+    ctx = FitContext(
+        search=search,
+        model=af.Model(af.ex.Gaussian),
+        analysis=None,
+        fitness=None,
+        pool=None,
+        test_mode_level=0,
+    )
+
+    (first,) = ctx.rng.spawn(1)
+    (expected,) = backend_seed_sequences(search, k=1)
+
+    assert np.array_equal(first.generate_state(4), expected.generate_state(4))
+
+
+def test_grid_children_get_independent_streams_without_rekeying():
+    parent = af.Emcee(seed=9)
+    child_0 = parent.copy_with_paths(af.DirectoryPaths(name="c0"))
+    child_1 = parent.copy_with_paths(af.DirectoryPaths(name="c1"))
+    child_0._seed_spawn_key = (0,)
+    child_1._seed_spawn_key = (1,)
+
+    draws = [initializer_rng(s).random(3) for s in (parent, child_0, child_1)]
+
+    assert not np.array_equal(draws[0], draws[1])
+    assert not np.array_equal(draws[1], draws[2])
+    assert str(Identifier(child_0)) == str(Identifier(child_1)) == str(
+        Identifier(parent)
+    )
+    assert "_seed_spawn_key" not in af.to_dict(child_0)["arguments"]
+
+
+def test_grid_search_sets_a_spawn_key_per_job():
+    grid_search = af.SearchGridSearch(
+        search=af.m.MockSearch(name="grid_seed"), number_of_steps=2
+    )
+    model = af.Model(af.ex.Gaussian)
+    jobs = grid_search.make_jobs(
+        model=model,
+        analysis=af.m.MockAnalysis(),
+        grid_priors=[model.centre],
+    )
+
+    assert [job.search_instance._seed_spawn_key for job in jobs] == [(0,), (1,)]
+
+
+def test_dynesty_rstate_from_backend_stream():
+    assert af.DynestyStatic()._rstate_kwargs() == {}
+
+    a = af.DynestyStatic(seed=4)._rstate_kwargs()["rstate"].random(3)
+    b = af.DynestyStatic(seed=4)._rstate_kwargs()["rstate"].random(3)
+
+    assert np.array_equal(a, b)
+
+
+@with_config("general", "output", "samples_to_csv", value=True)
+def test_two_seeded_emcee_fits_write_identical_samples(tmp_path):
+    """The A4 witness: two `Emcee(seed=1)` fits on one platform, identical samples.csv."""
+    pytest.importorskip("emcee")
+
+    x = np.arange(30.0)
+    data = af.ex.Gaussian(centre=15.0, normalization=5.0, sigma=4.0).model_data_from(
+        xvalues=x
+    )
+    model = af.Model(af.ex.Gaussian)
+    model.centre = af.UniformPrior(lower_limit=0.0, upper_limit=30.0)
+    model.normalization = af.UniformPrior(lower_limit=1.0, upper_limit=10.0)
+    model.sigma = af.UniformPrior(lower_limit=1.0, upper_limit=10.0)
+
+    csvs = []
+    for run in range(2):
+        search = af.Emcee(
+            name=f"emcee_seed_{run}",
+            path_prefix=str(tmp_path),
+            nwalkers=10,
+            nsteps=30,
+            seed=1,
+            number_of_cores=1,
+            auto_correlation_settings=af.AutoCorrelationsSettings(
+                check_for_convergence=False, check_size=5
+            ),
+        )
+        search.fit(
+            model=model,
+            analysis=af.ex.Analysis(data=data, noise_map=np.ones(30)),
+        )
+        csv = search.paths._files_path / "samples.csv"
+        if csv.exists():
+            csvs.append(csv.read_bytes())
+        else:  # the output folder was zipped and removed (`remove_files`)
+            with zipfile.ZipFile(search.paths._zip_path) as archive:
+                csvs.append(archive.read("files/samples.csv"))
+
+    assert csvs[0] == csvs[1]
