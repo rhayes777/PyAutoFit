@@ -36,11 +36,58 @@ def _analysis():
     )
 
 
-@pytest.mark.parametrize("search_cls", [af.Drawer, af.Nautilus])
+@pytest.mark.parametrize(
+    "search_cls",
+    [af.Drawer, af.Nautilus, af.Emcee, af.Zeus, af.BFGS, af.LBFGS],
+)
 def test_proofs_are_on_the_bridge(search_cls):
     assert search_cls.run is not NonLinearSearch.run
     assert search_cls.raw_samples_from is not NonLinearSearch.raw_samples_from
     assert search_cls._fit is NonLinearSearch._fit
+
+
+@pytest.mark.parametrize(
+    "search_cls, test_mode_samples",
+    [(af.Emcee, True), (af.Zeus, False), (af.LBFGS, True)],
+)
+def test_ctx_start_points_forwards_the_search_test_mode_samples_choice(
+    monkeypatch, search_cls, test_mode_samples
+):
+    """
+    ``ctx.start_points`` lets the initializer return its test-mode samples unless the
+    search opts out (``_start_points_in_test_mode``): Zeus always drew real start
+    points (``test_mode_samples=False`` in its former ``_fit``).
+    """
+    from autofit.non_linear.search.fit_context import FitContext
+
+    seen = {}
+
+    def samples_from_model(total_points, model, fitness, paths, **kwargs):
+        seen.update(kwargs)
+        points = [[50.0, 1.0, 5.0]] * total_points
+        return points, points, [0.0] * total_points
+
+    search = search_cls()
+    monkeypatch.setattr(search.initializer, "samples_from_model", samples_from_model)
+
+    model = af.Model(af.ex.Gaussian)
+    analysis = _analysis()
+    fitness = search.make_fitness(analysis=analysis, model=model)
+
+    ctx = FitContext(
+        search=search,
+        model=model,
+        analysis=analysis,
+        fitness=fitness,
+        pool=search._pools(analysis),
+        test_mode_level=1,
+    )
+    monkeypatch.setattr(search, "plot_start_point", lambda **kwargs: None)
+
+    parameters, _ = ctx.start_points(3)
+
+    assert parameters.shape == (3, 3)
+    assert seen["test_mode_samples"] is test_mode_samples
 
 
 def test_drawer_fit_runs_through_run_ctx(monkeypatch):

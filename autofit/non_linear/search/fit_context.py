@@ -116,6 +116,7 @@ class FitContext:
             fitness=self.fitness,
             n=n,
             plot=self._search._plots_start_point,
+            test_mode_samples=self._search._start_points_in_test_mode,
         )
         return np.asarray(parameter_lists), np.asarray(figure_of_merit_list)
 
