@@ -234,6 +234,34 @@ class AbstractDynesty(AbstractNest, ABC):
             "first_update": self.first_update,
         }
 
+    def _rstate_kwargs(self) -> Dict:
+        """
+        dynesty's ``rstate`` on backend stream 1 of the search-level seed when the search
+        has one (``autofit.non_linear.search.seed``); empty otherwise, so an unseeded
+        search keeps dynesty's own default generator.
+        """
+        from autofit.non_linear.search.seed import backend_generator
+
+        rstate = backend_generator(self)
+        return {} if rstate is None else {"rstate": rstate}
+
+    def _sampler_kwargs(self) -> Dict:
+        """
+        The keyword arguments every dynesty sampler constructor (static or dynamic,
+        pooled or not) receives beyond its positional set-up: ``search_kwargs`` plus
+        ``rstate``, resolved once.
+
+        Precedence: an ``rstate`` already in ``search_kwargs`` (e.g. a subclass that
+        seeds dynesty's generator itself) wins; otherwise the search-level seed's
+        backend stream 1 (``_rstate_kwargs``); otherwise none, so dynesty keeps its own
+        default generator. Prefer the search-level ``seed=``, which also seeds the
+        initializer's live points.
+        """
+        search_kwargs = dict(self.search_kwargs)
+        if "rstate" in search_kwargs:
+            return search_kwargs
+        return {**search_kwargs, **self._rstate_kwargs()}
+
     @property
     def run_kwargs(self) -> Dict:
         """Run kwargs specific to each subclass, excluding maxcall."""

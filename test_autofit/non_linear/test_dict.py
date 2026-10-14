@@ -40,6 +40,9 @@ def make_dynesty_dict():
                 "type": "instance",
             },
             "sample": "auto",
+            # The search-level seed (search-extensibility A4b), recorded by every
+            # search's search.json; None unless the user passes one.
+            "seed": None,
             "silence": False,
             "slices": 5,
             "unique_tag": None,

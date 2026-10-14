@@ -14,8 +14,9 @@ Members filled by later phases:
   interrupted run's file exists, else ``None`` (phase A3, ``autofit.non_linear.checkpoint``);
   ``ctx.resume`` is the ``Checkpointer`` handle, not the loaded state, because some
   backends reopen their own native file (``Nautilus``);
-- ``ctx.rng`` is a ``numpy.random.SeedSequence`` from the search's ``seed`` attribute
-  when it has one (phase A4 adds one search-level seed and feeds the initializer).
+- ``ctx.rng`` is the ``numpy.random.SeedSequence`` of the search-level ``seed`` (phase
+  A4, ``autofit.non_linear.search.seed``): stream 0 is already spawned for the
+  initializer, so ``ctx.rng.spawn(k)`` gives the backend streams 1..k.
 
 ``RawSamples`` and ``samples_from_raw`` are phase A3's samples adapter
 (``autofit/non_linear/samples/adapter.py``), re-exported here for ``run(ctx)`` searches.
@@ -25,6 +26,7 @@ from typing import Any, Iterator
 import numpy as np
 
 from autofit.non_linear.samples.adapter import RawSamples, samples_from_raw
+from autofit.non_linear.search.seed import seed_sequence
 
 
 class UpdateSchedule:
@@ -80,7 +82,10 @@ class FitContext:
         self.fitness = fitness
         self.test_mode_level = test_mode_level
         self.pool = pool
-        self.rng = np.random.SeedSequence(getattr(search, "seed", None))
+        # Stream 0 is the initializer's (`ctx.start_points`), spawned here so the
+        # backend's `ctx.rng.spawn(k)` hands out streams 1..k (search-level seed, A4).
+        self.rng = seed_sequence(search)
+        self.rng.spawn(1)
         self.checkpointer = search.checkpointer
         resume_state = search.resume_state
         self.resume = (

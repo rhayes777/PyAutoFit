@@ -24,6 +24,11 @@ from autofit.non_linear.search.mcmc.blackjax.chains import (
 )
 from autofit.non_linear.samples.adapter import ChainPosterior, RawSamples
 from autofit.non_linear.search import capabilities as cap
+from autofit.non_linear.search.seed import (
+    LEGACY_DEFAULT_SEED,
+    child_seed,
+    legacy_default_seed,
+)
 
 if TYPE_CHECKING:
     from autofit.database.sqlalchemy_ import sa
@@ -71,7 +76,7 @@ class BlackJAXNUTS(AbstractMCMC):
         num_chains: int = 1,
         target_accept: float = 0.8,
         max_num_doublings: int = 10,
-        seed: int = 42,
+        seed: Optional[int] = None,
         initializer: Optional[Initializer] = None,
         inverse_mass_matrix: InverseMassMatrixSpec = None,
         mass_matrix_shrinkage: float = 0.0,
@@ -161,7 +166,13 @@ class BlackJAXNUTS(AbstractMCMC):
             NUTS doubling cap. 10 means at most 1024 leapfrog steps per
             sample, which is the standard ceiling.
         seed
-            Integer seed passed to ``jax.random.PRNGKey``.
+            The search-level seed (``autofit.non_linear.search.seed``), passed to ``jax.random.PRNGKey``.
+            ``None`` (the default) runs with the historical ``42`` and is not hashed into the identifier; any
+            other seed you pass is hashed, so it names its own output folder. ``seed=42`` is the default: main
+            wrote ``seed: 42`` into every default search's ``search.json`` and pickle, so a 42 is read as
+            ``None`` and old outputs keep their identifiers. An explicit ``seed=42`` therefore shares the
+            default's identity and output folder. In a grid search each cell's backend gets a child-specific
+            seed derived from this one (``autofit.non_linear.search.seed.child_seed``).
         initializer
             Generates the starting point(s), one per chain. Defaults to
             ``InitializerBall(0.49, 0.51)`` from ``AbstractMCMC`` — small
@@ -232,6 +243,7 @@ class BlackJAXNUTS(AbstractMCMC):
             number_of_cores=number_of_cores,
             silence=silence,
             session=session,
+            seed=legacy_default_seed(seed),
             **kwargs,
         )
 
@@ -240,7 +252,6 @@ class BlackJAXNUTS(AbstractMCMC):
         self.num_chains = num_chains
         self.target_accept = target_accept
         self.max_num_doublings = max_num_doublings
-        self.seed = seed
 
         # The raw specification (used at fit time to resolve an actual seed
         # array) is kept private; the public `inverse_mass_matrix` attribute
@@ -258,6 +269,27 @@ class BlackJAXNUTS(AbstractMCMC):
         self.share_adaptation = share_adaptation
 
         self.logger.debug("Creating BlackJAXNUTS Search")
+
+    @property
+    def backend_seed(self) -> int:
+        """
+        The seed the backend's ``jax.random.PRNGKey`` uses: ``seed``, or the historical
+        ``42`` when it is ``None`` (the unhashed default; ``autofit.non_linear.search.seed``),
+        made child-specific for a grid-search child.
+        """
+        return child_seed(
+            self, LEGACY_DEFAULT_SEED if self.seed is None else self.seed
+        )
+
+    def __setstate__(self, state):
+        """
+        A pickle written by main records the default as ``seed = 42``; read it as the
+        unhashed default so the unpickled search keeps main's identifier
+        (``autofit.non_linear.search.seed.legacy_default_seed``).
+        """
+        self.__dict__.update(state)
+        if "seed" in state:
+            self.seed = legacy_default_seed(state["seed"])
 
     def apply_test_mode(self):
         logger.warning(
@@ -317,7 +349,7 @@ class BlackJAXNUTS(AbstractMCMC):
         # One-shot trace + compile so warmup timing is honest.
         _ = float(log_density(initial_positions[0]))
 
-        rng_key = jax.random.PRNGKey(self.seed)
+        rng_key = jax.random.PRNGKey(self.backend_seed)
 
         # ---- Inverse mass matrix -----------------------------------------
         is_mass_matrix_diagonal, imm_seed = resolve_inverse_mass_matrix(

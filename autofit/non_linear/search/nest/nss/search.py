@@ -274,7 +274,9 @@ class NSS(abstract_nest.AbstractNest):
             not used. If ``number_of_cores > 1`` a warning is logged.
         seed
             JAX random seed used to initialise the unit-cube draws for the
-            ``n_live`` initial particles and the inner slice-sampling RNG.
+            ``n_live`` initial particles and the inner slice-sampling RNG. It is the
+            search-level seed (``autofit.non_linear.search.seed``) and stays a static
+            identifier field, so seeded NSS output folders are unchanged.
         silence
             If True, suppresses NSS's progress bar output.
         session
@@ -308,6 +310,7 @@ class NSS(abstract_nest.AbstractNest):
             number_of_cores=number_of_cores,
             silence=silence,
             session=session,
+            seed=seed,
             **kwargs,
         )
 
@@ -317,7 +320,6 @@ class NSS(abstract_nest.AbstractNest):
         self.chunk_size = chunk_size
         self.termination = termination
         self.checkpoint_interval = checkpoint_interval
-        self.seed = seed
 
         if number_of_cores is not None and number_of_cores > 1:
             logger.warning(
@@ -328,6 +330,16 @@ class NSS(abstract_nest.AbstractNest):
             )
 
         self.logger.debug("Creating NSS Search")
+
+    @property
+    def backend_seed(self) -> Optional[int]:
+        """
+        The seed the backend takes directly: ``seed``, made child-specific for a
+        grid-search child (``autofit.non_linear.search.seed.child_seed``).
+        """
+        from autofit.non_linear.search.seed import child_seed
+
+        return child_seed(self, self.seed)
 
     def fitness_overrides(self, analysis) -> dict:
         """
@@ -387,7 +399,7 @@ class NSS(abstract_nest.AbstractNest):
             log_priors = model.log_prior_list_from_vector(vector=params, xp=jnp)
             return sum(log_priors)
 
-        rng_key = jax.random.PRNGKey(self.seed)
+        rng_key = jax.random.PRNGKey(self.backend_seed)
         rng_key, init_key, run_key = jax.random.split(rng_key, 3)
 
         unit_cube = jax.random.uniform(init_key, shape=(self.n_live, ndim))

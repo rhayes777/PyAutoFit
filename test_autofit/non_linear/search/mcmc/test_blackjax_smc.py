@@ -96,7 +96,9 @@ def test__defaults():
     assert search.whiten_inflate == 2.0
     assert search.max_smc_steps == 200
     assert search.batch_size == 0
-    assert search.seed == 42
+    # The unhashed default: `seed` is None and the backend runs with 42 (A4b).
+    assert search.seed is None
+    assert search.backend_seed == 42
     assert search.inverse_mass_matrix == "none"
     assert search.is_warm_start is False
     # Cold SMC's evidence is only valid if the initial particles are prior draws, so — unlike every other

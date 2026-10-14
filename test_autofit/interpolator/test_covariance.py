@@ -73,20 +73,39 @@ def seed_search_randomness(monkeypatch):
     Three independent generators feed that result, so seeding any one of them
     is not enough:
 
-    * `numpy.random`, used by `test_variable_and_constant` to build its samples;
-    * the stdlib `random` module, used by `autofit.non_linear.initializer` to
-      draw the search's initial unit values;
-    * dynesty's own `rstate`, which defaults to
-      `numpy.random.Generator(PCG64(None))` — seeded from OS entropy and
-      reachable from neither of the above. This is the dominant term, and the
-      only one `test_single_variable` (which makes no random call of its own)
-      depends on at all.
+    * `numpy.random`, used by `test_variable_and_constant` to build its samples
+      (the stdlib `random` module is seeded alongside it for the prior-model
+      helpers that still draw from it);
+    * the initializer's `numpy.random.Generator`, which draws the search's
+      initial unit values. The searches here are unseeded, so it comes from
+      `autofit.non_linear.search.seed.initializer_rng`, stream 0 of
+      `seed_sequence(search)` = `SeedSequence(None)`, i.e. fresh OS entropy
+      reachable from neither global generator. `seed_sequence` is patched to
+      substitute `SEED` for a missing search seed;
+    * dynesty's own `rstate`. An unseeded search passes none
+      (`AbstractDynesty._sampler_kwargs`), so dynesty falls back to
+      `dynesty.dynesty.get_random_generator()` = `Generator(PCG64(None))`,
+      also OS entropy; that function is patched to seed with `SEED`. This is
+      the dominant term.
+
+    `test_single_variable` makes no random call of its own and depends only on
+    the last two.
 
     Global generator state is restored on teardown so the seeding cannot leak
     into whatever runs next in the same process.
     """
     import dynesty.dynesty
 
+    from autofit.non_linear.search import seed as search_seed
+
+    seed_sequence = search_seed.seed_sequence
+
+    def seeded_sequence(search):
+        if getattr(search, "seed", None) is not None:
+            return seed_sequence(search)
+        return np.random.SeedSequence(SEED, spawn_key=search_seed.spawn_key(search))
+
+    monkeypatch.setattr(search_seed, "seed_sequence", seeded_sequence)
     monkeypatch.setattr(
         dynesty.dynesty,
         "get_random_generator",

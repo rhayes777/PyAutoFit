@@ -173,7 +173,7 @@ class DynestyStatic(AbstractDynesty):
                     queue_size=queue_size,
                     pool=pool,
                     nlive=self.nlive,
-                    **self.search_kwargs,
+                    **self._sampler_kwargs(),
                 )
 
             self.write_uses_pool(uses_pool=False)
@@ -185,7 +185,7 @@ class DynestyStatic(AbstractDynesty):
                 ptform_args=[model],
                 live_points=live_points,
                 nlive=self.nlive,
-                **self.search_kwargs,
+                **self._sampler_kwargs(),
             )
 
     @property

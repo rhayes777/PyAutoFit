@@ -166,7 +166,7 @@ class DynestyDynamic(AbstractDynesty):
                     ndim=model.prior_count,
                     queue_size=queue_size,
                     pool=pool,
-                    **self.search_kwargs,
+                    **self._sampler_kwargs(),
                 )
 
             self.write_uses_pool(uses_pool=False)
@@ -177,7 +177,7 @@ class DynestyDynamic(AbstractDynesty):
                 ndim=model.prior_count,
                 logl_args=[model, fitness],
                 ptform_args=[model],
-                **self.search_kwargs,
+                **self._sampler_kwargs(),
             )
 
     @property

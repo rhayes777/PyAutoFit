@@ -298,6 +298,7 @@ class Nautilus(abstract_nest.AbstractNest):
             number_of_cores=number_of_cores,
             silence=silence,
             session=session,
+            seed=seed,
             **kwargs,
         )
 
@@ -310,7 +311,6 @@ class Nautilus(abstract_nest.AbstractNest):
         self.n_batch = n_batch
         self.n_like_new_bound = n_like_new_bound
         self.vectorized = vectorized
-        self.seed = seed
 
         self.f_live = f_live
         self.n_shell = n_shell
@@ -465,7 +465,7 @@ class Nautilus(abstract_nest.AbstractNest):
             n_networks=self.n_networks,
             n_batch=self.n_batch,
             n_like_new_bound=self.n_like_new_bound,
-            seed=self.seed,
+            seed=self.backend_seed,
         )
 
         return self.call_search(
@@ -561,7 +561,7 @@ class Nautilus(abstract_nest.AbstractNest):
                 n_batch=self.n_batch,
                 n_like_new_bound=self.n_like_new_bound,
                 vectorized=self.vectorized,
-                seed=self.seed,
+                seed=self.backend_seed,
             )
 
             search_internal = self.call_search(
@@ -756,3 +756,13 @@ class Nautilus(abstract_nest.AbstractNest):
     @property
     def batch_size(self):
         return self.n_batch
+
+    @property
+    def backend_seed(self) -> Optional[int]:
+        """
+        The seed the backend takes directly: ``seed``, made child-specific for a
+        grid-search child (``autofit.non_linear.search.seed.child_seed``).
+        """
+        from autofit.non_linear.search.seed import child_seed
+
+        return child_seed(self, self.seed)

@@ -144,6 +144,15 @@ class Identifier:
                     raise AssertionError(
                         f"Missing identifier fields for {type(value)}"
                     ) from e
+
+                # The search-level seed (search-extensibility A4, D4) is hashed only
+                # when not None, and only for a search whose fields do not already
+                # name it (Nautilus and NSS hash it statically).
+                identifier_seed = getattr(type(value), "_identifier_seed", None)
+                if identifier_seed is not None and "seed" not in fields:
+                    seed = identifier_seed(value)
+                    if seed is not None:
+                        d["seed"] = seed
             elif (
                 hasattr(value, "__class__")
                 and not inspect.isclass(value)

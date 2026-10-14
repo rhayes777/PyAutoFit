@@ -5,6 +5,7 @@ import pickle
 import tempfile
 import weakref
 from abc import ABC
+from hashlib import md5
 from pathlib import Path
 from shutil import rmtree
 from typing import Generator, Tuple, Optional, List, cast, Type
@@ -316,8 +317,35 @@ class SearchOutput(AbstractSearchOutput, fit_interface.Fit):
         The unique identifier of the search.
 
         This is used as a directory name and as a database identifier.
+
+        It is the identifier the search wrote, when the output persisted one: the
+        ``.identifier`` file holds the identifier's description (its ``hash_list``, one
+        entry per line), whose md5 is the identifier. Recomputing it from today's
+        loaded search and model would give an old output a new identity whenever the
+        hashing rules change (e.g. the search-level seed, which reads main's default
+        BlackJAXNUTS / SMC ``seed: 42`` differently). Outputs without the file are
+        recomputed, as before.
         """
+        persisted = self.persisted_identifier
+        if persisted is not None:
+            return persisted
         return str(Identifier([self.search, self.model, self.unique_tag]))
+
+    @property
+    def persisted_identifier(self) -> Optional[str]:
+        """
+        The identifier recorded in the output's ``.identifier`` file, or ``None`` when
+        the output has none (``DirectoryPaths.save_identifier`` writes
+        ``"\\n".join(hash_list)``; ``Identifier.__str__`` is the md5 of
+        ``".".join(hash_list)``).
+        """
+        try:
+            description = (self.directory / ".identifier").read_text()
+        except (FileNotFoundError, NotADirectoryError):
+            return None
+        if not description:
+            return None
+        return md5(".".join(description.split("\n")).encode("utf-8")).hexdigest()
 
     @property
     def model(self):

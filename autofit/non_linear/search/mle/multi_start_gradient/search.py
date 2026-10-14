@@ -416,6 +416,7 @@ class AbstractMultiStartGradient(AbstractMLE):
             iterations_per_full_update=iterations_per_full_update,
             silence=silence,
             session=session,
+            seed=seed,
             **kwargs,
         )
 
@@ -433,7 +434,6 @@ class AbstractMultiStartGradient(AbstractMLE):
         self.start_lower_limit = start_lower_limit
         self.start_upper_limit = start_upper_limit
         self.resurrect = resurrect
-        self.seed = seed
         # Resolved here rather than on ``AbstractMLE`` beside ``clipper``,
         # deliberately. The clipper is shared because LBFGS genuinely uses it
         # (it hands the bounds to scipy); a scaler has no meaning for a search
@@ -1955,10 +1955,19 @@ class AbstractMultiStartGradient(AbstractMLE):
         start stream, so nominally independent seeds in a multi-seed study share
         draws. ``SeedSequence`` spreads each ``(seed, stream)`` pair over the
         full state space instead.
+
+        A grid-search child (one with a spawn key, ``autofit.non_linear.search.seed``)
+        adds its key to the sequence, so the cells of a grid draw independent broad
+        starts and resurrections. Without a spawn key both paths above are unchanged.
         """
+        from autofit.non_linear.search.seed import spawn_key
+
+        key = spawn_key(self)
         if self.seed is None:
-            return stream
-        return np.random.SeedSequence([self.seed, stream])
+            if not key:
+                return stream
+            return np.random.SeedSequence(stream, spawn_key=key)
+        return np.random.SeedSequence([self.seed, stream], spawn_key=key)
 
     def _broad_starts(self, model, value_and_grad_single, jnp):
         """

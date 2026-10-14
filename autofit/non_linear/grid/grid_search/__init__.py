@@ -324,6 +324,9 @@ class GridSearch:
 
         search_instance = self.search_instance(name_path=name_path)
         search_instance.paths.model = model
+        # An independent child stream of the search-level seed per grid cell
+        # (`autofit.non_linear.search.seed`); not serialized and not hashed.
+        search_instance._seed_spawn_key = (index,)
 
         return Job(
             search_instance=search_instance,

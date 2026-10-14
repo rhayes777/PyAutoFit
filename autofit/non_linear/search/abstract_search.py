@@ -96,6 +96,7 @@ class NonLinearSearch(
         silence: bool = False,
         session: Optional[sa.orm.Session] = None,
         paths: Optional[AbstractPaths] = None,
+        seed: Optional[int] = None,
         **kwargs,
     ):
         """
@@ -119,6 +120,9 @@ class NonLinearSearch(
             If True, the default print output of the non-linear search is silenced.
         session
             An SQLAlchemy session instance so the results of the model-fit are written to an SQLite database.
+        seed
+            The search-level random seed: stream 0 of its ``SeedSequence`` seeds the initializer, streams 1+ the
+            backend; it enters the identifier only when not None (``autofit.non_linear.search.seed``).
         """
         super().__init__()
 
@@ -131,6 +135,7 @@ class NonLinearSearch(
         self.path_prefix_no_unique_tag = path_prefix
         self._logger = None
         self.unique_tag = unique_tag
+        self.seed = seed
 
         self.paths = paths_from(
             name=name,
