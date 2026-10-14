@@ -172,3 +172,16 @@ The signature and the member list are unchanged.
   after the test-mode bypass and the REQUIRED gate, before the context exists: the x64 check
   and one `jax.eval_shape` trace of the declared objective kind (and its gradient kind for
   `gradient == "uses"`). `run` therefore only ever sees a likelihood that traces.
+
+## Revision 3 (phase A4, 2026-10-14): the search-level seed
+
+The signature and the member list are unchanged.
+
+- **`ctx.rng`** is the `SeedSequence` of the one search-level `seed` that every search now
+  accepts (`autofit/non_linear/search/seed.py`, decision D4). Stream 0 is spawned when the
+  context is built and feeds the initializer (`ctx.start_points`, which no longer uses the
+  global `random` module), so `ctx.rng.spawn(k)` hands the backend streams `1..k`. Grid-search
+  children get an independent child sequence through a spawn key that is neither serialized
+  nor hashed.
+- **`ctx.test_mode_level`**: the level-1 reduction is applied by a post-init hook from the
+  search's `test_mode_budget` (phase A4a), so `run` sees the reduced budget on `self`.

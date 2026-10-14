@@ -21,6 +21,7 @@ from autofit.non_linear.fitness import Fitness
 from autofit.non_linear.parallel import PoolFactory, SneakyPool
 from autofit.non_linear.search import capabilities as cap
 from autofit.non_linear.search.runtime import check_cores
+from autofit.non_linear.search.seed import initializer_rng
 from autofit.non_linear.test_mode import test_mode_level
 
 if TYPE_CHECKING:
@@ -110,6 +111,14 @@ class SearchExecutionMixin:
         ctx.close(failed=False)
 
         return search_internal, fitness
+
+    def _identifier_seed(self):
+        """
+        The seed the identifier walk hashes when the search's ``__identifier_fields__``
+        do not name ``"seed"``: the search-level seed, hashed only when not None
+        (``autofit.non_linear.search.seed``).
+        """
+        return getattr(self, "seed", None)
 
     def run(self, ctx) -> Any:
         """
@@ -267,7 +276,8 @@ class SearchExecutionMixin:
         The search's ``n`` initial points, drawn by its initializer, with the start-point
         plot made once, here, from the first of them.
 
-        The one place the searches draw start points: the initializer is evaluated through
+        The one place the searches draw start points, from stream 0 of the search's seed
+        (``autofit.non_linear.search.seed``): the initializer is evaluated through
         ``fitness`` (so a JAX analysis runs its lazily jitted scalar objective) with the
         fit's effective core count (the JAX fork rule of ``PoolFactory``).
 
@@ -297,6 +307,7 @@ class SearchExecutionMixin:
                 fitness=fitness,
                 paths=self.paths,
                 n_cores=self._pools(fitness.analysis).number_of_cores,
+                rng=initializer_rng(self),
                 **initializer_kwargs,
             )
         )
