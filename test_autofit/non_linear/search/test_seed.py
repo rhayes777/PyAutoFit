@@ -311,3 +311,81 @@ def test_two_seeded_emcee_fits_write_identical_samples(tmp_path):
                 csvs.append(archive.read("files/samples.csv"))
 
     assert csvs[0] == csvs[1]
+
+
+# ---------------------------------------------------------------------------
+# Adversary review 07.
+# ---------------------------------------------------------------------------
+
+# Review 07 finding 2: a subclass that already puts ``rstate`` in ``search_kwargs``.
+class _SeededDynestyStatic(af.DynestyStatic):
+    def __init__(self, *args, rstate_seed=0, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.rstate_seed = rstate_seed
+
+    @property
+    def search_kwargs(self):
+        return {
+            **super().search_kwargs,
+            "rstate": np.random.default_rng(self.rstate_seed),
+        }
+
+
+class _SeededDynestyDynamic(af.DynestyDynamic):
+    @property
+    def search_kwargs(self):
+        return {**super().search_kwargs, "rstate": np.random.default_rng(0)}
+
+
+def test_dynesty_sampler_kwargs_resolve_rstate_once():
+    assert "rstate" not in af.DynestyStatic()._sampler_kwargs()
+    seeded = af.DynestyStatic(seed=4)._sampler_kwargs()["rstate"].random(3)
+    assert np.array_equal(
+        seeded, af.DynestyStatic(seed=4)._rstate_kwargs()["rstate"].random(3)
+    )
+
+    # An explicit ``rstate`` in ``search_kwargs`` wins over the search-level seed.
+    explicit = _SeededDynestyStatic(seed=4, rstate_seed=0)._sampler_kwargs()
+    assert np.array_equal(
+        explicit["rstate"].random(3), np.random.default_rng(0).random(3)
+    )
+
+
+@pytest.mark.parametrize("cls", [_SeededDynestyStatic, _SeededDynestyDynamic])
+@pytest.mark.parametrize("pooled", [False, True])
+def test_dynesty_subclass_with_rstate_constructs_its_sampler(cls, pooled, monkeypatch):
+    """The real sampler construction, static and dynamic, pooled and not."""
+    pytest.importorskip("dynesty")
+
+    model = af.Model(af.ex.Gaussian)
+    analysis = af.ex.Analysis(data=np.ones(20), noise_map=np.ones(20))
+    search = cls(seed=3, nlive=10) if cls is _SeededDynestyStatic else cls(seed=3)
+    fitness = search.make_fitness(analysis=analysis, model=model)
+    monkeypatch.setattr(search, "write_uses_pool", lambda uses_pool: None)
+
+    pool = None
+    if pooled:
+
+        class _Pool:
+            size = 1
+
+            def loglike(self, x):
+                return fitness(x)
+
+            def prior_transform(self, x):
+                return x
+
+            def map(self, f, xs):
+                return list(map(f, xs))
+
+        pool = _Pool()
+
+    sampler = search.search_internal_from(
+        model=model,
+        fitness=fitness,
+        checkpoint_exists=False,
+        pool=pool,
+        queue_size=1 if pooled else None,
+    )
+
+    assert sampler is not None

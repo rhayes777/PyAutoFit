@@ -245,6 +245,23 @@ class AbstractDynesty(AbstractNest, ABC):
         rstate = backend_generator(self)
         return {} if rstate is None else {"rstate": rstate}
 
+    def _sampler_kwargs(self) -> Dict:
+        """
+        The keyword arguments every dynesty sampler constructor (static or dynamic,
+        pooled or not) receives beyond its positional set-up: ``search_kwargs`` plus
+        ``rstate``, resolved once.
+
+        Precedence: an ``rstate`` already in ``search_kwargs`` (e.g. a subclass that
+        seeds dynesty's generator itself) wins; otherwise the search-level seed's
+        backend stream 1 (``_rstate_kwargs``); otherwise none, so dynesty keeps its own
+        default generator. Prefer the search-level ``seed=``, which also seeds the
+        initializer's live points.
+        """
+        search_kwargs = dict(self.search_kwargs)
+        if "rstate" in search_kwargs:
+            return search_kwargs
+        return {**search_kwargs, **self._rstate_kwargs()}
+
     @property
     def run_kwargs(self) -> Dict:
         """Run kwargs specific to each subclass, excluding maxcall."""
