@@ -307,3 +307,54 @@ def test_a_retained_archive_survives_with_search_internal_off(
 
     assert "files/search_internal/search_internal.hdf" in _archived(emcee)
     assert not any("search_internal/" in name for name in _archived(drawer))
+
+
+class FlakyArchive(DillCheckpointer):
+    """
+    An archive whose first ``finalize`` fails as a full disk would (review 05 finding 2).
+    """
+
+    failures = 0
+    calls = 0
+
+    def finalize(self, paths, obj=None):
+        type(self).calls += 1
+        if type(self).failures > 0:
+            type(self).failures -= 1
+            raise OSError("simulated disk full")
+        super().finalize(paths, obj)
+
+
+class FlakyDrawer(af.Drawer):
+    checkpointer = FlakyArchive(retain_after_completion=True)
+
+
+def test_a_failed_archive_write_leaves_the_fit_incomplete_and_a_rerun_finishes_it(
+    paths, monkeypatch
+):
+    """
+    ``.completed`` is written only once the archive is finalized: an archive failure
+    leaves no marker, and the rerun re-finalizes the archive and completes.
+    """
+    import numpy as np
+
+    monkeypatch.setenv("PYAUTO_TEST_MODE", "1")
+    monkeypatch.delenv("PYAUTO_SKIP_FIT_OUTPUT", raising=False)
+    FlakyArchive.failures = 1
+    FlakyArchive.calls = 0
+
+    analysis = af.ex.Analysis(data=np.full(10, 5.0), noise_map=np.ones(10))
+
+    first = FlakyDrawer(name="flaky_archive", unique_tag="checkpoint_flaky", total_draws=5)
+    with pytest.raises(OSError, match="simulated disk full"):
+        first.fit(model=af.Model(af.ex.Gaussian), analysis=analysis)
+
+    assert not first.paths.is_complete
+
+    second = FlakyDrawer(name="flaky_archive", unique_tag="checkpoint_flaky", total_draws=5)
+    second.fit(model=af.Model(af.ex.Gaussian), analysis=analysis)
+
+    assert second.paths.is_complete or Path(second.paths._zip_path).exists()
+    assert FlakyArchive.calls == 2
+    assert "files/search_internal/search_internal.dill" in _archived(second)
+    assert ".completed" in _archived(second)

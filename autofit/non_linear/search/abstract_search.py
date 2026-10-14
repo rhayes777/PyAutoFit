@@ -744,7 +744,11 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC, metaclass=_SearchMeta):
                     info=info,
                 )
 
-        if not self.paths.is_complete:
+        # `start_resume_fit` finalizes the archive itself, before it writes
+        # `.completed`; a completed fit's `post_fit_output` still tidies the folder.
+        resumed_or_started = not self.paths.is_complete
+
+        if resumed_or_started:
             result = self.start_resume_fit(
                 analysis=analysis,
                 model=model,
@@ -762,6 +766,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC, metaclass=_SearchMeta):
 
             self.post_fit_output(
                 search_internal=result.search_internal,
+                finalize_search_internal=not resumed_or_started,
             )
 
         gc.collect()
@@ -963,9 +968,24 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC, metaclass=_SearchMeta):
 
         model.unfreeze()
 
-        self.paths.completed()
+        self._complete_fit(search_internal=search_internal)
 
         return result
+
+    def _complete_fit(self, search_internal):
+        """
+        Finalize the fit's retained internal state, then mark the fit complete.
+
+        The order is the transaction: ``.completed`` is written only once the archive
+        (and the discard of the resume state it supersedes) has succeeded. An archive
+        write that fails (a full disk) therefore leaves no marker, the resume state is
+        still on disk, and the next run resumes and finalizes again, rather than
+        loading a "completed" fit whose archive never landed.
+        """
+        if not skip_fit_output():
+            self.finalize_search_internal(search_internal=search_internal)
+
+        self.paths.completed()
 
     def _test_mode_valid_parameter_vector(
         self,
@@ -1192,7 +1212,21 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC, metaclass=_SearchMeta):
 
         return result
 
-    def post_fit_output(self, search_internal):
+    def finalize_search_internal(self, search_internal):
+        """
+        Archive ``search_internal`` (``output_search_internal``) when the search retains
+        its internal state, otherwise remove the ``search_internal`` folder.
+
+        Run before ``.completed`` is written (``_complete_fit``), so a failure here
+        leaves the fit resumable.
+        """
+        if not self.retains_search_internal:
+            self.logger.info("Removing search internal folder.")
+            self.paths.remove_search_internal()
+        elif search_internal is not None:
+            self.output_search_internal(search_internal=search_internal)
+
+    def post_fit_output(self, search_internal, finalize_search_internal: bool = True):
         """
         Cleans up the output folderds after a completed non-linear search.
 
@@ -1207,12 +1241,13 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC, metaclass=_SearchMeta):
         ----------
         search_internal
             The internal search.
+        finalize_search_internal
+            Whether to archive (or remove) the internal state here. ``False`` when the
+            fit just ran, since ``start_resume_fit`` finalized it before writing
+            ``.completed``.
         """
-        if not self.retains_search_internal:
-            self.logger.info("Removing search internal folder.")
-            self.paths.remove_search_internal()
-        elif search_internal is not None:
-            self.output_search_internal(search_internal=search_internal)
+        if finalize_search_internal:
+            self.finalize_search_internal(search_internal=search_internal)
 
         if not self.disable_output:
             self.logger.info("Removing all files except for .zip file")
@@ -1346,7 +1381,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC, metaclass=_SearchMeta):
         # Mark the fit complete, exactly as start_resume_fit does — a bypassed
         # fit must be resumable (paths.is_complete -> result_via_completed_fit
         # on the next run), or every rerun re-bypasses the whole pipeline.
-        self.paths.completed()
+        self._complete_fit(search_internal=None)
 
         return result
 

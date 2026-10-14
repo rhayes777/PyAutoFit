@@ -536,18 +536,10 @@ class NSS(abstract_nest.AbstractNest):
             seed=int(self.seed),
         )
 
-        if checkpoint_path is not None and checkpoint_path.exists():
-            try:
-                self.resume_state.discard(ctx.paths)
-            except OSError as exc:
-                self.logger.warning(
-                    "Failed to delete completed-run checkpoint %s: %s. The "
-                    "next fresh af.NSS fit at this path will attempt to resume "
-                    "from it — delete manually if that is not desired.",
-                    checkpoint_path,
-                    exc,
-                )
-
+        # The checkpoint is kept until the result exists: `start_resume_fit` discards
+        # this resume state only after the archive is finalized and before it writes
+        # `.completed` (`NonLinearSearch._complete_fit`), so a failure while the result
+        # is processed leaves the run resumable.
         return search_internal
 
     @property
