@@ -12,8 +12,8 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.checkpoint import PICKLE_FILENAME, PickleCheckpointer
 from autofit.non_linear.objective import jax_objective
 from autofit.non_linear.initializer import Initializer, InitializerPrior
-from autofit.non_linear.search.mcmc.abstract_mcmc import AbstractMCMC
-from autofit.non_linear.search.mcmc.auto_correlations import AutoCorrelationsSettings
+from autofit.non_linear.search.abstract_search import NonLinearSearch
+from autofit.non_linear.search.posterior_kind import WEIGHTED
 from autofit.non_linear.search.mcmc.blackjax.chains import (
     InverseMassMatrixSpec,
     SERIALISED_KINDS,
@@ -53,7 +53,7 @@ _COLD_TARGET_WIDTH = 0.1
 VALID_KERNELS = ("mala", "hmc")
 
 
-class SMC(AbstractMCMC):
+class SMC(NonLinearSearch):
     samples_cls = SamplesSMC
 
     # Static capabilities (see ``autofit.non_linear.search.capabilities``); mirrored
@@ -104,9 +104,6 @@ class SMC(AbstractMCMC):
         seed: Optional[int] = None,
         initializer: Optional[Initializer] = None,
         inverse_mass_matrix: InverseMassMatrixSpec = None,
-        auto_correlation_settings: AutoCorrelationsSettings = AutoCorrelationsSettings(
-            check_for_convergence=False
-        ),
         iterations_per_quick_update: Optional[int] = None,
         iterations_per_full_update: Optional[int] = None,
         number_of_cores: int = 1,
@@ -258,9 +255,6 @@ class SMC(AbstractMCMC):
             ``search.json`` records only the kind (``"none"``, ``"array"`` or ``"result"``), so a search loaded
             from it receives that string: ``"none"`` behaves as ``None``, while ``"array"`` / ``"result"`` raise at
             fit time because the covariance was not saved.
-        auto_correlation_settings
-            Kept for API parity with the other MCMC searches. SMC particles are not a chain, so no
-            auto-correlation diagnostics are computed and ``check_for_convergence`` defaults to ``False``.
         iterations_per_full_update
             Inherited from the autonerves config when ``None``. SMC calls ``perform_update`` once per
             temperature (SMC steps are coarse and few), so this does not chunk the run.
@@ -273,12 +267,16 @@ class SMC(AbstractMCMC):
             An SQLalchemy session instance.
         """
 
+        # SMC is a weighted-posterior search (A4c): its particles are not a chain, so it
+        # takes no auto-correlation settings. An old `search.json` still records them;
+        # they are accepted and ignored so it loads.
+        kwargs.pop("auto_correlation_settings", None)
+
         super().__init__(
             name=name,
             path_prefix=path_prefix,
             unique_tag=unique_tag,
-            initializer=initializer or InitializerPrior(),
-            auto_correlation_settings=auto_correlation_settings,
+            initializer=WEIGHTED.initializer_for(initializer),
             iterations_per_quick_update=iterations_per_quick_update,
             iterations_per_full_update=iterations_per_full_update,
             number_of_cores=number_of_cores,

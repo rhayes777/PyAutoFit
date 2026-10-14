@@ -10,7 +10,9 @@ from autofit import exc
 from autofit.mapper.model_mapper import ModelMapper
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.initializer import Initializer
-from autofit.non_linear.search.mcmc.abstract_mcmc import AbstractMCMC
+from autofit.non_linear.search.abstract_search import NonLinearSearch
+from autofit.non_linear.search.posterior_kind import CHAIN
+from autofit.non_linear.samples.mcmc import SamplesMCMC
 from autofit.non_linear.search.mcmc.auto_correlations import AutoCorrelationsSettings
 from autofit.non_linear.search.mcmc.auto_correlations import AutoCorrelations
 from autofit.non_linear.test_mode import is_test_mode
@@ -23,7 +25,9 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class Zeus(AbstractMCMC):
+class Zeus(NonLinearSearch):
+    samples_cls = SamplesMCMC
+
     # Static capabilities (see ``autofit.non_linear.search.capabilities``); mirrored
     # by ``search/registry.py``. Never identifier fields.
     jax_use = cap.JaxUse.NONE
@@ -70,7 +74,7 @@ class Zeus(AbstractMCMC):
         check_walkers: bool = True,
         maxcall: Optional[int] = None,
         initializer: Optional[Initializer] = None,
-        auto_correlation_settings=AutoCorrelationsSettings(),
+        auto_correlation_settings: Optional[AutoCorrelationsSettings] = None,
         iterations_per_quick_update: int = None,
         iterations_per_full_update: int = None,
         number_of_cores: int = 1,
@@ -119,14 +123,17 @@ class Zeus(AbstractMCMC):
             name=name,
             path_prefix=path_prefix,
             unique_tag=unique_tag,
-            initializer=initializer,
-            auto_correlation_settings=auto_correlation_settings,
+            initializer=CHAIN.initializer_for(initializer),
             iterations_per_quick_update=iterations_per_quick_update,
             iterations_per_full_update=iterations_per_full_update,
             number_of_cores=number_of_cores,
             silence=silence,
             session=session,
             **kwargs
+        )
+
+        self.auto_correlation_settings = CHAIN.auto_correlation_settings_for(
+            auto_correlation_settings
         )
 
         self.nwalkers = nwalkers

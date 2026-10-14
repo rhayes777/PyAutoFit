@@ -11,7 +11,9 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.checkpoint import PICKLE_FILENAME, PickleCheckpointer
 from autofit.non_linear.fitness import Fitness
 from autofit.non_linear.initializer import Initializer
-from autofit.non_linear.search.mcmc.abstract_mcmc import AbstractMCMC
+from autofit.non_linear.search.abstract_search import NonLinearSearch
+from autofit.non_linear.search.posterior_kind import CHAIN
+from autofit.non_linear.samples.mcmc import SamplesMCMC
 from autofit.non_linear.search.mcmc.auto_correlations import AutoCorrelations
 from autofit.non_linear.search.mcmc.auto_correlations import AutoCorrelationsSettings
 from autofit.non_linear.search.mcmc.blackjax.chains import (
@@ -36,7 +38,9 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class BlackJAXNUTS(AbstractMCMC):
+class BlackJAXNUTS(NonLinearSearch):
+    samples_cls = SamplesMCMC
+
     # Static capabilities (see ``autofit.non_linear.search.capabilities``); mirrored
     # by ``search/registry.py``. Never identifier fields.
     jax_use = cap.JaxUse.REQUIRED
@@ -81,9 +85,7 @@ class BlackJAXNUTS(AbstractMCMC):
         inverse_mass_matrix: InverseMassMatrixSpec = None,
         mass_matrix_shrinkage: float = 0.0,
         share_adaptation: bool = False,
-        auto_correlation_settings: AutoCorrelationsSettings = AutoCorrelationsSettings(
-            check_for_convergence=False
-        ),
+        auto_correlation_settings: Optional[AutoCorrelationsSettings] = None,
         iterations_per_quick_update: Optional[int] = None,
         iterations_per_full_update: Optional[int] = None,
         number_of_cores: int = 1,
@@ -236,8 +238,7 @@ class BlackJAXNUTS(AbstractMCMC):
             name=name,
             path_prefix=path_prefix,
             unique_tag=unique_tag,
-            initializer=initializer,
-            auto_correlation_settings=auto_correlation_settings,
+            initializer=CHAIN.initializer_for(initializer),
             iterations_per_quick_update=iterations_per_quick_update,
             iterations_per_full_update=iterations_per_full_update,
             number_of_cores=number_of_cores,
@@ -245,6 +246,10 @@ class BlackJAXNUTS(AbstractMCMC):
             session=session,
             seed=legacy_default_seed(seed),
             **kwargs,
+        )
+
+        self.auto_correlation_settings = CHAIN.auto_correlation_settings_for(
+            auto_correlation_settings, check_for_convergence=False
         )
 
         self.num_warmup = num_warmup

@@ -5,7 +5,8 @@ from typing import Optional, TYPE_CHECKING
 from autofit import exc
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.search.mle.abstract_mle import AbstractMLE
+from autofit.non_linear.search.abstract_search import NonLinearSearch
+from autofit.non_linear.search.posterior_kind import POINT
 from autofit.non_linear.analysis import Analysis
 from autofit.non_linear.clipper import (
     AbstractClipper,
@@ -22,7 +23,7 @@ if TYPE_CHECKING:
     from autofit.database.sqlalchemy_ import sa
 
 
-class AbstractBFGS(AbstractMLE):
+class AbstractBFGS(NonLinearSearch):
 
     # Same contract as ``AbstractMultiStartGradient``: bounds handed to scipy
     # change where the fit converges, so the clipper forks the identifier here
@@ -104,12 +105,13 @@ class AbstractBFGS(AbstractMLE):
             real clipper; see ``_bounds_from``.
         """
 
+        self.clipper = POINT.clipper_for(clipper)
+
         super().__init__(
             name=name,
             path_prefix=path_prefix,
             unique_tag=unique_tag,
-            initializer=initializer,
-            clipper=clipper,
+            initializer=POINT.initializer_for(initializer),
             iterations_per_quick_update=iterations_per_quick_update,
             iterations_per_full_update=iterations_per_full_update,
             silence=silence,

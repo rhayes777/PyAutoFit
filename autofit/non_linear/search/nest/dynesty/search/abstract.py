@@ -13,7 +13,9 @@ import warnings
 
 from autofit import exc
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.search.nest.abstract_nest import AbstractNest
+from autofit.non_linear.search.abstract_search import NonLinearSearch
+from autofit.non_linear.search.posterior_kind import WEIGHTED
+from autofit.non_linear.samples.nest import SamplesNest
 from autofit.non_linear.samples.adapter import RawSamples
 from autofit.non_linear.search import capabilities as cap
 
@@ -86,7 +88,9 @@ def prior_transform(cube, model):
     return cube
 
 
-class AbstractDynesty(AbstractNest, ABC):
+class AbstractDynesty(NonLinearSearch, ABC):
+    samples_cls = SamplesNest
+
     # Static capabilities (see ``autofit.non_linear.search.capabilities``); mirrored
     # by ``search/registry.py``. Never identifier fields.
     jax_use = cap.JaxUse.OPTIONAL
@@ -171,6 +175,7 @@ class AbstractDynesty(AbstractNest, ABC):
             name=name,
             path_prefix=path_prefix,
             unique_tag=unique_tag,
+            initializer=WEIGHTED.nested_initializer_for(kwargs.pop("initializer", None)),
             iterations_per_quick_update=iterations_per_quick_update,
             iterations_per_full_update=iterations_per_full_update,
             number_of_cores=number_of_cores,
