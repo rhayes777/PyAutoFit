@@ -2,16 +2,11 @@ from __future__ import annotations
 
 from abc import ABC
 from typing import Optional, TYPE_CHECKING
-import warnings
 
-from autonerves import conf
 from autofit.non_linear.search.abstract_search import NonLinearSearch
-from autofit.non_linear.initializer import (
-    InitializerPrior,
-    AbstractInitializer,
-    InitializerParamBounds,
-)
-from autofit.non_linear.plot import corner_anesthetic
+from autofit.non_linear.initializer import AbstractInitializer
+from autofit.non_linear.search.deprecated_family import warn_family_subclass
+from autofit.non_linear.search.posterior_kind import WEIGHTED
 from autofit.non_linear.samples.nest import SamplesNest
 
 if TYPE_CHECKING:
@@ -19,7 +14,22 @@ if TYPE_CHECKING:
 
 
 class AbstractNest(NonLinearSearch, ABC):
+    """
+    **Deprecated** (search-extensibility A4c): no public search inherits it any more,
+    and it is removed one release later. Subclass ``NonLinearSearch`` with
+    ``posterior_kind = PosteriorKind.WEIGHTED`` and apply
+    ``autofit.non_linear.search.posterior_kind.WEIGHTED`` in ``__init__`` instead.
+
+    Kept as a distinct class with the former defaults (``InitializerPrior``, the
+    rejection of ``InitializerParamBounds``, ``SamplesNest``, the anesthetic corner
+    plot), so an existing subclass behaves exactly as before; subclassing it warns.
+    """
+
     samples_cls = SamplesNest
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        warn_family_subclass(cls, "AbstractNest", "WEIGHTED")
 
     def __init__(
         self,
@@ -34,27 +44,11 @@ class AbstractNest(NonLinearSearch, ABC):
         initializer: Optional[AbstractInitializer] = None,
         **kwargs
     ):
-        """
-        Abstract class of a nested sampling `NonLinearSearch` (e.g. Dynesty, Nautilus, NSS).
-
-        It defaults the initializer to `InitializerPrior` (nested sampling draws its initial live points from the
-        prior), rejects `InitializerParamBounds`, and provides the corner plot of the nested sampling results.
-
-        Parameters
-        ----------
-        session
-            An SQLAlchemy session instance so the results of the model-fit are written to an SQLite database.
-        """
-        if isinstance(initializer, InitializerParamBounds):
-            raise ValueError(
-                "InitializerParamBounds cannot be used for nested sampling"
-            )
-
         super().__init__(
             name=name,
             path_prefix=path_prefix,
             unique_tag=unique_tag,
-            initializer=initializer or InitializerPrior(),
+            initializer=WEIGHTED.nested_initializer_for(initializer),
             iterations_per_quick_update=iterations_per_quick_update,
             iterations_per_full_update=iterations_per_full_update,
             number_of_cores=number_of_cores,
@@ -64,15 +58,4 @@ class AbstractNest(NonLinearSearch, ABC):
         )
 
     def plot_results(self, samples):
-
-        def should_plot(name):
-            return conf.instance["visualize"]["plots_search"]["nest"][name]
-
-        if should_plot("corner_anesthetic"):
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
-                corner_anesthetic(
-                    samples=samples,
-                    path=self.paths.image_path / "search",
-                    format="png",
-                )
+        WEIGHTED.plot_results(self, samples)
