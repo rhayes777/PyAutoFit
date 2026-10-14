@@ -121,7 +121,19 @@ class FitContext:
 
         The backend is paused for the duration of the call (the update is synchronous),
         so ``internal`` is read as it stands at this point of the run.
+
+        The checkpoint is saved first: the search's resume state (``ctx.resume``'s
+        strategy, ``NonLinearSearch.resume_state``) gets ``save(internal)``, so an
+        interrupted run resumes from the last update. A native resume state (one the
+        backend writes itself) keeps its no-op ``save``; a search without a resume
+        state is not resumable and saves nothing until its archive is finalized at
+        completion. ``finalize`` is never called here, since that is the completion step
+        that may discard the resume state.
         """
+        resume_state = self._search.resume_state
+        if resume_state is not None:
+            resume_state.save(self.paths, internal)
+
         return self._search.perform_update(
             model=self.model,
             analysis=self._analysis,
@@ -132,14 +144,18 @@ class FitContext:
 
     def close(self, failed: bool):
         """
-        Clean up after ``run``. On failure: close the pools the context built, shut down
-        the quick-update threads and release the compiled objectives. On success the
-        fitness is still needed for the final update, which shuts its threads down.
+        Clean up after ``run``, on every exit. The pools the context built are shut
+        down on both paths (closed and joined on success, terminated and joined on
+        failure; ``PoolFactory.close``). On failure the quick-update threads are also
+        shut down and the compiled objectives released; on success the fitness is still
+        needed for the final update, which shuts its threads down.
         """
+        close_pools = getattr(self.pool, "close", None)
+        if close_pools is not None:
+            close_pools(failed=failed)
+
         if not failed:
             return
-
-        self.pool.close()
 
         shutdown = getattr(self.fitness, "shutdown_quick_update", None)
         if shutdown is not None:

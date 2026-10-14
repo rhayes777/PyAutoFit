@@ -222,17 +222,26 @@ class PoolFactory:
         self._created.append(pool)
         return pool
 
-    def close(self):
+    def close(self, failed: bool = True):
         """
-        Terminate every pool this factory built, after a failed fit. A successful fit's
-        pools are closed by the search that used them, exactly as before.
+        Shut down every pool this factory built, once: ``close`` then ``join`` after a
+        successful fit (the workers finish and exit), ``terminate`` then ``join`` after a
+        failed one. Idempotent, and safe on a pool its backend already shut down.
         """
-        for pool in self._created:
-            terminate = getattr(pool, "terminate", None)
-            if terminate is None:
+        created, self._created = self._created, []
+        for pool in created:
+            for name in ("terminate",) if failed else ("close",):
+                method = getattr(pool, name, None)
+                if method is None:
+                    continue
+                try:
+                    method()
+                except Exception:
+                    logger.debug("Pool %s after a fit raised", name, exc_info=True)
+            join = getattr(pool, "join", None)
+            if join is None:
                 continue
             try:
-                terminate()
+                join()
             except Exception:
-                logger.debug("Pool termination after a failed fit raised", exc_info=True)
-        self._created = []
+                logger.debug("Pool join after a fit raised", exc_info=True)

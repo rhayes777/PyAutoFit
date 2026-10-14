@@ -136,9 +136,13 @@ pins the following details the table left open; each is flagged for review in th
   `Checkpointer` handle, not the loaded state, because a backend may reopen its own native
   file (`Nautilus` resumes through `Sampler(filepath=...)`). **`ctx.rng`** is a
   `SeedSequence` of the search's `seed` attribute, if any, until A4's search-level seed.
-- **`ctx.close(failed)`** is the cleanup the lifecycle rules require; on failure it closes
-  the pools the context built, shuts the quick-update threads down and releases the
-  compiled objectives.
+- **`ctx.close(failed)`** is the cleanup the lifecycle rules require. On every exit it
+  shuts down the pools the context built (closed and joined on success, terminated and
+  joined on failure); on failure it also shuts the quick-update threads down and
+  releases the compiled objectives.
+- **`ctx.update(internal)`** saves the checkpoint before the update: the search's
+  `resume_state` gets `save(internal)` (a no-op for a native file the backend writes
+  itself), never `finalize`, which is the completion step.
 - **The bridge is `NonLinearSearch._fit`**: when a search defines `run`, the base `_fit`
   builds the `Fitness` and the context (after the gates `start_resume_fit` runs) and calls
   `run(ctx)`, so every caller of `_fit` (and the conformance suite's call counter) sees a
