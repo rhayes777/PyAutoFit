@@ -960,12 +960,14 @@ class Fitness:
         self.__dict__.setdefault("gradient_mode", None)
         # `Fitness` objects pickled before the objective factory (search-extensibility A2)
         # carry `use_jax_vmap` / `use_jax_jit` instead of `batched` / `compile`. Their
-        # dispatch maps onto the factory: vmap -> the batched objective; jit or not, a JAX
-        # scalar objective is now jitted lazily.
+        # dispatch is preserved exactly: vmap -> the (jitted) batched objective; jit -> the
+        # jitted scalar objective; neither -> the eager scalar objective. A pickle that
+        # predates both flags dispatched eagerly too, so it stays eager.
         legacy_vmap = self.__dict__.pop("use_jax_vmap", None)
-        self.__dict__.pop("use_jax_jit", None)
+        legacy_jit = self.__dict__.pop("use_jax_jit", None)
+        if "compile" not in self.__dict__:
+            self.__dict__["compile"] = bool(legacy_vmap) or bool(legacy_jit)
         self.__dict__.setdefault("batched", bool(legacy_vmap))
-        self.__dict__.setdefault("compile", True)
         self._objectives = {}
         self._call = self.objective(BATCHED if self.batched else SCALAR)
 

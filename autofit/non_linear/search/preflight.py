@@ -11,9 +11,13 @@ analysis is JAX (``Analysis.is_jax``):
   environment variable read at ``autonerves`` import, so importing ``jax`` first runs
   every likelihood in fp32 without a word. Warn once per process; raise for a search
   that declares ``requires_fp64 = True`` (none does today).
-- ``trace_preflight``: one ``jax.eval_shape`` of the search's declared objective kind
-  (``"batched"`` for a ``batched`` search, else ``"scalar"``) at the prior-median vector,
-  plus one of its gradient kind when the search declares ``gradient == "uses"``. That is
+- ``trace_preflight``: one ``jax.eval_shape`` of the objective kind the search actually
+  runs (``"batched"`` for a batched execution, else ``"scalar"``) at the prior-median
+  vector, plus one of its gradient kind (in the gradient mode the search resolves) when
+  the search declares ``gradient == "uses"``. The kinds and modes come from the search's
+  ``ExecutionSettings`` (``NonLinearSearch.execution_settings``), the same resolved object
+  the backend builds its ``Fitness`` from, so an eager (``compile=False``) scalar
+  execution is not traced at all and a search's ``gradient_mode`` override is honoured. That is
   one trace and no compile or execution, so it costs seconds at most where the backend's
   own first call would compile for minutes, and a non-traceable likelihood (an
   ``np.asarray`` or ``float()`` on a parameter-dependent value, a Python ``if`` on an
@@ -36,6 +40,8 @@ backend.
 import logging
 import os
 import warnings
+from dataclasses import dataclass, field
+from typing import Optional
 
 from autofit import exc
 from autofit.non_linear.objective import (
@@ -131,40 +137,126 @@ def check_x64(search, analysis):
     warnings.warn(X64_WARNING, UserWarning, stacklevel=3)
 
 
-def preflight_kinds(search) -> tuple:
+@dataclass(frozen=True)
+class ExecutionSettings:
     """
-    The objective kinds the trace preflight traces for ``search``: its declared
-    execution kind, plus the matching gradient kind when it declares
-    ``gradient == "uses"``.
+    How a search will execute its objective on one analysis, resolved once from the
+    search's capability declarations, its runtime options and the analysis: the one
+    object the trace preflight validates and the backend builds its ``Fitness`` from
+    (``NonLinearSearch.execution_settings``).
+
+    Attributes
+    ----------
+    batched
+        Whether the backend evaluates the batched (``jax.vmap``) objective. A search may
+        resolve this at runtime (``Nautilus(use_jax_vmap=False)`` runs the scalar one).
+    compile
+        Whether the scalar objective is jitted. ``False`` is eager execution (the
+        deprecated ``use_jax_jit=False``), which never traces the scalar likelihood.
+    uses_gradient
+        Whether the backend differentiates the objective (``gradient == "uses"``).
+    gradient_mode
+        The resolved AD mode: the search's ``gradient_mode`` override when it honours
+        one, else the analysis's declaration (``autofit.jax.gradient``).
+    fitness_overrides
+        The ``Fitness`` keyword arguments the backend passes to ``make_fitness``,
+        including the resolved ``compile`` / ``batched`` / ``gradient_mode`` where they
+        differ from the defaults.
     """
+
+    batched: bool
+    compile: bool
+    uses_gradient: bool
+    gradient_mode: str
+    fitness_overrides: dict = field(default_factory=dict)
+
+    @property
+    def kinds(self) -> tuple:
+        """
+        The objective kinds the backend evaluates: its execution kind, plus the matching
+        gradient kind when it differentiates.
+        """
+        kinds = [BATCHED if self.batched else SCALAR]
+        if self.uses_gradient:
+            kinds.append(BATCHED_VALUE_AND_GRAD if self.batched else VALUE_AND_GRAD)
+        return tuple(kinds)
+
+    @classmethod
+    def resolve(cls, search, analysis) -> "ExecutionSettings":
+        """
+        Resolve ``search``'s execution on ``analysis``: its ``fitness_overrides``
+        (runtime batching, eager execution, batch size, ...) over its class
+        declarations, and its ``gradient_mode`` override (when the search honours one)
+        over the analysis's declared mode.
+        """
+        from autofit.jax.gradient import resolve_gradient_mode
+
+        search_cls = type(search)
+        overrides = dict(search.fitness_overrides(analysis))
+
+        override_mode: Optional[str] = overrides.get("gradient_mode")
+        if override_mode is None and search_cls.honours_gradient_mode:
+            override_mode = getattr(search, "gradient_mode", None)
+            if override_mode is not None:
+                overrides["gradient_mode"] = override_mode
+
+        return cls(
+            batched=bool(overrides.get("batched", search_cls.batched)),
+            compile=bool(overrides.get("compile", True)),
+            uses_gradient=search_cls.gradient == cap.Gradient.USES,
+            gradient_mode=resolve_gradient_mode(analysis, override=override_mode),
+            fitness_overrides=overrides,
+        )
+
+
+def preflight_kinds(search, analysis=None) -> tuple:
+    """
+    The objective kinds the trace preflight traces for ``search``: the kinds of its
+    resolved ``ExecutionSettings`` on ``analysis``, or of its class declarations when
+    no analysis is given.
+    """
+    if analysis is not None:
+        return search.execution_settings(analysis).kinds
+
     cls = type(search)
-    kinds = [BATCHED if cls.batched else SCALAR]
-    if cls.gradient == cap.Gradient.USES:
-        kinds.append(BATCHED_VALUE_AND_GRAD if cls.batched else VALUE_AND_GRAD)
-    return tuple(kinds)
+    return ExecutionSettings(
+        batched=bool(cls.batched),
+        compile=True,
+        uses_gradient=cls.gradient == cap.Gradient.USES,
+        gradient_mode="reverse",
+    ).kinds
 
 
-def _preflight_fitness(search, analysis, model):
+def _preflight_fitness(search, analysis, model, settings: ExecutionSettings):
     """
-    A throwaway ``Fitness`` in the search's declared convention, without paths (so no
-    resume sanity check evaluates the likelihood) and without quick updates.
+    A throwaway ``Fitness`` built from the search's resolved execution settings, without
+    paths (so no resume sanity check evaluates the likelihood) and without quick
+    updates.
     """
     return search.make_fitness(
         analysis=analysis,
         model=model,
-        paths=None,
-        iterations_per_quick_update=None,
-        background_quick_update=False,
-        live_visual_update=False,
+        **{
+            **settings.fitness_overrides,
+            "paths": None,
+            "iterations_per_quick_update": None,
+            "background_quick_update": False,
+            "live_visual_update": False,
+        },
     )
 
 
 def trace_preflight(search, analysis, model):
     """
-    Trace the search's declared objective kind(s) once with ``jax.eval_shape`` at the
+    Trace the objective kind(s) the search resolves for ``analysis``
+    (``NonLinearSearch.execution_settings``) once with ``jax.eval_shape`` at the
     prior-median vector, raising a ``SearchException`` that names the search and chains
     the tracer error when the likelihood cannot be traced. Then run the numerical probe
     if ``PYAUTO_JAX_PREFLIGHT_PROBE`` asks for it.
+
+    An eager scalar execution (``compile=False``) is never traced by the backend, so its
+    scalar kind is not traced here either; a gradient kind is, since differentiation
+    traces even an eager objective.
 
     A no-op for a numpy analysis and when ``PYAUTO_JAX_PREFLIGHT=0``.
     """
@@ -174,11 +266,15 @@ def trace_preflight(search, analysis, model):
     import jax
     import jax.numpy as jnp
 
-    fitness = _preflight_fitness(search, analysis, model)
+    settings = search.execution_settings(analysis)
+
+    fitness = _preflight_fitness(search, analysis, model, settings)
 
     vector = jnp.asarray(model.physical_values_from_prior_medians)
 
-    for kind in preflight_kinds(search):
+    for kind in settings.kinds:
+        if kind == SCALAR and not settings.compile:
+            continue
         objective = fitness.objective(kind, compile=False)
         argument = vector[None, :] if kind in (BATCHED, BATCHED_VALUE_AND_GRAD) else vector
         try:

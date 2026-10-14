@@ -236,3 +236,93 @@ def test__resume_state_loaded_when_ctx_resume_is_set(tmp_path):
 
     resume.load.assert_called_once_with(paths)
     assert isinstance(internal, nss_search_module._NSSInternal)
+
+
+@requires_nss
+def test__run_keeps_its_checkpoint_until_the_result_is_written(tmp_path):
+    """Review 05 finding 2: ``run(ctx)`` must not delete ``nss_checkpoint.pkl``.
+
+    The resume state is discarded by ``NonLinearSearch._complete_fit`` only after the
+    archive is finalized, so a failure while the result is processed (after ``run``
+    returns) leaves the run resumable. The run below resumes and terminates at once,
+    exactly as ``test__resume_state_loaded_when_ctx_resume_is_set``.
+    """
+    from types import SimpleNamespace
+    from unittest.mock import MagicMock
+
+    from autofit.non_linear.paths.null import NullPaths
+
+    sentinel_state = SimpleNamespace(
+        integrator=SimpleNamespace(logZ=0.0, logZ_live=-100.0),
+        particles=SimpleNamespace(
+            position=jnp.zeros((4, 2)),
+            loglikelihood=jnp.zeros(4),
+        ),
+    )
+
+    # Minimum stub for the model. ``run`` reads ``prior_count`` and draws the
+    # initial particles through ``vector_from_unit_vector``; the prior closure
+    # isn't traced unless one_step fires.
+    mock_model = SimpleNamespace(
+        prior_count=2,
+        vector_from_unit_vector=lambda v, xp=None: jnp.asarray([0.0, 0.0]),
+        log_prior_list_from_vector=lambda **kw: [0.0, 0.0],
+    )
+
+    resume = MagicMock()
+    resume.load.return_value = (sentinel_state, [], jax.random.PRNGKey(0), 17)
+
+    paths = NullPaths()
+    ctx = SimpleNamespace(
+        model=mock_model,
+        paths=paths,
+        resume=resume,
+        fitness=SimpleNamespace(
+            objective=lambda kind, compile=None: (lambda params: 0.0),
+            analysis=SimpleNamespace(),
+        ),
+    )
+
+    search = af.NSS(n_live=4, num_mcmc_steps=1, num_delete=1, termination=-3.0)
+
+    checkpoint = tmp_path / "nss_checkpoint.pkl"
+    checkpoint.write_bytes(b"resume state")
+    discarded = []
+    search.resume_state = SimpleNamespace(
+        path=lambda paths: checkpoint,
+        discard=lambda paths: discarded.append(paths),
+    )
+
+    with patch.object(
+        nss_search_module,
+        "_blackjax",
+    ) as mock_bjax, patch.object(
+        nss_search_module,
+        "_nss_finalise",
+        return_value=SimpleNamespace(
+            particles=SimpleNamespace(
+                position=np.zeros((1, 2)),
+                loglikelihood=np.zeros(1),
+            ),
+            update_info=SimpleNamespace(
+                num_expansions=np.zeros(1, dtype=int),
+                num_shrink=np.zeros(1, dtype=int),
+            ),
+        ),
+    ), patch.object(
+        nss_search_module,
+        "_nss_log_weights",
+        return_value=jnp.zeros((1, 100)),
+    ):
+        mock_bjax.nss.return_value.init.side_effect = AssertionError(
+            "algo.init called from resume path — expected ctx.resume.load instead."
+        )
+        mock_bjax.nss.return_value.step.side_effect = AssertionError(
+            "algo.step called even though logZ termination should fire immediately."
+        )
+
+        internal = search.run(ctx)
+
+    assert isinstance(internal, nss_search_module._NSSInternal)
+    assert discarded == []
+    assert checkpoint.exists()

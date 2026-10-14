@@ -187,3 +187,152 @@ def test_resume_is_the_resume_state_only_when_its_file_exists(tmp_path):
     path.write_bytes(b"state")
 
     assert ctx().resume is search.resume_state
+
+
+# Review 05 findings 5 and 6: the frozen contract promises that the context closes the
+# pools it built on every exit, and that `ctx.update` saves the checkpoint.
+
+
+class _RecordingPool:
+    def __init__(self, calls, processes, **kwargs):
+        self.calls = calls
+        calls.append("created")
+
+    def close(self):
+        self.calls.append("close")
+
+    def terminate(self):
+        self.calls.append("terminate")
+
+    def join(self):
+        self.calls.append("join")
+
+
+@pytest.fixture(name="pool_calls")
+def make_pool_calls(monkeypatch):
+    from types import SimpleNamespace
+
+    from autofit.non_linear.parallel import pool as pool_module
+
+    calls = []
+    monkeypatch.setattr(
+        pool_module,
+        "fork_context",
+        lambda: SimpleNamespace(
+            Pool=lambda processes, **kwargs: _RecordingPool(calls, processes, **kwargs)
+        ),
+    )
+    monkeypatch.delenv("PYAUTO_TEST_MODE", raising=False)
+    return calls
+
+
+class PoolToySearch(ToySearch):
+    fail = False
+
+    def run(self, ctx):
+        assert ctx.pool() is not None
+        internal = super().run(ctx)
+        if self.fail:
+            raise RuntimeError("backend failed")
+        return internal
+
+
+def test_a_successful_run_closes_and_joins_the_pools_the_context_built(pool_calls):
+    search = PoolToySearch(number_of_cores=2, initializer=af.InitializerPrior())
+    search.fit(model=af.Model(af.ex.Gaussian), analysis=_analysis())
+
+    assert pool_calls == ["created", "close", "join"]
+
+
+def test_a_failed_run_terminates_and_joins_the_pools_the_context_built(pool_calls):
+    search = PoolToySearch(number_of_cores=2, initializer=af.InitializerPrior())
+    search.fail = True
+
+    with pytest.raises(RuntimeError, match="backend failed"):
+        search.fit(model=af.Model(af.ex.Gaussian), analysis=_analysis())
+
+    assert pool_calls == ["created", "terminate", "join"]
+
+
+def test_pool_factory_close_is_idempotent(pool_calls):
+    from autofit.non_linear.parallel import PoolFactory
+
+    factory = PoolFactory(ToySearch(number_of_cores=2))
+    factory()
+    factory.close(failed=False)
+    factory.close(failed=True)
+
+    assert pool_calls == ["created", "close", "join"]
+
+
+def _recording_resume_state():
+    from autofit.non_linear.checkpoint import DillCheckpointer
+
+    class RecordingCheckpointer(DillCheckpointer):
+        def __init__(self):
+            super().__init__(filename="toy_resume.dill")
+            self.saved = []
+            self.finalized = []
+
+        def save(self, paths, obj):
+            self.saved.append(obj)
+            super().save(paths, obj)
+
+        def finalize(self, paths, obj=None):
+            self.finalized.append(obj)
+
+    return RecordingCheckpointer()
+
+
+class UpdatingToySearch(ToySearch):
+    interrupt = False
+
+    def run(self, ctx):
+        internal = super().run(ctx)
+        ctx.update(internal)
+        if self.interrupt:
+            raise InterruptedError("killed after the update")
+        return internal
+
+
+def test_ctx_update_saves_the_resume_state_so_an_interrupted_run_keeps_it(
+    tmp_path, monkeypatch
+):
+    monkeypatch.delenv("PYAUTO_TEST_MODE", raising=False)
+
+    strategy = _recording_resume_state()
+
+    class Resumable(UpdatingToySearch):
+        resume_state = strategy
+
+    search = Resumable(
+        initializer=af.InitializerPrior(), path_prefix=str(tmp_path), name="toy_update"
+    )
+    search.interrupt = True
+
+    with pytest.raises(InterruptedError):
+        search.fit(model=af.Model(af.ex.Gaussian), analysis=_analysis())
+
+    assert len(strategy.saved) == 1
+    assert len(strategy.saved[0]["log_likelihoods"]) == 6
+    # Saved through `save`, never the completion `finalize`, and still on disk to resume.
+    assert strategy.finalized == []
+    assert strategy.exists(search.paths)
+
+
+def test_ctx_update_saves_nothing_for_a_search_without_a_resume_state(
+    tmp_path, monkeypatch
+):
+    monkeypatch.delenv("PYAUTO_TEST_MODE", raising=False)
+
+    saved = []
+    search = UpdatingToySearch(
+        initializer=af.InitializerPrior(), path_prefix=str(tmp_path), name="toy_plain"
+    )
+    monkeypatch.setattr(
+        type(search.checkpointer), "save", lambda self, paths, obj: saved.append(obj)
+    )
+    search.fit(model=af.Model(af.ex.Gaussian), analysis=_analysis())
+
+    # The archive is written once, at completion, not by the mid-run update.
+    assert len(saved) <= 1
