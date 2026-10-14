@@ -396,7 +396,11 @@ GOLDEN = {
         | {
             "session",
             "initializer",
-            # dropped in A4c: SMC is a weighted-posterior search, not a chain.
+            # auto_correlation_settings dropped in A4c: SMC is a weighted-posterior
+            # search, not a chain. Its former positional slot is caught by the
+            # deprecated `*legacy_positional` (adversary review 07, finding 4), so old
+            # positional calls bind as before instead of shifting one slot.
+            "legacy_positional",
             "number_of_cores",
             "batch_size",
             "inverse_mass_matrix",

@@ -46,11 +46,11 @@ class Drawer(NonLinearSearch):
         unique_tag: Optional[str] = None,
         total_draws: int = 50,
         initializer: Optional[AbstractInitializer] = None,
-        clipper=None,
         iterations_per_full_update: int = None,
         iterations_per_quick_update: int = None,
         silence: bool = False,
         session: Optional[sa.orm.Session] = None,
+        clipper=None,
         **kwargs,
     ):
         """
@@ -89,11 +89,12 @@ class Drawer(NonLinearSearch):
             and also acts as the folder after the path prefix and before the search name.
         initializer
             Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
-        clipper
-            Accepted for the point-estimate searches' common interface and recorded in ``search.json``; the
-            drawer never uses it, so it does not enter the identifier.
         session
             An SQLalchemy session instance so the results of the model-fit are written to an SQLite database.
+        clipper
+            Accepted for the point-estimate searches' common interface and recorded in ``search.json``; the
+            drawer never uses it, so it does not enter the identifier. It is the last named argument so the
+            existing positional slots (``total_draws`` ... ``session``) keep their places.
         """
 
         # Drawer is single-core only; drop any saved number_of_cores so a

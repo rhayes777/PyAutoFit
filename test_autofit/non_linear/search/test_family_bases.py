@@ -184,3 +184,67 @@ def test_plot_results_dispatches_on_posterior_kind(cls, kind, monkeypatch):
 def test_search_without_a_posterior_kind_plots_nothing_of_its_own():
     with pytest.raises(NotImplementedError):
         af.m.MockSearch().plot_results(samples=None)
+
+
+# Adversary review 07, finding 4: positional constructor compatibility.
+
+
+def test_drawer_positional_slots_are_unchanged():
+    """`Drawer`'s explicit `clipper` is appended, so main's positional calls bind as before."""
+    from autofit.non_linear.clipper import ClipperNone
+
+    drawer = af.Drawer(None, None, None, 50, None, 12, 34, True)
+
+    assert drawer.total_draws == 50
+    assert drawer.iterations_per_full_update == 12
+    assert drawer.iterations_per_quick_update == 34
+    assert drawer.silence is True
+    assert isinstance(drawer.clipper, ClipperNone)
+
+
+def test_drawer_clipper_still_accepted_by_keyword_and_serialized():
+    from autofit.non_linear.clipper import ClipperNone
+    from autonerves.dictable import get_arguments
+
+    assert "clipper" in get_arguments(af.Drawer)
+    assert isinstance(af.Drawer(clipper=None).clipper, ClipperNone)
+    assert "clipper" in af.to_dict(af.Drawer())["arguments"]
+
+
+def _smc_positional_prefix():
+    # name, path_prefix, unique_tag, num_particles, kernel, num_mcmc_steps,
+    # num_integration_steps, target_ess, step_size, whiten_inflate, max_smc_steps,
+    # batch_size, seed, initializer, inverse_mass_matrix
+    return (None, None, None, 256, "mala", 5, 8, 0.5, None, 2.0, 200, 0, None, None, None)
+
+
+def test_smc_old_positional_auto_correlation_slot_binds_as_before():
+    pytest.importorskip("blackjax")
+    settings = AutoCorrelationsSettings(check_for_convergence=False)
+
+    with pytest.warns(FutureWarning, match="auto_correlation_settings"):
+        search = af.SMC(*_smc_positional_prefix(), settings, 3, 7, 1, True)
+
+    assert search.iterations_per_quick_update == 3
+    assert search.iterations_per_full_update == 7
+    assert search.number_of_cores == 1
+    assert search.silence is True
+    assert "auto_correlation_settings" not in af.to_dict(search)["arguments"]
+
+
+def test_smc_too_many_positional_arguments_raise():
+    pytest.importorskip("blackjax")
+
+    with pytest.raises(TypeError, match="deprecated positional"):
+        af.SMC(*_smc_positional_prefix(), None, 3, 7, 1, True, None, "extra")
+
+
+def test_smc_keyword_construction_does_not_warn():
+    pytest.importorskip("blackjax")
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", FutureWarning)
+        search = af.SMC(iterations_per_quick_update=3, silence=True)
+
+    assert search.iterations_per_quick_update == 3
+    assert search.silence is True
