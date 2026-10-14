@@ -11,7 +11,6 @@ from autonerves import conf
 from autonerves.test_mode import skip_latents
 
 from autofit import exc
-from autofit.non_linear.paths.database import DatabasePaths
 from autofit.non_linear.paths.null import NullPaths
 
 if TYPE_CHECKING:
@@ -235,9 +234,7 @@ class SearchUpdater:
                 """Fit Running: Updating results (see output folder)."""
             )
 
-        if not isinstance(self._paths, DatabasePaths) and not isinstance(
-            self._paths, NullPaths
-        ):
+        if self._paths.has_timer:
             self._timer.update()
 
     def _save_samples(

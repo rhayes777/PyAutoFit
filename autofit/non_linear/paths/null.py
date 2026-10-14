@@ -10,6 +10,8 @@ class NullPaths(AbstractPaths):
     """
 
     stores_search_internal = False
+    has_timer = False
+    supports_checkpointing = False
 
     @property
     def samples(self):
