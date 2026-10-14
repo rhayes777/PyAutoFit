@@ -234,6 +234,17 @@ class AbstractDynesty(AbstractNest, ABC):
             "first_update": self.first_update,
         }
 
+    def _rstate_kwargs(self) -> Dict:
+        """
+        dynesty's ``rstate`` on backend stream 1 of the search-level seed when the search
+        has one (``autofit.non_linear.search.seed``); empty otherwise, so an unseeded
+        search keeps dynesty's own default generator.
+        """
+        from autofit.non_linear.search.seed import backend_generator
+
+        rstate = backend_generator(self)
+        return {} if rstate is None else {"rstate": rstate}
+
     @property
     def run_kwargs(self) -> Dict:
         """Run kwargs specific to each subclass, excluding maxcall."""

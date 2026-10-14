@@ -274,7 +274,9 @@ class NSS(abstract_nest.AbstractNest):
             not used. If ``number_of_cores > 1`` a warning is logged.
         seed
             JAX random seed used to initialise the unit-cube draws for the
-            ``n_live`` initial particles and the inner slice-sampling RNG.
+            ``n_live`` initial particles and the inner slice-sampling RNG. It is the
+            search-level seed (``autofit.non_linear.search.seed``) and stays a static
+            identifier field, so seeded NSS output folders are unchanged.
         silence
             If True, suppresses NSS's progress bar output.
         session
@@ -308,6 +310,7 @@ class NSS(abstract_nest.AbstractNest):
             number_of_cores=number_of_cores,
             silence=silence,
             session=session,
+            seed=seed,
             **kwargs,
         )
 
@@ -317,7 +320,6 @@ class NSS(abstract_nest.AbstractNest):
         self.chunk_size = chunk_size
         self.termination = termination
         self.checkpoint_interval = checkpoint_interval
-        self.seed = seed
 
         if number_of_cores is not None and number_of_cores > 1:
             logger.warning(

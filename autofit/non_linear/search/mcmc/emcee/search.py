@@ -22,6 +22,7 @@ from autofit.non_linear.search.mcmc.auto_correlations import AutoCorrelations
 from autofit.non_linear.test_mode import is_test_mode
 from autofit.non_linear.samples.adapter import ChainPosterior, RawSamples
 from autofit.non_linear.search import capabilities as cap
+from autofit.non_linear.search.seed import backend_random_state
 
 if TYPE_CHECKING:
     from autofit.database.sqlalchemy_ import sa
@@ -168,6 +169,13 @@ class Emcee(AbstractMCMC):
             backend=backend,
             pool=pool,
         )
+
+        # Backend stream 1 of the search-level seed (`autofit.non_linear.search.seed`);
+        # emcee otherwise copies numpy's global state. A resumed run restores the state
+        # its HDF backend saved.
+        random_state = backend_random_state(self)
+        if random_state is not None:
+            search_internal._random = random_state
 
         try:
             state = search_internal.get_last_sample()

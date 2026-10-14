@@ -298,6 +298,7 @@ class Nautilus(abstract_nest.AbstractNest):
             number_of_cores=number_of_cores,
             silence=silence,
             session=session,
+            seed=seed,
             **kwargs,
         )
 
@@ -310,7 +311,6 @@ class Nautilus(abstract_nest.AbstractNest):
         self.n_batch = n_batch
         self.n_like_new_bound = n_like_new_bound
         self.vectorized = vectorized
-        self.seed = seed
 
         self.f_live = f_live
         self.n_shell = n_shell

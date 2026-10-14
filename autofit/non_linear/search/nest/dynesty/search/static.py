@@ -174,6 +174,7 @@ class DynestyStatic(AbstractDynesty):
                     pool=pool,
                     nlive=self.nlive,
                     **self.search_kwargs,
+                    **self._rstate_kwargs(),
                 )
 
             self.write_uses_pool(uses_pool=False)
@@ -186,6 +187,7 @@ class DynestyStatic(AbstractDynesty):
                 live_points=live_points,
                 nlive=self.nlive,
                 **self.search_kwargs,
+                **self._rstate_kwargs(),
             )
 
     @property

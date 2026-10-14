@@ -416,6 +416,7 @@ class AbstractMultiStartGradient(AbstractMLE):
             iterations_per_full_update=iterations_per_full_update,
             silence=silence,
             session=session,
+            seed=seed,
             **kwargs,
         )
 
@@ -433,7 +434,6 @@ class AbstractMultiStartGradient(AbstractMLE):
         self.start_lower_limit = start_lower_limit
         self.start_upper_limit = start_upper_limit
         self.resurrect = resurrect
-        self.seed = seed
         # Resolved here rather than on ``AbstractMLE`` beside ``clipper``,
         # deliberately. The clipper is shared because LBFGS genuinely uses it
         # (it hands the bounds to scipy); a scaler has no meaning for a search

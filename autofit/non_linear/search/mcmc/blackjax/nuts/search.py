@@ -71,7 +71,7 @@ class BlackJAXNUTS(AbstractMCMC):
         num_chains: int = 1,
         target_accept: float = 0.8,
         max_num_doublings: int = 10,
-        seed: int = 42,
+        seed: Optional[int] = None,
         initializer: Optional[Initializer] = None,
         inverse_mass_matrix: InverseMassMatrixSpec = None,
         mass_matrix_shrinkage: float = 0.0,
@@ -161,7 +161,9 @@ class BlackJAXNUTS(AbstractMCMC):
             NUTS doubling cap. 10 means at most 1024 leapfrog steps per
             sample, which is the standard ceiling.
         seed
-            Integer seed passed to ``jax.random.PRNGKey``.
+            The search-level seed (``autofit.non_linear.search.seed``), passed to ``jax.random.PRNGKey``.
+            ``None`` (the default) runs with the historical ``42`` and is not hashed into the identifier; a
+            seed you pass (including ``42``) is hashed, so it names its own output folder.
         initializer
             Generates the starting point(s), one per chain. Defaults to
             ``InitializerBall(0.49, 0.51)`` from ``AbstractMCMC`` — small
@@ -232,6 +234,7 @@ class BlackJAXNUTS(AbstractMCMC):
             number_of_cores=number_of_cores,
             silence=silence,
             session=session,
+            seed=seed,
             **kwargs,
         )
 
@@ -240,7 +243,6 @@ class BlackJAXNUTS(AbstractMCMC):
         self.num_chains = num_chains
         self.target_accept = target_accept
         self.max_num_doublings = max_num_doublings
-        self.seed = seed
 
         # The raw specification (used at fit time to resolve an actual seed
         # array) is kept private; the public `inverse_mass_matrix` attribute
@@ -258,6 +260,14 @@ class BlackJAXNUTS(AbstractMCMC):
         self.share_adaptation = share_adaptation
 
         self.logger.debug("Creating BlackJAXNUTS Search")
+
+    @property
+    def backend_seed(self) -> int:
+        """
+        The seed the backend's ``jax.random.PRNGKey`` uses: ``seed``, or the historical
+        ``42`` when it is ``None`` (the unhashed default; ``autofit.non_linear.search.seed``).
+        """
+        return 42 if self.seed is None else self.seed
 
     def apply_test_mode(self):
         logger.warning(
@@ -317,7 +327,7 @@ class BlackJAXNUTS(AbstractMCMC):
         # One-shot trace + compile so warmup timing is honest.
         _ = float(log_density(initial_positions[0]))
 
-        rng_key = jax.random.PRNGKey(self.seed)
+        rng_key = jax.random.PRNGKey(self.backend_seed)
 
         # ---- Inverse mass matrix -----------------------------------------
         is_mass_matrix_diagonal, imm_seed = resolve_inverse_mass_matrix(

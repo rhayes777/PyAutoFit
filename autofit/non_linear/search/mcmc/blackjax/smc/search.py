@@ -96,7 +96,7 @@ class SMC(AbstractMCMC):
         whiten_inflate: float = 2.0,
         max_smc_steps: int = 200,
         batch_size: int = 0,
-        seed: int = 42,
+        seed: Optional[int] = None,
         initializer: Optional[Initializer] = None,
         inverse_mass_matrix: InverseMassMatrixSpec = None,
         auto_correlation_settings: AutoCorrelationsSettings = AutoCorrelationsSettings(
@@ -222,7 +222,9 @@ class SMC(AbstractMCMC):
             ``jax.lax.map`` instead of one full ``jax.vmap``, trading speed for peak GPU memory. ``0`` (default)
             keeps the full ``vmap``.
         seed
-            Integer seed passed to ``jax.random.PRNGKey``.
+            The search-level seed (``autofit.non_linear.search.seed``), passed to ``jax.random.PRNGKey``.
+            ``None`` (the default) runs with the historical ``42`` and is not hashed into the identifier; a
+            seed you pass (including ``42``) is hashed, so it names its own output folder.
         initializer
             Generates the initial particles. Defaults to `InitializerPrior` -- **cold SMC's evidence requires the
             particles to be drawn from the prior**, so the `InitializerBall` default the other MCMC searches use
@@ -273,6 +275,7 @@ class SMC(AbstractMCMC):
             number_of_cores=number_of_cores,
             silence=silence,
             session=session,
+            seed=seed,
             **kwargs,
         )
 
@@ -297,7 +300,6 @@ class SMC(AbstractMCMC):
         self.whiten_inflate = whiten_inflate
         self.max_smc_steps = max_smc_steps
         self.batch_size = batch_size
-        self.seed = seed
 
         # As in `BlackJAXNUTS`: the raw specification is kept private (it is resolved into an actual covariance
         # at fit time, when `n_dim` is known) and the public attribute is the small descriptive string used by
@@ -311,6 +313,14 @@ class SMC(AbstractMCMC):
         )
 
         self.logger.debug("Creating SMC Search")
+
+    @property
+    def backend_seed(self) -> int:
+        """
+        The seed the backend's ``jax.random.PRNGKey`` uses: ``seed``, or the historical
+        ``42`` when it is ``None`` (the unhashed default; ``autofit.non_linear.search.seed``).
+        """
+        return 42 if self.seed is None else self.seed
 
     def apply_test_mode(self):
         logger.warning(
@@ -497,7 +507,7 @@ class SMC(AbstractMCMC):
             batch_size=self.batch_size,
         )
 
-        rng_key = jax.random.PRNGKey(self.seed)
+        rng_key = jax.random.PRNGKey(self.backend_seed)
         rng_key, init_key = jax.random.split(rng_key)
 
         if self.is_warm_start:
