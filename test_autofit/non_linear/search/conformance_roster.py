@@ -396,7 +396,7 @@ GOLDEN = {
         | {
             "session",
             "initializer",
-            "auto_correlation_settings",
+            # dropped in A4c: SMC is a weighted-posterior search, not a chain.
             "number_of_cores",
             "batch_size",
             "inverse_mass_matrix",
@@ -522,7 +522,10 @@ GOLDEN = {
     "Drawer": Golden(
         identifier="0f80f695c0906253e9526e4c2f242dc7",
         identifier_fields=("total_draws",),
-        constructor_arguments=_COMMON | {"session", "initializer", "total_draws"},
+        # `clipper` is named explicitly since A4c (it came from `AbstractMLE` before),
+        # so the serialized argument set is unchanged.
+        constructor_arguments=_COMMON
+        | {"session", "initializer", "total_draws", "clipper"},
     ),
     "BFGS": Golden(
         identifier="979826a042aacbe511b97be84d8c2255",

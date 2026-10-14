@@ -101,10 +101,10 @@ def test__defaults():
     assert search.backend_seed == 42
     assert search.inverse_mass_matrix == "none"
     assert search.is_warm_start is False
-    # Cold SMC's evidence is only valid if the initial particles are prior draws, so — unlike every other
-    # `AbstractMCMC` search — the default initializer is `InitializerPrior`, not `InitializerBall`.
+    # Cold SMC's evidence is only valid if the initial particles are prior draws: SMC is a weighted-posterior
+    # search (A4c), whose default initializer is `InitializerPrior`, and it takes no auto-correlation settings.
     assert isinstance(search.initializer, af.InitializerPrior)
-    assert search.auto_correlation_settings.check_for_convergence is False
+    assert not hasattr(search, "auto_correlation_settings")
 
 
 def test__explicit_params():
