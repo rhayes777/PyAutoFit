@@ -25,6 +25,10 @@ from autofit.non_linear.search.mcmc.blackjax.chains import (
 from autofit.non_linear.search.mcmc.blackjax.smc.samples import SamplesSMC
 from autofit.non_linear.samples.adapter import RawSamples
 from autofit.non_linear.search import capabilities as cap
+from autofit.non_linear.search.seed import (
+    LEGACY_DEFAULT_SEED,
+    legacy_default_seed,
+)
 
 if TYPE_CHECKING:
     from autofit.database.sqlalchemy_ import sa
@@ -223,8 +227,11 @@ class SMC(AbstractMCMC):
             keeps the full ``vmap``.
         seed
             The search-level seed (``autofit.non_linear.search.seed``), passed to ``jax.random.PRNGKey``.
-            ``None`` (the default) runs with the historical ``42`` and is not hashed into the identifier; a
-            seed you pass (including ``42``) is hashed, so it names its own output folder.
+            ``None`` (the default) runs with the historical ``42`` and is not hashed into the identifier; any
+            other seed you pass is hashed, so it names its own output folder. ``seed=42`` is the default: main
+            wrote ``seed: 42`` into every default search's ``search.json`` and pickle, so a 42 is read as
+            ``None`` and old outputs keep their identifiers. An explicit ``seed=42`` therefore shares the
+            default's identity and output folder.
         initializer
             Generates the initial particles. Defaults to `InitializerPrior` -- **cold SMC's evidence requires the
             particles to be drawn from the prior**, so the `InitializerBall` default the other MCMC searches use
@@ -275,7 +282,7 @@ class SMC(AbstractMCMC):
             number_of_cores=number_of_cores,
             silence=silence,
             session=session,
-            seed=seed,
+            seed=legacy_default_seed(seed),
             **kwargs,
         )
 
@@ -320,7 +327,17 @@ class SMC(AbstractMCMC):
         The seed the backend's ``jax.random.PRNGKey`` uses: ``seed``, or the historical
         ``42`` when it is ``None`` (the unhashed default; ``autofit.non_linear.search.seed``).
         """
-        return 42 if self.seed is None else self.seed
+        return LEGACY_DEFAULT_SEED if self.seed is None else self.seed
+
+    def __setstate__(self, state):
+        """
+        A pickle written by main records the default as ``seed = 42``; read it as the
+        unhashed default so the unpickled search keeps main's identifier
+        (``autofit.non_linear.search.seed.legacy_default_seed``).
+        """
+        self.__dict__.update(state)
+        if "seed" in state:
+            self.seed = legacy_default_seed(state["seed"])
 
     def apply_test_mode(self):
         logger.warning(

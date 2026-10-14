@@ -24,8 +24,11 @@ Search                 Seed rule
 Nautilus, NSS          ``"seed"`` stays a static identifier field (hashed as
                        before); their ``seed`` argument *is* the base seed.
 BlackJAXNUTS, SMC      ``seed=None`` (the default) runs the backend with the
-                       historical ``42`` and is not hashed; a user-supplied seed
-                       (including ``42``) is hashed.
+                       historical ``42`` and is not hashed; any other seed is
+                       hashed. ``seed=42`` *is* the default: main recorded
+                       ``seed: 42`` in every default NUTS/SMC ``search.json`` and
+                       pickle, so a 42 is read back as ``None`` (``legacy_default_seed``)
+                       and an old output keeps its identifier.
 every other search     hashed only when not ``None``.
 =====================  ==========================================================
 
@@ -40,6 +43,26 @@ keep doing so, so an existing seeded run of those searches is reproduced exactly
 from typing import List, Optional
 
 import numpy as np
+
+# The seed main hard-coded as the BlackJAXNUTS / SMC default (recorded in their
+# ``search.json`` and pickles as ``seed: 42``).
+LEGACY_DEFAULT_SEED = 42
+
+
+def legacy_default_seed(seed: Optional[int]) -> Optional[int]:
+    """
+    The BlackJAXNUTS / SMC seed with main's default ``42`` read as ``None``.
+
+    main ran these backends with an unhashed ``seed=42`` by default and wrote ``seed: 42``
+    into every default ``search.json`` and pickle, whether the 42 was the default or
+    passed explicitly. Reading a 42 as the unhashed default keeps every such output's
+    identifier (and ``SearchOutput.id``) what main computed; the backend still runs
+    with 42, so sampling is bit-identical. The cost is that an explicit ``seed=42``
+    shares the default identity.
+    """
+    if seed is not None and not isinstance(seed, bool) and seed == LEGACY_DEFAULT_SEED:
+        return None
+    return seed
 
 
 def seed_sequence(search) -> np.random.SeedSequence:

@@ -17,10 +17,11 @@ The cases, kept separate as the A4 witness asks:
 - **explicit seed**: Nautilus and NSS unchanged (``"seed"`` is a static field). Every
   other search now hashes a seed it is given; for BlackJAXNUTS and SMC (which took an
   unhashed ``seed`` before) and the four MultiStart searches (likewise) this is the
-  accepted re-key of existing explicit-seed output folders.
-- **old JSON**: a main ``search.json`` loads and round-trips; its identifier is the
-  default one except for BlackJAXNUTS and SMC, whose old JSON records ``seed: 42``,
-  which now reads as a user-supplied seed.
+  accepted re-key of existing explicit-seed output folders. BlackJAXNUTS and SMC read
+  ``seed=42`` as their default (adversary review 07, finding 1), so 42 is not re-keyed.
+- **old JSON / pickle / output**: a main ``search.json`` loads and round-trips with the
+  default identifier for every search, including BlackJAXNUTS and SMC, whose old JSON
+  and pickles record ``seed: 42``; the aggregator keeps their output identifiers.
 """
 
 import json
@@ -142,9 +143,12 @@ def test_nuts_smc_default_is_an_unhashed_42(name):
 
     assert cls().seed is None
     assert cls().backend_seed == 42
+    # Review 07 finding 1: main wrote ``seed: 42`` for every default NUTS/SMC, so 42
+    # is the default sentinel; an explicit seed=42 shares the default identity.
+    assert cls(seed=42).seed is None
     assert cls(seed=42).backend_seed == 42
-    assert str(Identifier(cls(seed=42))) == GOLDEN[name]["seed42"]
-    assert GOLDEN[name]["seed42"] != GOLDEN[name]["main_default"]
+    assert str(Identifier(cls(seed=42))) == GOLDEN[name]["main_default"]
+    assert af.to_dict(cls(seed=42)) == af.to_dict(cls())
 
 
 @pytest.mark.parametrize("name", NAMES)
@@ -156,10 +160,11 @@ def test_old_search_json_loads(name):
 
     assert af.to_dict(af.from_dict(af.to_dict(loaded))) == af.to_dict(loaded)
     if name in UNHASHED_DEFAULT_42:
-        assert loaded.seed == 42
-        assert str(Identifier(loaded)) == GOLDEN[name]["seed42"]
-    else:
-        assert str(Identifier(loaded)) == GOLDEN[name]["main_default"]
+        # Review 07 finding 1: main's ``seed: 42`` is the legacy default.
+        assert GOLDEN[name]["main_search_json"]["arguments"]["seed"] == 42
+        assert loaded.seed is None
+        assert loaded.backend_seed == 42
+    assert str(Identifier(loaded)) == GOLDEN[name]["main_default"]
 
 
 def _start_points(search):
@@ -316,6 +321,95 @@ def test_two_seeded_emcee_fits_write_identical_samples(tmp_path):
 # ---------------------------------------------------------------------------
 # Adversary review 07.
 # ---------------------------------------------------------------------------
+
+# The search identifiers PyAutoFit main 8437a3b76 computed for a default
+# BlackJAXNUTS / SMC (whose search.json records ``seed: 42``).
+MAIN_DEFAULT_IDENTIFIER = {
+    "BlackJAXNUTS": "2a6f5217539f82fab8ea42eda9bf3441",
+    "SMC": "3baa494f2ca7b37a8c4b85884cadd1f7",
+}
+
+
+@pytest.mark.parametrize("name", sorted(UNHASHED_DEFAULT_42))
+def test_old_nuts_smc_pickle_keeps_the_main_identifier(name):
+    """Review 07 finding 1: a main pickle carries ``seed = 42`` in its state."""
+    import pickle
+
+    cls = _cls(name)
+    search = cls()
+    state = search.__getstate__()
+    state["seed"] = 42
+
+    loaded = cls.__new__(cls)
+    loaded.__setstate__(state)
+    loaded = pickle.loads(pickle.dumps(loaded))
+
+    assert loaded.seed is None
+    assert loaded.backend_seed == 42
+    assert str(Identifier(loaded)) == MAIN_DEFAULT_IDENTIFIER[name]
+
+
+def _old_output_folder(directory, name, identifier_file=None):
+    """An output folder as main wrote it: main's search.json and a model."""
+    files = directory / "files"
+    files.mkdir(parents=True)
+    (files / "search.json").write_text(json.dumps(GOLDEN[name]["main_search_json"]))
+    (files / "model.json").write_text(json.dumps(af.to_dict(af.Model(af.ex.Gaussian))))
+    if identifier_file is not None:
+        (directory / ".identifier").write_text(identifier_file)
+    return af.SearchOutput(directory)
+
+
+@pytest.mark.parametrize("name", sorted(UNHASHED_DEFAULT_42))
+def test_old_nuts_smc_output_keeps_the_main_identifier_in_the_aggregator(
+    name, tmp_path
+):
+    """
+    Review 07 finding 1: an old default NUTS/SMC output read by the aggregator keeps
+    main's search identifier, and ``SearchOutput.id`` (the database scrape's key)
+    keeps main's output identifier, with and without a persisted ``.identifier``.
+    """
+    _cls(name)
+
+    recomputed = _old_output_folder(tmp_path / "recomputed", name)
+
+    assert str(Identifier(recomputed.search)) == MAIN_DEFAULT_IDENTIFIER[name]
+    assert recomputed.search.seed is None
+    assert recomputed.search.backend_seed == 42
+    assert recomputed.id == GOLDEN[name]["main_default_path"]
+
+    paths = af.DirectoryPaths(name="seed_case", path_prefix="golden")
+    paths.search = af.from_dict(GOLDEN[name]["main_search_json"])
+    paths.model = af.Model(af.ex.Gaussian)
+    persisted = _old_output_folder(
+        tmp_path / "persisted", name, identifier_file=paths._identifier.description
+    )
+
+    assert persisted.id == GOLDEN[name]["main_default_path"]
+
+
+def test_search_output_id_prefers_the_persisted_identifier(tmp_path):
+    """
+    Review 07 finding 1: ``SearchOutput.id`` is the identifier the search wrote
+    (``.identifier`` holds its description, the md5 of which is the identifier), not a
+    recompute from today's search and model, which a later hashing change could move.
+    """
+    from hashlib import md5
+
+    output = _old_output_folder(
+        tmp_path / "out", "Emcee", identifier_file="Emcee\nnwalkers\n50"
+    )
+
+    assert output.id == md5("Emcee.nwalkers.50".encode("utf-8")).hexdigest()
+
+
+def test_search_output_id_recomputes_without_a_persisted_identifier(tmp_path):
+    output = _old_output_folder(tmp_path / "out", "Emcee")
+
+    assert output.id == str(
+        Identifier([output.search, output.model, output.unique_tag])
+    )
+
 
 # Review 07 finding 2: a subclass that already puts ``rstate`` in ``search_kwargs``.
 class _SeededDynestyStatic(af.DynestyStatic):

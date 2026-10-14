@@ -183,5 +183,14 @@ The signature and the member list are unchanged.
   global `random` module), so `ctx.rng.spawn(k)` hands the backend streams `1..k`. Grid-search
   children get an independent child sequence through a spawn key that is neither serialized
   nor hashed.
+- **BlackJAXNUTS / SMC read `seed=42` as the default.** main ran them with an unhashed
+  default `seed=42` and wrote `seed: 42` into every default `search.json` and pickle. So
+  that every such output keeps its identifier, a 42 (from the constructor, `from_dict` or an
+  unpickled main search) becomes the unhashed default `None`; the backend still runs with 42.
+  An explicit `seed=42` on these two searches therefore shares the default's identity and
+  output folder; any other explicit seed is hashed.
+- **The aggregator keeps persisted identities.** `SearchOutput.id` (also the database
+  scrape's key) is the md5 of the output's `.identifier` description when the output has
+  one, and is recomputed from the loaded search and model only when it does not.
 - **`ctx.test_mode_level`**: the level-1 reduction is applied by a post-init hook from the
   search's `test_mode_budget` (phase A4a), so `run` sees the reduced budget on `self`.
