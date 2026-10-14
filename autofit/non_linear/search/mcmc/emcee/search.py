@@ -130,18 +130,7 @@ class Emcee(AbstractMCMC):
         self.nwalkers = nwalkers
         self.nsteps = nsteps
 
-        if is_test_mode():
-            self.apply_test_mode()
-
         self.logger.debug("Creating Emcee Search")
-
-    def apply_test_mode(self):
-        logger.warning(
-            "TEST MODE 1 (reduced iterations): Sampler will run with "
-            "minimal iterations for faster completion."
-        )
-        self.nwalkers = 20
-        self.nsteps = 10
 
     def _fit(self, model: AbstractPriorModel, analysis):
         """

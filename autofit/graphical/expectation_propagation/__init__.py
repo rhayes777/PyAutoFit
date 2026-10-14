@@ -10,3 +10,4 @@ from .optimiser import (
     SimplerUpdater,
 )
 from .stochastic import StochasticEPOptimiser
+from .search_factor_optimiser import SearchFactorOptimiser

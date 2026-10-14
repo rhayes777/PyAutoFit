@@ -633,11 +633,11 @@ class TestBypassToleratesAssertionTies:
     def test__unsatisfiable_assertion__bounded_failure_is_clear(
         self, monkeypatch, mode
     ):
-        from autofit.non_linear.search import abstract_search
+        from autofit.non_linear.search import test_mode_bypass
 
         monkeypatch.setenv("PYAUTO_TEST_MODE", mode)
         monkeypatch.setattr(
-            abstract_search,
+            test_mode_bypass,
             "TEST_MODE_REPRESENTATIVE_MAX_ATTEMPTS",
             2,
         )
@@ -853,11 +853,11 @@ class TestReducedModeRejectedFinalSample:
             )
 
     def test__test_mode_1__bounded_failure_is_clear(self, monkeypatch):
-        from autofit.non_linear.search import abstract_search
+        from autofit.non_linear.search import test_mode_bypass
 
         monkeypatch.setenv("PYAUTO_TEST_MODE", "1")
         monkeypatch.setattr(
-            abstract_search,
+            test_mode_bypass,
             "TEST_MODE_REPRESENTATIVE_MAX_ATTEMPTS",
             2,
         )

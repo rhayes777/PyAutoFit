@@ -13,7 +13,6 @@ from autofit.non_linear.objective import SCALAR
 from autofit.non_linear.search.nest import abstract_nest
 from .samples import NSSamples
 from autofit.non_linear.samples.adapter import RawSamples
-from autofit.non_linear.test_mode import is_test_mode
 from autofit.non_linear.search import capabilities as cap
 
 if TYPE_CHECKING:
@@ -328,17 +327,7 @@ class NSS(abstract_nest.AbstractNest):
                 number_of_cores,
             )
 
-        if is_test_mode():
-            self.apply_test_mode()
-
         self.logger.debug("Creating NSS Search")
-
-    def apply_test_mode(self):
-        logger.warning(
-            "TEST MODE 1 (reduced iterations): NSS will run with a loose "
-            "termination criterion for faster completion."
-        )
-        self.termination = -1.0
 
     def fitness_overrides(self, analysis) -> dict:
         """

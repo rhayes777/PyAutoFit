@@ -15,10 +15,8 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior.vectorized import PriorVectorized
 from autofit.non_linear.checkpoint import DillCheckpointer, NativeFileCheckpointer
 from autofit.non_linear.parallel import fork_context
-from autofit.non_linear.paths.null import NullPaths
 from autofit.non_linear.search.nest import abstract_nest
 from autofit.non_linear.samples.adapter import RawSamples
-from autofit.non_linear.test_mode import is_test_mode
 from autofit.non_linear.search import capabilities as cap
 
 if TYPE_CHECKING:
@@ -337,17 +335,7 @@ class Nautilus(abstract_nest.AbstractNest):
 
         self.use_jax_vmap = use_jax_vmap
 
-        if is_test_mode():
-            self.apply_test_mode()
-
         self.logger.debug("Creating Nautilus Search")
-
-    def apply_test_mode(self):
-        logger.warning(
-            "TEST MODE 1 (reduced iterations): Sampler will run with "
-            "minimal iterations for faster completion."
-        )
-        self.n_like_max = 1
 
     def fitness_overrides(self, analysis) -> dict:
         """
@@ -377,7 +365,7 @@ class Nautilus(abstract_nest.AbstractNest):
             The fit's ``FitContext``.
         """
 
-        if not isinstance(ctx.paths, NullPaths):
+        if ctx.paths.supports_checkpointing:
             checkpoint_exists = Path(self.checkpoint_file).exists()
         else:
             checkpoint_exists = False
@@ -715,7 +703,7 @@ class Nautilus(abstract_nest.AbstractNest):
 
         total_iterations = search_internal.n_like
 
-        if isinstance(self.paths, NullPaths):
+        if not self.paths.supports_checkpointing:
             if self.n_like_max is not None and self.n_like_max != float("inf"):
                 return int(self.n_like_max), total_iterations
             return int(1e99), total_iterations

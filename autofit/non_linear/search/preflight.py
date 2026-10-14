@@ -321,3 +321,36 @@ def numerical_probe(search, fitness, vector) -> float:
         )
 
     return value
+
+
+def check_runtime_gates(search, analysis, model):
+    """
+    The fail-fast gates ``NonLinearSearch.start_resume_fit`` runs after the test-mode
+    bypass return and before any backend state exists:
+
+    - whole-graph backend agreement (``FactorGraphModel.check_backend_agreement``),
+      through the analysis wrappers that forward their wrapped analysis's likelihood
+      (``ModelAnalysis``, ``AnalysisFactor``), so a wrapped graph is still checked as
+      one whole graph;
+    - the REQUIRED gate: a ``jax_use='required'`` search given a numpy analysis raises
+      the one shared ``SearchException``;
+    - the x64 check (warn once, raise for ``requires_fp64``) and one ``jax.eval_shape``
+      trace of the declared objective kind(s), so a non-traceable likelihood fails
+      here, naming the search, rather than inside the backend.
+    """
+    from autofit.graphical.declarative.collection import FactorGraphModel
+    from autofit.graphical.declarative.factor.analysis import AnalysisFactor
+    from autofit.non_linear.analysis.model_analysis import ModelAnalysis
+
+    inner = analysis
+    while isinstance(inner, (ModelAnalysis, AnalysisFactor)) and not isinstance(
+        inner, FactorGraphModel
+    ):
+        inner = inner.__dict__.get("analysis")
+    if isinstance(inner, FactorGraphModel):
+        inner.check_backend_agreement()
+
+    cap.check_jax_required(search, analysis)
+
+    check_x64(search, analysis)
+    trace_preflight(search, analysis, model)

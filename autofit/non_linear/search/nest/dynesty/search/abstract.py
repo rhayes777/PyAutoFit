@@ -13,10 +13,8 @@ import warnings
 
 from autofit import exc
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.paths.null import NullPaths
 from autofit.non_linear.search.nest.abstract_nest import AbstractNest
 from autofit.non_linear.samples.adapter import RawSamples
-from autofit.non_linear.test_mode import is_test_mode
 from autofit.non_linear.search import capabilities as cap
 
 if TYPE_CHECKING:
@@ -282,7 +280,7 @@ class AbstractDynesty(AbstractNest, ABC):
             **self.execution_settings(analysis).fitness_overrides,
         )
 
-        if not isinstance(self.paths, NullPaths):
+        if self.paths.supports_checkpointing:
             checkpoint_exists = Path(self.checkpoint_file).exists()
         else:
             checkpoint_exists = False
@@ -460,7 +458,7 @@ class AbstractDynesty(AbstractNest, ABC):
         it has performed so far.
         """
 
-        if isinstance(self.paths, NullPaths):
+        if not self.paths.supports_checkpointing:
             if self.maxcall is not None:
                 return self.maxcall, self.maxcall
             # ``sys.maxsize`` rather than ``int(1e99)``: dynesty's dynamic sampler
@@ -534,7 +532,7 @@ class AbstractDynesty(AbstractNest, ABC):
 
         iterations_after_run = np.sum(search_internal.results.ncall)
 
-        if isinstance(self.paths, NullPaths):
+        if not self.paths.supports_checkpointing:
             return True
 
         if self.maxcall is not None and iterations_after_run >= self.maxcall:
@@ -584,13 +582,6 @@ class AbstractDynesty(AbstractNest, ABC):
             return str(self.paths.search_internal_path / DYNESTY_FILENAME)
         except TypeError:
             pass
-
-    def apply_test_mode(self):
-        logger.warning(
-            "TEST MODE 1 (reduced iterations): Sampler will run with "
-            "minimal iterations for faster completion."
-        )
-        self.maxcall = 1
 
     def live_points_init_from(self, model, fitness):
         """

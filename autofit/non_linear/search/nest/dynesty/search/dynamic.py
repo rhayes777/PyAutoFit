@@ -96,10 +96,6 @@ class DynestyDynamic(AbstractDynesty):
         self.maxiter = maxiter
         self.maxiter_init = maxiter_init
 
-        from autofit.non_linear.test_mode import is_test_mode
-        if is_test_mode():
-            self.apply_test_mode()
-
         self.logger.debug("Creating DynestyDynamic Search")
 
     @property

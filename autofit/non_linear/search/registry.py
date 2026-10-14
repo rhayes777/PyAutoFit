@@ -236,7 +236,7 @@ def _bfgs(name: str) -> RegistryEntry:
             upstream_url=_SCIPY,
             citation_keys=("scipy",),
             status="stable",
-            test_mode_budget={},
+            test_mode_budget={"maxiter": 10},
             objective_target=("neg2_log_posterior", "physical"),
             invalid_value="inf",
         ),

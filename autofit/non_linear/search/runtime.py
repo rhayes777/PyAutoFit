@@ -1,0 +1,256 @@
+"""
+Search runtime settings: the global-config reads a ``NonLinearSearch`` makes once, at
+construction, plus the logging and deprecation helpers the search module shares.
+
+``SearchRuntimeSettings.from_config`` resolves the ``general.yaml`` output, update,
+HPC and parallel settings into one frozen value; ``NonLinearSearch.__init__`` applies
+it as the same instance attributes as before (``iterations_per_quick_update``,
+``force_pickle_overwrite``, ...), so serialized searches and their identifiers are
+unchanged.
+"""
+
+import logging
+import os
+
+import numpy as np
+import warnings
+from dataclasses import dataclass
+from functools import wraps
+from typing import Optional
+
+from autonerves import conf
+from autonerves.output import should_output
+
+from autofit import exc
+
+logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class SearchRuntimeSettings:
+    """
+    The configuration-derived settings of one search, resolved once.
+
+    The update cadences are floats because the packaged default is the inf-like
+    ``1e99`` ("never"); HPC mode (``general.yaml -> hpc -> hpc_mode``) overrides both
+    cadences with its own values and silences the search.
+    """
+
+    iterations_per_quick_update: float
+    iterations_per_full_update: float
+    quick_update_background: bool
+    live_visual_update: bool
+    force_pickle_overwrite: bool
+    force_visualize_overwrite: bool
+    silence: bool
+
+    @classmethod
+    def from_config(
+        cls,
+        iterations_per_quick_update: Optional[int] = None,
+        iterations_per_full_update: Optional[int] = None,
+        live_visual_update: Optional[bool] = None,
+        silence: bool = False,
+    ) -> "SearchRuntimeSettings":
+        general = conf.instance["general"]
+        updates = general["updates"]
+        hpc = general["hpc"]
+
+        quick = float(iterations_per_quick_update or updates["iterations_per_quick_update"])
+        full = float(iterations_per_full_update or updates["iterations_per_full_update"])
+
+        if hpc["hpc_mode"]:
+            quick = float(hpc["iterations_per_quick_update"])
+            full = float(hpc["iterations_per_full_update"])
+            silence = True
+
+        return cls(
+            iterations_per_quick_update=quick,
+            iterations_per_full_update=full,
+            quick_update_background=bool(updates.get("quick_update_background", False)),
+            live_visual_update=bool(
+                live_visual_update
+                if live_visual_update is not None
+                else updates.get("live_visual_update", False)
+            ),
+            force_pickle_overwrite=general["output"]["force_pickle_overwrite"],
+            force_visualize_overwrite=general["output"]["force_visualize_overwrite"],
+            silence=silence,
+        )
+
+    def apply(self, search):
+        """
+        Set every setting as the instance attribute of the same name on ``search``.
+        """
+        for name in self.__dataclass_fields__:
+            setattr(search, name, getattr(self, name))
+
+
+_THREAD_VARIABLES = (
+    "OPENBLAS_NUM_THREADS",
+    "MKL_NUM_THREADS",
+    "OMP_NUM_THREADS",
+    "VECLIB_MAXIMUM_THREADS",
+    "NUMEXPR_NUM_THREADS",
+)
+
+
+def warn_if_threads_unpinned(number_of_cores: int):
+    """
+    Warn when a search uses multiprocessing (``number_of_cores > 1``) while the
+    numerical libraries' thread-count environment variables are not pinned to 1.
+    Disabled by ``general.yaml -> parallel -> warn_environment_variables``.
+    """
+    if number_of_cores <= 1 or all(
+        os.environ.get(key) == "1" for key in _THREAD_VARIABLES
+    ):
+        return
+
+    if not conf.instance["general"]["parallel"]["warn_environment_variables"]:
+        return
+
+    warnings.warn(exc.SearchWarning(""))
+    exports = "\n".join(f"    export {key}=1" for key in _THREAD_VARIABLES)
+    logger.warning(
+        "The non-linear search is using multiprocessing (number_of_cores>1), but "
+        f"the following environment variables are not all set to 1: "
+        f"{', '.join(_THREAD_VARIABLES)}.\n\n"
+        "This can lead to performance issues, because both the non-linear search and "
+        "libraries that may be used in your `log_likelihood_function` evaluation "
+        "(e.g. NumPy, SciPy, scikit-learn) may attempt to parallelize over all cores "
+        "available, overallocating tasks over the CPUs.\n\n"
+        "To mitigate this, set the environment variables to 1 in your terminal, so "
+        f"only the non-linear search is parallelized over multiple cores:\n\n{exports}\n\n"
+        "If you \"know what you are doing\" and do not want these environment "
+        "variables to be set to one, disable this warning in the config files: "
+        "`config -> general.yaml -> parallel: -> warn_environment_variables=False`"
+    )
+
+
+def warn_deprecated_jax_knob(owner: str, name: str, instead: str):
+    """
+    Warn, as a ``FutureWarning`` so end users see it, that the deprecated JAX knob
+    ``name`` was passed to ``owner``.
+
+    ``use_jax_jit`` and ``use_jax_vmap`` stay accepted for one release (search-
+    extensibility phase A2): every search now selects its objective through
+    ``Fitness.objective(kind)``, jitting a JAX analysis lazily and batching it where
+    the backend has a batched fast path.
+    """
+    warnings.warn(
+        f"{owner}({name}=...) is deprecated and will be removed after one release: "
+        f"{instead}",
+        FutureWarning,
+        stacklevel=3,
+    )
+
+
+def check_cores(func):
+    """
+    Deprecated (kept with the legacy pool shims until search-extensibility phase A5):
+    return ``None`` instead of calling the pool-creation function ``func`` when the
+    search is configured for one core.
+    """
+
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        if self.number_of_cores == 1:
+            return None
+        return func(self, *args, **kwargs)
+
+    return wrapper
+
+
+def configure_handler(func):
+    """
+    Add a file handler for logging during the course of the search.
+
+    Optionally outputs 'search.log' to the search's output directory. Can be
+    turned on or off in the output.yaml file.
+
+    Parameters
+    ----------
+    func
+        Some function for which logging should be output to file
+
+    Returns
+    -------
+    A decorated version of the function
+    """
+    root_logger = logging.getLogger()
+
+    def decorated(self, *args, **kwargs):
+        if not should_output("search_log"):
+            return func(self, *args, **kwargs)
+        if self.disable_output:
+            return func(self, *args, **kwargs)
+        try:
+            os.makedirs(
+                self.paths.output_path,
+                exist_ok=True,
+            )
+            handler = logging.FileHandler(self.paths.output_path / "search.log")
+            root_logger.addHandler(handler)
+        except AttributeError:
+            return func(self, *args, **kwargs)
+
+        try:
+            return func(self, *args, **kwargs)
+        finally:
+            root_logger.removeHandler(handler)
+            handler.close()
+
+    return decorated
+
+
+def log_fit_start(search, analysis):
+    """
+    Log, once at the start of a fit, the device (JAX) or core count it runs on and the
+    quick-update cadence (``NonLinearSearch.quick_update_message``).
+    """
+    if analysis.is_jax:
+        try:
+            import jax
+
+            device = jax.devices()[0]
+            backend = device.platform.upper()
+            device_name = getattr(device, "device_kind", backend)
+            logger.info(
+                f"Starting non-linear search with JAX ({backend}: {device_name})."
+            )
+        except Exception:
+            logger.info("Starting non-linear search with JAX.")
+    else:
+        logger.info(
+            f"Starting non-linear search with {search.number_of_cores} cores."
+        )
+    logger.info(search.quick_update_message)
+
+
+def quick_update_message(iterations: float) -> str:
+    """
+    One line, logged at the start of every search, telling the user the real
+    cadence of the on-the-fly maximum-likelihood updates.
+
+    The cadence is worth stating because it is the only thing that explains
+    the terminal's behaviour during a long fit: either updates appear every
+    N iterations, or nothing appears at all until the search finishes. The
+    packaged default is the ``ITERATIONS_NEVER`` sentinel, so "nothing at
+    all" is what most users get -- and a message that reported that as
+    ``1e+99 iterations`` would be technically true and practically useless.
+    Hence the two-branch wording, and hence naming the config key: the
+    disabled branch is the one a user is most likely to want to act on.
+    """
+    from autofit.non_linear.fitness import ITERATIONS_NEVER
+
+    if not np.isfinite(iterations) or iterations >= ITERATIONS_NEVER:
+        return (
+            "On-the-fly updates of the maximum likelihood model are disabled. "
+            "Set `updates: iterations_per_quick_update` in config/general.yaml "
+            "to a finite number of iterations to enable them."
+        )
+
+    return (
+        "On-the-fly updates of the maximum likelihood model every "
+        f"{int(iterations)} iterations."
+    )

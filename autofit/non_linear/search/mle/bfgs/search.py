@@ -44,7 +44,7 @@ class AbstractBFGS(AbstractMLE):
     upstream_url = "https://github.com/scipy/scipy"
     citation_keys = ("scipy",)
     status = cap.Status.STABLE
-    test_mode_budget = {}
+    test_mode_budget = {"maxiter": 10}
     objective_target = cap.ObjectiveTarget(cap.ObjectiveQuantity.NEG2_LOG_POSTERIOR, cap.CoordinateSpace.PHYSICAL)
     # The value a NaN or infinite likelihood reaches the backend as: ``Fitness``
     # replaces it with ``resample_figure_of_merit=-inf`` and the chi-squared

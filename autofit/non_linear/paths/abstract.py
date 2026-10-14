@@ -111,6 +111,18 @@ class AbstractPaths(ABC):
     ``DatabasePaths`` (results live in the database) store none.
     """
 
+    has_timer = True
+    """
+    Whether the search times itself into ``search_internal/`` (``Timer``).
+    ``NullPaths`` and ``DatabasePaths`` do not.
+    """
+
+    supports_checkpointing = True
+    """
+    Whether a backend may write and resume from its own checkpoint file under these
+    paths (Dynesty, Nautilus). ``NullPaths`` (no output) does not.
+    """
+
     def __init__(
         self,
         name: Optional[str] = None,
