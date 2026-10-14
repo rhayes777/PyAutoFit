@@ -29,6 +29,26 @@ from autonerves.dictable import from_dict, to_dict
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
 
+
+def _run_source() -> str:
+    """
+    The whitespace-normalised source of MultiStart's ``run(ctx)`` and the phases it
+    is split into (``_step_functions``, ``_restored_state``, ``_fresh_state``,
+    ``_step_loop``), the body the former ``_fit`` held.
+    """
+    cls = af.MultiStartAdam
+    methods = (
+        cls.run,
+        cls._step_functions,
+        cls._restored_state,
+        cls._fresh_state,
+        cls._step_loop,
+    )
+    return " ".join(
+        " ".join(inspect.getsource(method).split()) for method in methods
+    )
+
+
 def test__explicit_params():
     search = af.MultiStartAdam(
         n_starts=16,
@@ -935,7 +955,7 @@ def test__fit_wires_the_progress_and_compile_seams():
 
     Necessarily a source-level check — ``_fit`` cannot run from this suite.
     """
-    source = " ".join(inspect.getsource(af.MultiStartAdam._fit).split())
+    source = _run_source()
 
     # the cadence gate and the line it guards
     assert (
@@ -965,7 +985,7 @@ def test__fit_uses_both_seams_and_keeps_the_converged_loop_guard():
     pinned by the parametrised tests above, so a semantically-equivalent rewrite
     of a seam is caught there rather than here.
     """
-    source = " ".join(inspect.getsource(af.MultiStartAdam._fit).split())
+    source = _run_source()
 
     assert "if not self._is_final_boundary(" in source
     assert "stop_reason = self._stop_reason_on_resume(stop_reason)" in source
@@ -1281,7 +1301,7 @@ def test__fit_wires_the_per_lane_best_seams():
 
     Necessarily a source-level check — ``_fit`` cannot run from this suite.
     """
-    source = " ".join(inspect.getsource(af.MultiStartAdam._fit).split())
+    source = _run_source()
 
     # the per-step capture, driven by the alive-masked foms at the
     # pre-increment step index (= this step's fom_history index).
