@@ -10,6 +10,7 @@ toy's own golden rows.
 import inspect
 
 import pytest
+from autonerves import conf
 
 from test_autofit.non_linear.search import conformance_roster as roster
 from test_autofit.non_linear.search import test_conformance as layer_i
@@ -90,12 +91,14 @@ def test_layer_i_identifier(monkeypatch):
 
 
 def test_layer_i_config_unchanged_by_construction(tmp_path):
-    fixture = layer_i.make_search_internal_off.__wrapped__(tmp_path)
-    next(fixture)
+    # The `search_internal_off` fixture of layer (i), inline.
+    original_configs = list(conf.instance.configs)
+    (tmp_path / "output.yaml").write_text("search_internal: false\n")
+    conf.instance.push(new_path=str(tmp_path))
     try:
         layer_i.test_config_unchanged_by_construction(TOY, None)
     finally:
-        next(fixture, None)
+        conf.instance.configs = original_configs
 
 
 @pytest.fixture(name="toy_run", scope="module")

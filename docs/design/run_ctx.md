@@ -201,8 +201,9 @@ The signature and the member list are unchanged.
 
 The signature `run(self, ctx) -> Any` and the member list are unchanged.
 
-- **Every PyAutoFit search is on the bridge.** Emcee, Zeus, BFGS/LBFGS, DynestyStatic,
-  DynestyDynamic, BlackJAXNUTS, SMC and the four MultiStart searches implement `run(ctx)`;
+- **Every PyAutoFit search is on the bridge.** A5 moved Emcee, Zeus, BFGS/LBFGS,
+  DynestyStatic, DynestyDynamic, BlackJAXNUTS, SMC and the four MultiStart searches onto
+  `run(ctx)`, joining Drawer, Nautilus (A2) and NSS (A3b);
   `def _fit(` under `autofit/non_linear/search` is only the base class's bridge. Seeded
   `samples.csv` of every migrated search is byte-identical to the pre-A5 `_fit`.
 - **The legacy pool shims are gone.** `make_pool`, `make_sneaky_pool` and their

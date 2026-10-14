@@ -9,7 +9,6 @@ it as the same instance attributes as before (``iterations_per_quick_update``,
 unchanged.
 """
 
-import functools
 import logging
 import os
 
@@ -145,7 +144,6 @@ def warn_deprecated_jax_knob(owner: str, name: str, instead: str):
     )
 
 
-@functools.lru_cache(maxsize=None)
 def _mro_init_parameters(cls) -> frozenset:
     """
     The named parameters of every ``__init__`` in ``cls``'s MRO.
