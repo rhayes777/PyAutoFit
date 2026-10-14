@@ -1,7 +1,6 @@
 import configparser
 import logging
 import os
-import random
 from abc import ABC, abstractmethod
 from typing import Dict, Tuple, List, Optional
 
@@ -44,6 +43,22 @@ class AbstractInitializer(ABC):
     def _generate_unit_parameter_list(self, model):
         pass
 
+    @property
+    def rng(self) -> np.random.Generator:
+        """
+        The generator every draw of this initializer uses: the search's stream-0
+        generator during ``samples_from_model`` (``autofit.non_linear.search.seed``),
+        otherwise a fresh unseeded one. The global ``random`` module is never used.
+        """
+        rng = self.__dict__.get("_rng")
+        if rng is None:
+            rng = np.random.default_rng()
+            self._rng = rng
+        return rng
+
+    def _uniform(self, lower: float, upper: float) -> float:
+        return float(self.rng.uniform(lower, upper))
+
     def info_from_model(self, model : AbstractPriorModel) -> str:
         raise NotImplementedError
 
@@ -69,6 +84,7 @@ class AbstractInitializer(ABC):
             use_prior_medians: bool = False,
             test_mode_samples: bool = True,
             n_cores: int = 1,
+            rng: Optional[np.random.Generator] = None,
     ):
         """
         Generate the initial points of the non-linear search, by randomly drawing unit values from a uniform
@@ -81,7 +97,11 @@ class AbstractInitializer(ABC):
         model
             An object that represents possible instances of some model with a given dimensionality which is the number
             of free dimensions of the model.
+        rng
+            The generator the points are drawn from: the search passes stream 0 of its seed, so the same seed gives
+            the same initial points. ``None`` draws from a fresh unseeded generator.
         """
+        self._rng = rng if rng is not None else np.random.default_rng()
 
         if is_test_mode() and test_mode_samples:
             return self.samples_in_test_mode(total_points=total_points, model=model)
@@ -295,7 +315,7 @@ class InitializerParamBounds(AbstractInitializer):
 
             try:
                 lower, upper = map(prior.unit_value_for, self.parameter_dict[prior])
-                value = random.uniform(lower, upper)
+                value = self._uniform(lower, upper)
             except KeyError:
                 key = ".".join(model.path_for_prior(prior))
                 if key not in self._generated_warnings:
@@ -308,7 +328,9 @@ class InitializerParamBounds(AbstractInitializer):
                 lower = self.lower_limit
                 upper = self.upper_limit
 
-                value = prior.unit_value_for(prior.random(lower, upper))
+                value = prior.unit_value_for(
+                    prior.value_for(self._uniform(lower, upper))
+                )
 
             unit_parameter_list.append(value)
 
@@ -600,7 +622,7 @@ class InitializerParamStartPoints(InitializerParamBounds):
                         f"Using defaults."
                     )
                     self._generated_warnings.add(key)
-                value = prior.random(self.lower_limit, self.upper_limit)
+                value = prior.value_for(self._uniform(self.lower_limit, self.upper_limit))
 
             unit_parameter_list.append(prior.unit_value_for(value))
 
@@ -654,9 +676,10 @@ class Initializer(AbstractInitializer):
             )
 
     def _generate_unit_parameter_list(self, model):
-        return model.random_unit_vector_within_limits(
-            lower_limit=self.lower_limit, upper_limit=self.upper_limit
-        )
+        return [
+            self._uniform(self.lower_limit, self.upper_limit)
+            for _ in model.priors_ordered_by_id
+        ]
 
 
 class InitializerPrior(Initializer):
