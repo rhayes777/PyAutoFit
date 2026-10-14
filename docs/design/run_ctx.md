@@ -196,3 +196,46 @@ The signature and the member list are unchanged.
   one, and is recomputed from the loaded search and model only when it does not.
 - **`ctx.test_mode_level`**: the level-1 reduction is applied by a post-init hook from the
   search's `test_mode_budget` (phase A4a), so `run` sees the reduced budget on `self`.
+
+## Revision 4 (phase A5, 2026-10-14): every search on `run(ctx)`
+
+The signature `run(self, ctx) -> Any` and the member list are unchanged.
+
+- **Every PyAutoFit search is on the bridge.** Emcee, Zeus, BFGS/LBFGS, DynestyStatic,
+  DynestyDynamic, BlackJAXNUTS, SMC and the four MultiStart searches implement `run(ctx)`;
+  `def _fit(` under `autofit/non_linear/search` is only the base class's bridge. Seeded
+  `samples.csv` of every migrated search is byte-identical to the pre-A5 `_fit`.
+- **The legacy pool shims are gone.** `make_pool`, `make_sneaky_pool` and their
+  one-core decorator were removed from `execution.py`; `PoolFactory` is the only pool
+  source (`ctx.pool(n, **pool_kwargs)`, `ctx.pool.sneaky(fitness)`, and
+  `self._pools(analysis)` for an external search that still overrides `_fit`, which keeps
+  working for at least one more release). Dynesty's `ForkPool` takes its worker pool from
+  `ctx.pool`, so the JAX fork rule and the context's pool shutdown cover it too.
+  `SneakyPool` stays, built only by `PoolFactory.sneaky`.
+- **`ctx.start_points(n)` honours one more search-side hook**, `_start_points_in_test_mode`
+  (default `True`; `Zeus` sets `False`): whether the initializer may return its test-mode
+  samples under `PYAUTO_TEST_MODE=1` (Zeus always drew real start points). Like
+  `_plots_start_point` it is a class attribute, not a context member.
+- **Searches whose start points are not `(parameters, figures_of_merit)`** keep the
+  search's own `start_points` helper (the one initializer call site): Dynesty needs the
+  unit-cube live points without a start-point plot, and MultiStart draws its broad
+  population through `_broad_starts` on its `(seed, stream)` sequences (A4).
+- **Archive writes.** A search whose resume state is its archive (`MultiStart`'s dill)
+  saves through `ctx.update` at an intermediate boundary and through `ctx.checkpointer`
+  at the last one; Zeus and BFGS, which declare no resume state, still archive their
+  dill after every chunk with `ctx.paths.save_search_internal`, and NUTS/SMC their pickle
+  with `output_search_internal`, exactly as before.
+- **MultiStart's `run`** is split into `_step_functions`, `_restored_state`,
+  `_fresh_state` and `_step_loop`; its quick-update cadence is a `fitness_overrides`
+  entry, so the bridge builds the same `Fitness`.
+- **`FitLifecycle` is not introduced (D22).** The migrations left no lifecycle code
+  duplicated across searches that the mixins cannot host: every chore the design note
+  lists (Fitness, pools, start points, seed streams, schedule, update, cleanup) is in the
+  bridge and `FitContext`, and what stays in each `run` is the backend's own loop.
+- **The template.** `autofit/non_linear/search/_template/search.py` is a complete,
+  runnable search whose module docstring states this contract and the six PyAutoFit
+  touch points of a new search; `test_template_search.py` runs both conformance layers on
+  a copy of it (`template_toy_search.py`).
+- **Unknown constructor keywords** that no `__init__` in the search's MRO names are
+  logged as a warning (never raised); `use_jax_vmap=None`, which
+  `SettingsSearch.search_dict` hands every search, is not reported.

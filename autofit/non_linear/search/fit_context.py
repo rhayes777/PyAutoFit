@@ -3,9 +3,10 @@ The minimal ``run(ctx)`` bridge (search-extensibility phase A2, decision D7).
 
 ``docs/design/run_ctx.md`` (frozen) fixes the ``run(ctx)`` signature and the members of
 ``FitContext``. A search that implements ``run(ctx)`` (and ``raw_samples_from``) instead
-of ``_fit`` is driven through a ``FitContext`` by ``NonLinearSearch._fit``, the bridge;
-a search that overrides ``_fit`` keeps working unchanged. ``Drawer`` and ``Nautilus`` are
-the first two searches on the bridge.
+of ``_fit`` is driven through a ``FitContext`` by ``NonLinearSearch._fit``, the bridge.
+``Drawer`` and ``Nautilus`` were the first two searches on it (A2); since A5 every
+PyAutoFit search is. An external search that still overrides ``_fit`` keeps working (it
+takes its pools from ``self._pools(analysis)``).
 
 Members filled by later phases:
 

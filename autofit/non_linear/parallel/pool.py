@@ -134,9 +134,9 @@ class PoolFactory:
         The pools one fit of ``search`` may use, with the JAX fork rule applied once.
 
         Built by ``NonLinearSearch`` once per fit, after the test-mode bypass and the
-        fail-fast gates, and reached by a ``run(ctx)`` search as ``ctx.pool`` and by a
-        legacy ``_fit`` through ``make_pool`` / ``make_sneaky_pool`` / ``number_of_cores``
-        of the fit's factory.
+        fail-fast gates, and reached by a ``run(ctx)`` search as ``ctx.pool`` (and by an
+        external search that still overrides ``_fit`` as ``self._pools(analysis)``). It
+        is the only pool source of a search: every pool a fit uses comes from here.
 
         Parameters
         ----------

@@ -18,9 +18,8 @@ from typing import TYPE_CHECKING, Any, List, Optional
 from autonerves import conf
 
 from autofit.non_linear.fitness import Fitness
-from autofit.non_linear.parallel import PoolFactory, SneakyPool
+from autofit.non_linear.parallel import PoolFactory
 from autofit.non_linear.search import capabilities as cap
-from autofit.non_linear.search.runtime import check_cores
 from autofit.non_linear.search.seed import initializer_rng
 from autofit.non_linear.test_mode import test_mode_level
 
@@ -329,30 +328,11 @@ class SearchExecutionMixin:
         The current fit's `PoolFactory` (the JAX fork rule applied to its analysis), or,
         outside a fit, one built for `analysis` (so a direct `_fit` caller still gets
         the fork rule), or from `number_of_cores` alone when no analysis is given.
+
+        The only pool source of a search (search-extensibility A5 removed the legacy
+        pool shims of the `_fit` contract): a `run(ctx)` search reaches it as
+        `ctx.pool`, an external search that still overrides `_fit` as
+        `self._pools(analysis)` (`PoolFactory.__call__` / `PoolFactory.sneaky`).
         """
         pools = self.__dict__.get("_fit_pools")
         return pools if pools is not None else PoolFactory(self, analysis)
-
-    @check_cores
-    def make_pool(self):
-        """
-        Deprecated, kept until every search is on ``run(ctx)`` (search-extensibility
-        phase A5): use ``ctx.pool`` / ``self._pools()`` (``PoolFactory``).
-
-        Make the pool instance used to parallelize a `NonLinearSearch` alongside a set of unique ids for every
-        process in the pool. If the specified number of cores is 1, a pool instance is not made and None is returned.
-
-        The pool cannot be set as an attribute of the class itself because this prevents pickling, thus it is generated
-        via this function before calling the non-linear search.
-        """
-        return self._pools()()
-
-    def make_sneaky_pool(self, fitness: Fitness) -> Optional[SneakyPool]:
-        """
-        Deprecated, kept until every search is on ``run(ctx)`` (search-extensibility
-        phase A5): use ``self._pools(analysis).sneaky(fitness)`` (``PoolFactory.sneaky``).
-
-        Create a pool for multiprocessing that uses slight-of-hand to avoid copying the
-        fitness function between processes multiple times, or ``None`` for one core.
-        """
-        return self._pools(getattr(fitness, "analysis", None)).sneaky(fitness)
