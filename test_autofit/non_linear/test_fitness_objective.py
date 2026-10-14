@@ -225,3 +225,69 @@ def test_evaluate_in_chunks_matches_one_call_and_compiles_one_shape():
     assert np.allclose(np.asarray(chunked), np.asarray(whole))
     # Shapes (2, d) and (5, d): the padded ragged chunk reuses the (2, d) executable.
     assert batched.__wrapped__._cache_size() == 2
+
+
+class EagerOnlyAnalysis(af.ex.Analysis):
+    """
+    A JAX analysis whose likelihood is valid eagerly but not under `jax.jit`: it
+    converts a parameter to a Python float, which raises on a tracer.
+    """
+
+    def log_likelihood_function(self, instance, **kwargs):
+        return float(np.asarray(instance.centre)) * 0.0 + 50.0
+
+
+def _legacy_state(fitness, use_jax_vmap, use_jax_jit):
+    """
+    The `__dict__` a pre-A2 (A1-era) `Fitness` pickled: `use_jax_vmap` / `use_jax_jit`
+    instead of `batched` / `compile`.
+    """
+    state = fitness.__getstate__()
+    state.pop("batched")
+    state.pop("compile")
+    state["use_jax_vmap"] = use_jax_vmap
+    state["use_jax_jit"] = use_jax_jit
+    return state
+
+
+def _restore(state):
+    import pickle
+
+    restored = Fitness.__new__(Fitness)
+    restored.__setstate__(state)
+    return pickle.loads(pickle.dumps(restored))
+
+
+def test_legacy_eager_pickle_stays_eager():
+    pytest.importorskip("jax")
+
+    model = af.Model(af.ex.Gaussian)
+    analysis = EagerOnlyAnalysis(
+        data=np.ones(20), noise_map=np.ones(20) * 0.1, use_jax=True
+    )
+    fitness = Fitness(model=model, analysis=analysis, compile=False)
+    vector = _vector(fitness)
+    assert float(fitness._call(vector)) == pytest.approx(50.0)
+
+    restored = _restore(_legacy_state(fitness, use_jax_vmap=False, use_jax_jit=False))
+
+    assert restored.compile is False
+    assert restored.batched is False
+    assert not hasattr(restored._call, "__wrapped__")
+    assert float(restored._call(vector)) == pytest.approx(50.0)
+
+
+def test_legacy_jit_and_vmap_pickles_stay_compiled():
+    pytest.importorskip("jax")
+
+    fitness = _fitness(use_jax=True)
+
+    jitted = _restore(_legacy_state(fitness, use_jax_vmap=False, use_jax_jit=True))
+    assert jitted.compile is True
+    assert jitted.batched is False
+    assert hasattr(jitted._call, "__wrapped__")
+
+    vmapped = _restore(_legacy_state(fitness, use_jax_vmap=True, use_jax_jit=False))
+    assert vmapped.compile is True
+    assert vmapped.batched is True
+    assert hasattr(vmapped._call, "__wrapped__")
