@@ -70,7 +70,7 @@ class SamplesSMC(SamplesPDF):
         """
         The log evidence `log Z = log integral(prior(x) L(x) dx)`, accumulated for free from the SMC tempering
         bridge as the sum of every step's `log_likelihood_increment` (plus the whitening Jacobian `log|det L|`
-        when the run was warm-started; see `SMC._fit`).
+        when the run was warm-started; see `SMC.run`).
 
         This is the true evidence on the same scale a nested sampler reports, and is directly comparable to a
         `Nautilus` or `Dynesty` `log_evidence` for the same model and data.

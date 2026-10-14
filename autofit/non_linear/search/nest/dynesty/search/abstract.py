@@ -25,17 +25,16 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-def _fork_pool_cls():
+def _fork_pool_cls(pools):
     """
-    dynesty's `Pool` pinned to the "fork" start method via
-    `autofit.non_linear.parallel.fork_context` — upstream hardcodes the default
-    multiprocessing context, which Python 3.14 changed to "forkserver" on Linux
-    (see that helper's docstring). `__enter__` mirrors `dynesty.pool.Pool.__enter__`
-    exactly apart from the context.
+    dynesty's `Pool` whose worker pool comes from the fit's `PoolFactory` (`pools`, the
+    `ctx.pool` of the fit), so it is a "fork" pool (`autofit.non_linear.parallel.fork_context`;
+    upstream hardcodes the default multiprocessing context, which Python 3.14 changed to
+    "forkserver" on Linux), the JAX fork rule applies and the context shuts it down on
+    every exit. `__enter__` mirrors `dynesty.pool.Pool.__enter__` exactly apart from where
+    the pool comes from.
     """
     from dynesty import pool as dynesty_pool
-
-    from autofit.non_linear.parallel import fork_context
 
     class ForkPool(dynesty_pool.Pool):
         def __enter__(self):
@@ -47,8 +46,10 @@ def _fork_pool_cls():
                 self.ptform_args or (),
                 self.ptform_kwargs or {},
             )
-            self.pool = fork_context().Pool(
-                self.njobs, dynesty_pool.initializer, initargs
+            self.pool = pools(
+                self.njobs,
+                initializer=dynesty_pool.initializer,
+                initargs=initargs,
             )
             dynesty_pool.initializer(*initargs)
             return self
@@ -58,7 +59,7 @@ def _fork_pool_cls():
 
 class _SingleCoreRun(Exception):
     """
-    Control flow inside ``AbstractDynesty._fit``: run dynesty without a pool.
+    Control flow inside ``AbstractDynesty.run``: run dynesty without a pool.
 
     Raised when the fit is single-core by construction (``number_of_cores <= 1``,
     ``force_x1_cpu`` or a JAX analysis) and when the multiprocessing pool cannot be
@@ -272,48 +273,34 @@ class AbstractDynesty(NonLinearSearch, ABC):
         """Run kwargs specific to each subclass, excluding maxcall."""
         raise NotImplementedError()
 
-    def _fit(
-        self,
-        model: AbstractPriorModel,
-        analysis,
-    ):
+    def run(self, ctx):
         """
-        Fit a model using the search and the Analysis class which contains the data and returns the log likelihood from
-        instances of the model, which the `NonLinearSearch` seeks to maximize.
+        Run dynesty (the ``run(ctx)`` hook; see ``docs/design/run_ctx.md``) and return the
+        sampler.
 
-        A multiprocessing pool is built only when `number_of_cores > 1`. At `number_of_cores=1` the search runs
-        fully serially with no pool, because a `Pool(1)` forces every likelihood call through a forked worker,
-        which deadlocks in XLA compilation when the likelihood touches JAX and hangs forever if that worker dies
-        (the same fix Nautilus received in #1442 / #1443; see #1630). Consequently, a run started with
-        `number_of_cores=1` cannot be resumed with more cores (`check_pool` raises a `SearchException`), exactly
-        as on the existing `force_x1_cpu` path.
+        A multiprocessing pool is built only when the fit's effective core count is above 1. At
+        `number_of_cores=1` the search runs fully serially with no pool, because a `Pool(1)` forces every
+        likelihood call through a forked worker, which deadlocks in XLA compilation when the likelihood touches
+        JAX and hangs forever if that worker dies (the same fix Nautilus received in #1442 / #1443; see #1630).
+        Consequently, a run started with `number_of_cores=1` cannot be resumed with more cores (`check_pool`
+        raises a `SearchException`), exactly as on the existing `force_x1_cpu` path.
 
         However, certain operating systems (e.g. Windows) do not support Python multiprocessing particularly well.
         If creating the pool raises a `RuntimeError`, a Dynesty object without a pool is created and used instead.
         Only the pool's creation falls back: a `RuntimeError` raised while Dynesty runs (including JAX's
         `XlaRuntimeError`) propagates rather than silently restarting the run single-core (`_SingleCoreRun`).
 
+        dynesty resumes from its own native checkpoint (``savestate.save``).
+
         Parameters
         ----------
-        model
-            The model which generates instances for different points in parameter space.
-        analysis
-            Contains the data and the log likelihood function which fits an instance of the model to the data,
-            returning the log likelihood dynesty maximizes.
-
-        Returns
-        -------
-        A result object comprising the Samples object that includes the maximum log likelihood instance and full
-        set of accepted samples of the fit.
+        ctx
+            The fit's ``FitContext``.
         """
+        model = ctx.model
+        fitness = ctx.fitness
 
-        fitness = self.make_fitness(
-            analysis=analysis,
-            model=model,
-            **self.execution_settings(analysis).fitness_overrides,
-        )
-
-        if self.paths.supports_checkpointing:
+        if ctx.paths.supports_checkpointing:
             checkpoint_exists = Path(self.checkpoint_file).exists()
         else:
             checkpoint_exists = False
@@ -329,16 +316,17 @@ class AbstractDynesty(NonLinearSearch, ABC):
 
         # The fit's effective core count: the JAX fork rule makes it 1 for a JAX
         # analysis (`autofit.non_linear.parallel.pool`).
-        number_of_cores = self._pools(analysis).number_of_cores
+        number_of_cores = ctx.pool.number_of_cores
+        is_jax = ctx.pool.is_jax
 
         finished = False
 
         while not finished:
             try:
-                if number_of_cores <= 1 or self.force_x1_cpu or analysis.is_jax:
+                if number_of_cores <= 1 or self.force_x1_cpu or is_jax:
                     raise _SingleCoreRun()
 
-                Pool = _fork_pool_cls()
+                Pool = _fork_pool_cls(ctx.pool)
 
                 with ExitStack() as stack:
                     # Only a failure to *create* the pool falls back to a single-core
@@ -370,7 +358,7 @@ class AbstractDynesty(NonLinearSearch, ABC):
 
             except _SingleCoreRun as e:
                 if not checkpoint_exists:
-                    if analysis.is_jax:
+                    if is_jax:
                         self.logger.info(
                             "Running Dynesty with JAX-jitted likelihood (single CPU, no pool)."
                         )
@@ -404,15 +392,9 @@ class AbstractDynesty(NonLinearSearch, ABC):
                 checkpoint_exists = True
 
             if not finished:
-                self.perform_update(
-                    model=model,
-                    analysis=analysis,
-                    search_internal=search_internal,
-                    fitness=fitness,
-                    during_analysis=True,
-                )
+                ctx.update(search_internal)
 
-        return search_internal, fitness
+        return search_internal
 
     def samples_info_from(self, search_internal=None):
         search_internal = search_internal or self.search_internal

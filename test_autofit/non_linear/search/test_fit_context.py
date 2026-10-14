@@ -38,7 +38,18 @@ def _analysis():
 
 @pytest.mark.parametrize(
     "search_cls",
-    [af.Drawer, af.Nautilus, af.Emcee, af.Zeus, af.BFGS, af.LBFGS],
+    [
+        af.Drawer,
+        af.Nautilus,
+        af.Emcee,
+        af.Zeus,
+        af.BFGS,
+        af.LBFGS,
+        af.DynestyStatic,
+        af.DynestyDynamic,
+        af.BlackJAXNUTS,
+        af.SMC,
+    ],
 )
 def test_proofs_are_on_the_bridge(search_cls):
     assert search_cls.run is not NonLinearSearch.run

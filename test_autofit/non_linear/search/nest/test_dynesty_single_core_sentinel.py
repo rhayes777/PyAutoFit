@@ -2,7 +2,7 @@
 Dynesty's single-core control flow (search-extensibility A3b; survey 01 §8, survey 02
 §3.7).
 
-``AbstractDynesty._fit`` used ``raise RuntimeError`` inside a ``try`` to select its
+``AbstractDynesty._fit`` (now ``run``) used ``raise RuntimeError`` inside a ``try`` to select its
 single-core path, so its ``except RuntimeError`` also swallowed any ``RuntimeError``
 raised while a pooled run executed (a genuine dynesty error, or JAX's
 ``XlaRuntimeError``, which subclasses it) and silently restarted the run single-core.
@@ -63,7 +63,7 @@ def _search(monkeypatch, pool_cls, run_search_internal):
         pools.append(pool)
         return object()
 
-    monkeypatch.setattr(dynesty_abstract, "_fork_pool_cls", lambda: pool_cls)
+    monkeypatch.setattr(dynesty_abstract, "_fork_pool_cls", lambda pools: pool_cls)
     monkeypatch.setattr(search, "search_internal_from", search_internal_from)
     monkeypatch.setattr(search, "run_search_internal", run_search_internal)
     return search, pools
@@ -111,7 +111,7 @@ def test_single_core_is_selected_without_a_runtime_error(monkeypatch):
     def run_search_internal(search_internal):
         return True
 
-    def pool_must_not_be_built():
+    def pool_must_not_be_built(pools):
         raise AssertionError("a single-core fit built a pool")
 
     search = af.DynestyStatic(number_of_cores=1)
