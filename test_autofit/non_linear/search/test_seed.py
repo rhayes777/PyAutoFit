@@ -411,6 +411,74 @@ def test_search_output_id_recomputes_without_a_persisted_identifier(tmp_path):
     )
 
 
+# Review 07 finding 3: the backends that take a raw seed.
+RAW_SEED_BACKENDS = ["Nautilus", "NSS", "BlackJAXNUTS", "SMC"]
+
+
+def _children(search):
+    child_0 = search.copy_with_paths(af.DirectoryPaths(name="c0"))
+    child_1 = search.copy_with_paths(af.DirectoryPaths(name="c1"))
+    child_0._seed_spawn_key = (0,)
+    child_1._seed_spawn_key = (1,)
+    return child_0, child_1
+
+
+@pytest.mark.parametrize("name", RAW_SEED_BACKENDS)
+def test_grid_children_get_distinct_raw_backend_seeds(name):
+    cls = _cls(name)
+    parent = cls(seed=9)
+    child_0, child_1 = _children(parent)
+
+    # Standalone: the backend takes the raw seed, exactly as before.
+    assert parent.backend_seed == 9
+    assert child_0.backend_seed != child_1.backend_seed
+    assert 9 not in (child_0.backend_seed, child_1.backend_seed)
+    # Child seeds are reproducible and fit a 32-bit signed JAX PRNGKey.
+    assert child_0.backend_seed == _children(cls(seed=9))[0].backend_seed
+    assert 0 <= child_0.backend_seed < 2**31
+    # The spawn key never reaches the identifier or search.json.
+    assert str(Identifier(child_0)) == str(Identifier(child_1)) == str(
+        Identifier(parent)
+    )
+    assert "_seed_spawn_key" not in af.to_dict(child_0)["arguments"]
+
+
+@pytest.mark.parametrize(
+    "name",
+    ["MultiStartAdam", "MultiStartADABelief", "MultiStartLion", "MultiStartProdigy"],
+)
+def test_multi_start_grid_children_get_distinct_streams(name):
+    cls = _cls(name)
+    parent = cls(seed=9)
+    child_0, child_1 = _children(parent)
+
+    def draws(search, stream):
+        return np.random.default_rng(search._seed_for(stream)).random(4)
+
+    for stream in (0, 1):
+        assert not np.array_equal(draws(child_0, stream), draws(child_1, stream))
+        # Standalone: exactly the historical (seed, stream) sequence.
+        assert np.array_equal(
+            draws(parent, stream),
+            np.random.default_rng(np.random.SeedSequence([9, stream])).random(4),
+        )
+    # Unseeded standalone: the historical bare stream index.
+    assert cls()._seed_for(0) == 0
+    assert cls()._seed_for(1) == 1
+
+
+@pytest.mark.parametrize("name", ["Nautilus", "NSS"])
+def test_raw_seed_backend_uses_backend_seed(name):
+    """The backend call sites read ``backend_seed``, not ``seed``."""
+    import inspect
+
+    cls = _cls(name)
+    source = inspect.getsource(cls)
+    assert "seed=self.backend_seed" in source or "PRNGKey(self.backend_seed)" in source
+    assert "PRNGKey(self.seed)" not in source
+    assert "seed=self.seed," not in source
+
+
 # Review 07 finding 2: a subclass that already puts ``rstate`` in ``search_kwargs``.
 class _SeededDynestyStatic(af.DynestyStatic):
     def __init__(self, *args, rstate_seed=0, **kwargs):

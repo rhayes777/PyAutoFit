@@ -182,7 +182,9 @@ The signature and the member list are unchanged.
   context is built and feeds the initializer (`ctx.start_points`, which no longer uses the
   global `random` module), so `ctx.rng.spawn(k)` hands the backend streams `1..k`. Grid-search
   children get an independent child sequence through a spawn key that is neither serialized
-  nor hashed.
+  nor hashed. Backends that take a raw integer seed (Nautilus, NSS, BlackJAXNUTS, SMC) and
+  MultiStart's own `(seed, stream)` draws receive a child-specific seed derived from that
+  spawn key (`seed.child_seed`); a standalone search passes its raw seed through unchanged.
 - **BlackJAXNUTS / SMC read `seed=42` as the default.** main ran them with an unhashed
   default `seed=42` and wrote `seed: 42` into every default `search.json` and pickle. So
   that every such output keeps its identifier, a 42 (from the constructor, `from_dict` or an

@@ -38,9 +38,12 @@ demonstrated (e.g. Emcee on one machine); MCMC archive searches resume statistic
 not exactly. Backends that take the seed directly (Nautilus's ``Sampler(seed=)``, the
 JAX ``PRNGKey`` of NSS, NUTS and SMC, MultiStart's own ``(seed, stream)`` sequences)
 keep doing so, so an existing seeded run of those searches is reproduced exactly.
+A grid-search child (one with a spawn key) instead gives those backends a child-specific
+seed derived from the seed and its spawn key (``child_seed``), so grid cells do not share
+backend randomness; without a spawn key the raw seed is passed through unchanged.
 """
 
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 import numpy as np
 
@@ -65,6 +68,32 @@ def legacy_default_seed(seed: Optional[int]) -> Optional[int]:
     return seed
 
 
+def spawn_key(search) -> Tuple[int, ...]:
+    """
+    The grid-search child spawn key of a search (``()`` for a standalone search).
+    """
+    return tuple(getattr(search, "_seed_spawn_key", ()) or ())
+
+
+def child_seed(search, seed: Optional[int]) -> Optional[int]:
+    """
+    The raw integer seed a backend that takes one directly (Nautilus's
+    ``Sampler(seed=)``, the JAX ``PRNGKey`` of NSS, NUTS and SMC) should use.
+
+    A standalone search (no spawn key), or no seed, passes ``seed`` through unchanged, so
+    an existing seeded run is reproduced exactly. A grid-search child derives a
+    child-specific seed from ``SeedSequence(seed, spawn_key=...)``, so the cells of a
+    grid do not share backend randomness. It is a non-negative 31-bit integer, valid
+    for ``jax.random.PRNGKey`` without 64-bit mode. The spawn key is neither hashed nor
+    serialized, so this never changes an identifier.
+    """
+    key = spawn_key(search)
+    if seed is None or not key:
+        return seed
+    state = np.random.SeedSequence(int(seed), spawn_key=key).generate_state(1)
+    return int(state[0]) & 0x7FFFFFFF
+
+
 def seed_sequence(search) -> np.random.SeedSequence:
     """
     A fresh ``SeedSequence`` of the search's seed (and grid-child spawn key).
@@ -73,10 +102,7 @@ def seed_sequence(search) -> np.random.SeedSequence:
     reproducible, exactly as before; a fresh sequence per call keeps the stream indices
     stable however often it is asked.
     """
-    return np.random.SeedSequence(
-        getattr(search, "seed", None),
-        spawn_key=tuple(getattr(search, "_seed_spawn_key", ()) or ()),
-    )
+    return np.random.SeedSequence(getattr(search, "seed", None), spawn_key=spawn_key(search))
 
 
 def initializer_rng(search) -> np.random.Generator:

@@ -26,6 +26,7 @@ from autofit.non_linear.samples.adapter import ChainPosterior, RawSamples
 from autofit.non_linear.search import capabilities as cap
 from autofit.non_linear.search.seed import (
     LEGACY_DEFAULT_SEED,
+    child_seed,
     legacy_default_seed,
 )
 
@@ -170,7 +171,8 @@ class BlackJAXNUTS(AbstractMCMC):
             other seed you pass is hashed, so it names its own output folder. ``seed=42`` is the default: main
             wrote ``seed: 42`` into every default search's ``search.json`` and pickle, so a 42 is read as
             ``None`` and old outputs keep their identifiers. An explicit ``seed=42`` therefore shares the
-            default's identity and output folder.
+            default's identity and output folder. In a grid search each cell's backend gets a child-specific
+            seed derived from this one (``autofit.non_linear.search.seed.child_seed``).
         initializer
             Generates the starting point(s), one per chain. Defaults to
             ``InitializerBall(0.49, 0.51)`` from ``AbstractMCMC`` — small
@@ -272,9 +274,12 @@ class BlackJAXNUTS(AbstractMCMC):
     def backend_seed(self) -> int:
         """
         The seed the backend's ``jax.random.PRNGKey`` uses: ``seed``, or the historical
-        ``42`` when it is ``None`` (the unhashed default; ``autofit.non_linear.search.seed``).
+        ``42`` when it is ``None`` (the unhashed default; ``autofit.non_linear.search.seed``),
+        made child-specific for a grid-search child.
         """
-        return LEGACY_DEFAULT_SEED if self.seed is None else self.seed
+        return child_seed(
+            self, LEGACY_DEFAULT_SEED if self.seed is None else self.seed
+        )
 
     def __setstate__(self, state):
         """

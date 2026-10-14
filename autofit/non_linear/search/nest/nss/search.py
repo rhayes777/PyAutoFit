@@ -331,6 +331,16 @@ class NSS(abstract_nest.AbstractNest):
 
         self.logger.debug("Creating NSS Search")
 
+    @property
+    def backend_seed(self) -> Optional[int]:
+        """
+        The seed the backend takes directly: ``seed``, made child-specific for a
+        grid-search child (``autofit.non_linear.search.seed.child_seed``).
+        """
+        from autofit.non_linear.search.seed import child_seed
+
+        return child_seed(self, self.seed)
+
     def fitness_overrides(self, analysis) -> dict:
         """
         NSS fires its own quick update between outer iterations (``_fire_quick_update``),
@@ -389,7 +399,7 @@ class NSS(abstract_nest.AbstractNest):
             log_priors = model.log_prior_list_from_vector(vector=params, xp=jnp)
             return sum(log_priors)
 
-        rng_key = jax.random.PRNGKey(self.seed)
+        rng_key = jax.random.PRNGKey(self.backend_seed)
         rng_key, init_key, run_key = jax.random.split(rng_key, 3)
 
         unit_cube = jax.random.uniform(init_key, shape=(self.n_live, ndim))
