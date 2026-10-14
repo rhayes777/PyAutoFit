@@ -1521,7 +1521,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC, metaclass=_SearchMeta):
             model=model,
             analysis=analysis,
             fitness=fitness,
-            pool=self._pools(),
+            pool=self._pools(analysis),
             test_mode_level=test_mode_level(),
         )
 
@@ -1948,7 +1948,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC, metaclass=_SearchMeta):
                 model=model,
                 fitness=fitness,
                 paths=self.paths,
-                n_cores=self._pools().number_of_cores,
+                n_cores=self._pools(fitness.analysis).number_of_cores,
                 **initializer_kwargs,
             )
         )
@@ -2054,13 +2054,14 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC, metaclass=_SearchMeta):
         """
         return self.paths.load_search_internal()
 
-    def _pools(self) -> PoolFactory:
+    def _pools(self, analysis: Optional[Analysis] = None) -> PoolFactory:
         """
         The current fit's `PoolFactory` (the JAX fork rule applied to its analysis), or,
-        outside a fit, one built from `number_of_cores` alone.
+        outside a fit, one built for `analysis` (so a direct `_fit` caller still gets
+        the fork rule), or from `number_of_cores` alone when no analysis is given.
         """
         pools = self.__dict__.get("_fit_pools")
-        return pools if pools is not None else PoolFactory(self)
+        return pools if pools is not None else PoolFactory(self, analysis)
 
     @check_cores
     def make_pool(self):
@@ -2092,7 +2093,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC, metaclass=_SearchMeta):
         An implementation of a multiprocessing pool
         """
 
-        return self._pools().sneaky(fitness)
+        return self._pools(getattr(fitness, "analysis", None)).sneaky(fitness)
 
     def __eq__(self, other):
         return isinstance(other, NonLinearSearch) and self.__dict__ == other.__dict__

@@ -110,3 +110,49 @@ def test_analysis_pool_refuses_a_jax_analysis():
 
     with pytest.raises(exc.SearchException, match="JAX analyses never fork"):
         AnalysisPool([_Analysis(is_jax=True)], n_cores=2)
+
+
+class _BackendReached(Exception):
+    pass
+
+
+def test_direct_fit_entry_applies_the_fork_rule_to_a_jax_analysis(monkeypatch):
+    """
+    Review 05 finding 4: calling the `run(ctx)` bridge `_fit` directly (outside `fit`,
+    so no fit-scoped `PoolFactory` exists) must still build the context's factory from
+    the analysis, so Nautilus with a JAX analysis and two cores takes its single-process
+    path and nothing forks.
+    """
+    pytest.importorskip("jax")
+
+    def no_fork():
+        raise AssertionError("must not fork")
+
+    monkeypatch.setattr(pool_module, "fork_context", no_fork)
+
+    search = af.Nautilus(number_of_cores=2)
+    chosen = {}
+
+    def x1_cpu(fitness, model, update):
+        chosen["path"] = "fit_x1_cpu"
+        raise _BackendReached
+
+    def multiprocessing(fitness, model, pools, update):
+        chosen["path"] = "fit_multiprocessing"
+        chosen["is_jax"] = pools.is_jax
+        chosen["cores"] = pools.number_of_cores
+        raise _BackendReached
+
+    monkeypatch.setattr(search, "fit_x1_cpu", x1_cpu)
+    monkeypatch.setattr(search, "fit_multiprocessing", multiprocessing)
+
+    analysis = af.ex.Analysis(
+        data=np.ones(10), noise_map=np.ones(10), use_jax=True
+    )
+
+    with pytest.raises(_BackendReached):
+        search._fit(model=af.Model(af.ex.Gaussian), analysis=analysis)
+
+    assert chosen == {"path": "fit_x1_cpu"}
+    assert search._pools(analysis).is_jax
+    assert search._pools(analysis).number_of_cores == 1

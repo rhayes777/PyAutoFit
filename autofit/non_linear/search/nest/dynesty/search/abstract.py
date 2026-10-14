@@ -298,7 +298,7 @@ class AbstractDynesty(AbstractNest, ABC):
 
         # The fit's effective core count: the JAX fork rule makes it 1 for a JAX
         # analysis (`autofit.non_linear.parallel.pool`).
-        number_of_cores = self._pools().number_of_cores
+        number_of_cores = self._pools(analysis).number_of_cores
 
         finished = False
 
