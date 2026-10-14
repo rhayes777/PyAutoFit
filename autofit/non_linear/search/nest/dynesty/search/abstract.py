@@ -211,6 +211,14 @@ class AbstractDynesty(AbstractNest, ABC):
 
         self.logger.debug(f"Creating {self.__class__.__name__} Search")
 
+    def fitness_overrides(self, analysis) -> dict:
+        """
+        A JAX analysis is jitted lazily by the scalar objective `__call__` dispatches to;
+        the deprecated `use_jax_jit=False` keeps its old meaning (eager JAX) for one
+        release.
+        """
+        return {"compile": getattr(self, "use_jax_jit", None) is not False}
+
     @property
     def search_kwargs(self) -> Dict:
         """Shared search kwargs passed to both Static and Dynamic Dynesty samplers."""
@@ -271,10 +279,7 @@ class AbstractDynesty(AbstractNest, ABC):
         fitness = self.make_fitness(
             analysis=analysis,
             model=model,
-            # A JAX analysis is jitted lazily by the scalar objective `__call__`
-            # dispatches to; the deprecated `use_jax_jit=False` keeps its old meaning
-            # (eager JAX) for one release.
-            compile=self.use_jax_jit is not False,
+            **self.execution_settings(analysis).fitness_overrides,
         )
 
         if not isinstance(self.paths, NullPaths):

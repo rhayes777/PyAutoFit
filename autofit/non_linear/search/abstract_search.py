@@ -1476,7 +1476,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC, metaclass=_SearchMeta):
         cap.check_jax_required(self, analysis)
 
         fitness = self.make_fitness(
-            analysis=analysis, model=model, **self.fitness_overrides(analysis)
+            analysis=analysis,
+            model=model,
+            **self.execution_settings(analysis).fitness_overrides,
         )
 
         ctx = FitContext(
@@ -1522,6 +1524,20 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC, metaclass=_SearchMeta):
         this analysis (e.g. ``batched=True`` for a batched backend). Empty by default.
         """
         return {}
+
+    def execution_settings(self, analysis: Analysis):
+        """
+        How this search executes its objective on ``analysis``, resolved once: batching,
+        eager or jitted execution, gradient use and the resolved gradient mode, plus the
+        ``Fitness`` keyword arguments the backend builds its ``Fitness`` with
+        (``autofit.non_linear.search.preflight.ExecutionSettings``).
+
+        The JAX trace preflight validates exactly this object and the backend builds its
+        ``Fitness`` from it, so the two cannot disagree.
+        """
+        from autofit.non_linear.search.preflight import ExecutionSettings
+
+        return ExecutionSettings.resolve(self, analysis)
 
     def make_fitness(
         self, analysis: Analysis, model: AbstractPriorModel, **overrides

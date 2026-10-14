@@ -1003,10 +1003,15 @@ class AbstractMultiStartGradient(AbstractMLE):
             else self.iterations_per_quick_update
         )
 
+        settings = self.execution_settings(analysis)
+
         fitness = self.make_fitness(
             analysis=analysis,
             model=model,
-            iterations_per_quick_update=iterations_per_quick_update,
+            **{
+                **settings.fitness_overrides,
+                "iterations_per_quick_update": iterations_per_quick_update,
+            },
         )
 
         # -2 * log_posterior, to MINIMIZE. value_and_grad over every start.
@@ -1031,7 +1036,7 @@ class AbstractMultiStartGradient(AbstractMLE):
         # analysis's declaration and this search's override, and used for both
         # objectives below. Forward and reverse give the same ``(value, grad)``;
         # everything downstream of the two builders is mode-agnostic.
-        gradient_mode = self._resolved_gradient_mode(analysis)
+        gradient_mode = settings.gradient_mode
         if not self.silence:
             source = (
                 "search override"

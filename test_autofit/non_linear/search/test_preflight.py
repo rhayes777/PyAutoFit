@@ -297,3 +297,85 @@ def test_no_public_search_requires_fp64():
     from autofit.non_linear.search.registry import entries
 
     assert not any(entry.capabilities["requires_fp64"] for entry in entries())
+
+
+# Review 05 finding 3: the preflight validates the *resolved* execution settings the
+# backend runs (eager execution, the search's gradient override, its actual batching),
+# not the class declarations.
+
+
+def test_preflight_accepts_an_eager_likelihood_when_the_search_runs_eagerly(
+    monkeypatch,
+):
+    monkeypatch.delenv("PYAUTO_TEST_MODE", raising=False)
+    search = af.DynestyStatic(use_jax_jit=False)
+
+    settings = search.execution_settings(NumpyCastAnalysis())
+    assert settings.compile is False
+    assert settings.fitness_overrides["compile"] is False
+
+    # Eager scalar execution never traces, so the preflight has nothing to reject.
+    preflight.trace_preflight(search, NumpyCastAnalysis(), _model())
+
+    reached = []
+    monkeypatch.setattr(
+        search, "_fit", lambda *args, **kwargs: reached.append(True) or 1 / 0
+    )
+    with pytest.raises(ZeroDivisionError):
+        search.fit(model=_model(), analysis=NumpyCastAnalysis())
+    assert reached == [True]
+
+
+def _custom_vjp_analysis(declared_mode):
+    @jax.custom_vjp
+    def reverse_only(x):
+        return x
+
+    def _fwd(x):
+        return x, None
+
+    def _bwd(_, g):
+        return (g,)
+
+    reverse_only.defvjp(_fwd, _bwd)
+
+    class ReverseOnlyAnalysis(af.Analysis):
+        gradient_mode = declared_mode
+
+        def __init__(self):
+            super().__init__(use_jax=True)
+
+        def log_likelihood_function(self, instance):
+            return -0.5 * reverse_only(instance.centre - 50.0) ** 2
+
+    return ReverseOnlyAnalysis()
+
+
+def test_preflight_honours_the_search_gradient_mode_override():
+    analysis = _custom_vjp_analysis("forward")
+
+    # The analysis declares forward mode, which a custom_vjp function cannot run ...
+    with pytest.raises(exc.SearchException, match="value_and_grad"):
+        preflight.trace_preflight(af.MultiStartAdam(), analysis, _model())
+
+    # ... but the search overrides it with reverse mode, which is what the backend runs.
+    search = af.MultiStartAdam(gradient_mode="reverse")
+    assert search.execution_settings(analysis).gradient_mode == "reverse"
+    preflight.trace_preflight(search, analysis, _model())
+
+
+def test_preflight_follows_the_resolved_batching():
+    search = af.Nautilus(use_jax_vmap=False)
+    settings = search.execution_settings(TraceableAnalysis())
+    assert settings.batched is False
+    assert settings.kinds == ("scalar",)
+
+    with pytest.raises(exc.SearchException, match="'scalar'"):
+        preflight.trace_preflight(search, NumpyCastAnalysis(), _model())
+
+
+def test_preflight_still_rejects_an_untraceable_likelihood_of_a_jitted_search():
+    with pytest.raises(exc.SearchException, match="TracerArrayConversionError"):
+        preflight.trace_preflight(
+            af.DynestyStatic(use_jax_jit=True), NumpyCastAnalysis(), _model()
+        )
