@@ -9,7 +9,8 @@ import numpy as np
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.search.abstract_search import ITERATIONS_NEVER
-from autofit.non_linear.search.mle.abstract_mle import AbstractMLE
+from autofit.non_linear.search.abstract_search import NonLinearSearch
+from autofit.non_linear.search.posterior_kind import POINT
 from autofit.non_linear.analysis import Analysis
 from autofit.non_linear.fitness import Fitness
 from autofit.non_linear.objective import chunk_slices, evaluate_in_chunks
@@ -37,7 +38,7 @@ if TYPE_CHECKING:
     from autofit.database.sqlalchemy_ import sa
 
 
-class AbstractMultiStartGradient(AbstractMLE):
+class AbstractMultiStartGradient(NonLinearSearch):
 
     # The clipper changes where a lane can sit and therefore the result, so two
     # runs differing only in clipper must not share an output directory. This
@@ -406,12 +407,13 @@ class AbstractMultiStartGradient(AbstractMLE):
             a finite ``iterations_per_quick_update``.
         """
 
+        self.clipper = POINT.clipper_for(clipper)
+
         super().__init__(
             name=name,
             path_prefix=path_prefix,
             unique_tag=unique_tag,
-            initializer=initializer,
-            clipper=clipper,
+            initializer=POINT.initializer_for(initializer),
             iterations_per_quick_update=iterations_per_quick_update,
             iterations_per_full_update=iterations_per_full_update,
             silence=silence,

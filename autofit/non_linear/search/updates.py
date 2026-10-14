@@ -182,3 +182,16 @@ class SearchUpdatesMixin:
             search_internal=search_internal,
             plot_search=plot_search,
         )
+
+    def plot_results(self, samples):
+        """
+        The search's own plots of its samples, by its declared ``posterior_kind``
+        (``autofit.non_linear.search.posterior_kind``): the chain, weighted or point
+        plotter. A search that declares no kind plots nothing of its own.
+        """
+        from autofit.non_linear.search.posterior_kind import defaults_for
+
+        defaults = defaults_for(type(self).posterior_kind)
+        if defaults is None:
+            raise NotImplementedError
+        defaults.plot_results(self, samples)

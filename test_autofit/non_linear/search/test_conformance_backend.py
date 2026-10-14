@@ -4,9 +4,9 @@ Search conformance suite, layer (ii): backend execution of the 15 public searche
 Every case is parametrised over ``searches_under_test()`` (ids are the short names) and
 runs the search's real sampler at ``PYAUTO_TEST_MODE=1``, the reduced-budget mode in
 which each search's ``apply_test_mode`` shrinks its own budget. Budgets are reduced
-only through that mode; no search is edited and no budget argument is passed. The one
-constructor argument passed (``Emcee``'s ``auto_correlation_settings``) stands in for a
-default built at import time; see ``DEFAULT_AUTO_CORRELATION_XFAIL``.
+only through that mode; no search is edited and no constructor argument is passed
+(since A4c the chain searches build their auto-correlation default at construction, so
+``Emcee`` no longer needs one standing in for an import-time default).
 
 Per search the suite asserts:
 
@@ -253,33 +253,25 @@ SAMPLES_CLASS = {
     "NSS": "NSSamples",
 }
 
-# ``Emcee``, ``Zeus``, ``BlackJAXNUTS`` and ``SMC`` take ``auto_correlation_settings=
-# AutoCorrelationsSettings()`` as a default argument, built once at import time, so the
-# test-mode ``check_size = 1`` reduction applies only when ``PYAUTO_TEST_MODE`` is set
-# before ``autofit`` is imported. Set at run time (as here), the default keeps
-# ``check_size = 100`` and a 10-step test-mode Emcee chain fails its auto-correlation
-# check with ``IndexError``. Per-posterior-kind default objects and a generic
-# ``apply_test_mode`` are phase A4.
-DEFAULT_AUTO_CORRELATION_XFAIL = {
-    name: (
-        "auto_correlation_settings default is built at import time, so a run-time "
-        "PYAUTO_TEST_MODE leaves check_size=100; per-kind defaults and a generic "
-        "apply_test_mode in search-extensibility phase A4."
-    )
-    for name in ("Emcee", "Zeus", "BlackJAXNUTS", "SMC")
-}
+# Repaired in phase A4c: the chain searches (``Emcee``, ``Zeus``, ``BlackJAXNUTS``) build
+# their default ``AutoCorrelationsSettings`` at construction (``posterior_kind.CHAIN``),
+# so a run-time ``PYAUTO_TEST_MODE`` reaches the reduced ``check_size``. ``SMC`` is a
+# weighted-posterior search and takes no auto-correlation settings.
+
+
+def entry_class_kind(entry):
+    """The declared ``posterior_kind`` of a roster entry, read from the registry."""
+    from autofit.non_linear.search.registry import entry as registry_entry
+
+    return registry_entry(entry.name).capabilities["posterior_kind"]
 
 
 def _construction_overrides(entry) -> dict:
     """
-    Constructor arguments that stand in for a default argument built at import time.
-
-    Only ``Emcee`` needs one: it receives the ``AutoCorrelationsSettings()`` its default
-    would be had test mode been on at import (see ``DEFAULT_AUTO_CORRELATION_XFAIL``),
-    so its backend still executes here. No budget is changed.
+    Constructor arguments that stood in for a default argument built at import time.
+    None since A4c: the chain searches build their auto-correlation default at
+    construction (``posterior_kind.CHAIN``).
     """
-    if entry.name == "Emcee":
-        return {"auto_correlation_settings": af.AutoCorrelationsSettings()}
     return {}
 
 
@@ -623,8 +615,8 @@ def test_samples_info_key_set(entry, backend_run):
     "entry",
     [
         param
-        for param in _params(DEFAULT_AUTO_CORRELATION_XFAIL, raises=AssertionError)
-        if param.values[0].family == "mcmc"
+        for param in _params()
+        if str(entry_class_kind(param.values[0])) == "chain"
     ],
 )
 def test_default_auto_correlation_settings_follow_run_time_test_mode(

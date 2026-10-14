@@ -1,64 +1,30 @@
 from abc import ABC
 
-from autonerves import conf
 from autofit.non_linear.search.abstract_search import NonLinearSearch
-from autofit.non_linear.clipper import ClipperNone
-from autofit.non_linear.initializer import InitializerBall
-from autofit.non_linear.plot import (
-    subplot_parameters,
-    log_likelihood_vs_iteration,
-    figure_of_merit_vs_iteration,
-)
+from autofit.non_linear.search.deprecated_family import warn_family_subclass
+from autofit.non_linear.search.posterior_kind import POINT
 
 
 class AbstractMLE(NonLinearSearch, ABC):
+    """
+    **Deprecated** (search-extensibility A4c): no public search inherits it any more,
+    and it is removed one release later. Subclass ``NonLinearSearch`` with
+    ``posterior_kind = PosteriorKind.POINT`` and apply
+    ``autofit.non_linear.search.posterior_kind.POINT`` in ``__init__`` instead.
+
+    Kept as a distinct class with the former defaults (``InitializerBall(0.49, 0.51)``,
+    a ``clipper`` defaulting to ``ClipperNone``, the MLE trace plots), so an existing
+    subclass behaves exactly as before; subclassing it warns.
+    """
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        warn_family_subclass(cls, "AbstractMLE", "POINT")
 
     def __init__(self, initializer=None, clipper=None, **kwargs):
-        # ``clipper`` is resolved here, at the same tier and by the same
-        # ``or <default>`` pattern as ``initializer``, so every MLE search
-        # inherits it. The default is the no-op ``ClipperNone``: enforcing prior
-        # support changes where a search converges, which would shift every stored
-        # multi-start benchmark, so it is opt-in until that re-baseline is done.
-        self.clipper = clipper or ClipperNone()
+        self.clipper = POINT.clipper_for(clipper)
 
-        super().__init__(
-            initializer=initializer
-            or InitializerBall(lower_limit=0.49, upper_limit=0.51),
-            **kwargs,
-        )
+        super().__init__(initializer=POINT.initializer_for(initializer), **kwargs)
 
     def plot_results(self, samples):
-
-        def should_plot(name):
-            return conf.instance["visualize"]["plots_search"]["mle"][name]
-
-        plot_path = self.paths.image_path / "search"
-
-        if should_plot("subplot_parameters"):
-            subplot_parameters(samples=samples, path=plot_path, format="png")
-            subplot_parameters(
-                samples=samples, use_log_y=True, path=plot_path, format="png"
-            )
-            subplot_parameters(
-                samples=samples, use_last_50_percent=True, path=plot_path, format="png"
-            )
-
-        if should_plot("log_likelihood_vs_iteration"):
-            log_likelihood_vs_iteration(samples=samples, path=plot_path, format="png")
-            log_likelihood_vs_iteration(
-                samples=samples, use_log_y=True, path=plot_path, format="png"
-            )
-            log_likelihood_vs_iteration(
-                samples=samples, use_last_50_percent=True, path=plot_path, format="png"
-            )
-
-        # No-op unless the samples carry a ``fom_history`` (the auto-convergence
-        # gradient searches); LBFGS / Drawer leave it absent. Default-on and
-        # tolerant of a config predating this key (older workspaces that shadow
-        # the ``mle`` plots section) so it never KeyErrors on an MLE fit.
-        try:
-            plot_figure_of_merit = should_plot("figure_of_merit_vs_iteration")
-        except KeyError:
-            plot_figure_of_merit = True
-        if plot_figure_of_merit:
-            figure_of_merit_vs_iteration(samples=samples, path=plot_path, format="png")
+        POINT.plot_results(self, samples)

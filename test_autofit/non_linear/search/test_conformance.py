@@ -89,11 +89,21 @@ def test_default_construction(entry):
     assert isinstance(cls(), cls)
 
 
+_KIND = {"mcmc": "chain", "nest": "weighted", "mle": "point"}
+
+
 @pytest.mark.parametrize("entry", _params())
 def test_family_base(entry):
+    """
+    Since A4c no public search inherits a family base (they are deprecated thin
+    subclasses); the family survives as the registry's documentation grouping and
+    the behaviour as the declared ``posterior_kind`` (SMC is ``weighted``).
+    """
     cls = entry.resolve()
 
-    assert issubclass(cls, resolve_class_path(FAMILY_BASES[entry.family]))
+    assert not issubclass(cls, resolve_class_path(FAMILY_BASES[entry.family]))
+    expected = "weighted" if entry.name == "SMC" else _KIND[entry.family]
+    assert str(cls.posterior_kind) == expected
 
 
 @pytest.mark.parametrize("entry", _params())

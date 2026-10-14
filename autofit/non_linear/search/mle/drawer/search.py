@@ -5,7 +5,8 @@ from typing import Optional, TYPE_CHECKING
 
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.search.mle.abstract_mle import AbstractMLE
+from autofit.non_linear.search.abstract_search import NonLinearSearch
+from autofit.non_linear.search.posterior_kind import POINT
 from autofit.non_linear.initializer import AbstractInitializer
 from autofit.non_linear.samples.adapter import RawSamples
 from autofit.non_linear.search import capabilities as cap
@@ -14,7 +15,7 @@ if TYPE_CHECKING:
     from autofit.database.sqlalchemy_ import sa
 
 
-class Drawer(AbstractMLE):
+class Drawer(NonLinearSearch):
     # Static capabilities (see ``autofit.non_linear.search.capabilities``); mirrored
     # by ``search/registry.py``. Never identifier fields.
     jax_use = cap.JaxUse.NONE
@@ -49,6 +50,7 @@ class Drawer(AbstractMLE):
         iterations_per_quick_update: int = None,
         silence: bool = False,
         session: Optional[sa.orm.Session] = None,
+        clipper=None,
         **kwargs,
     ):
         """
@@ -89,6 +91,10 @@ class Drawer(AbstractMLE):
             Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
         session
             An SQLalchemy session instance so the results of the model-fit are written to an SQLite database.
+        clipper
+            Accepted for the point-estimate searches' common interface and recorded in ``search.json``; the
+            drawer never uses it, so it does not enter the identifier. It is the last named argument so the
+            existing positional slots (``total_draws`` ... ``session``) keep their places.
         """
 
         # Drawer is single-core only; drop any saved number_of_cores so a
@@ -96,11 +102,16 @@ class Drawer(AbstractMLE):
         # deserialized without colliding with the hardcoded kwarg below.
         kwargs.pop("number_of_cores", None)
 
+        # The point-estimate default clipper. Drawer never consumes it and it is not an
+        # identifier field (#1493); it is kept as an argument so `search.json` records it
+        # exactly as when the clipper came from the former `AbstractMLE` base.
+        self.clipper = POINT.clipper_for(clipper)
+
         super().__init__(
             name=name,
             path_prefix=path_prefix,
             unique_tag=unique_tag,
-            initializer=initializer,
+            initializer=POINT.initializer_for(initializer),
             iterations_per_quick_update=iterations_per_quick_update,
             iterations_per_full_update=iterations_per_full_update,
             number_of_cores=1,

@@ -583,6 +583,3 @@ class NonLinearSearch(
 
     def __eq__(self, other):
         return isinstance(other, NonLinearSearch) and self.__dict__ == other.__dict__
-
-    def plot_results(self, samples):
-        raise NotImplementedError

@@ -10,7 +10,9 @@ import numpy as np
 
 from autofit.non_linear.checkpoint import NativeFileCheckpointer
 from autofit.non_linear.objective import SCALAR
-from autofit.non_linear.search.nest import abstract_nest
+from autofit.non_linear.search.abstract_search import NonLinearSearch
+from autofit.non_linear.search.posterior_kind import WEIGHTED
+from autofit.non_linear.samples.nest import SamplesNest
 from .samples import NSSamples
 from autofit.non_linear.samples.adapter import RawSamples
 from autofit.non_linear.search import capabilities as cap
@@ -135,7 +137,7 @@ class _NSSInternal:
         self.seed = seed
 
 
-class NSS(abstract_nest.AbstractNest):
+class NSS(NonLinearSearch):
     samples_cls = NSSamples
 
     # Static capabilities (see ``autofit.non_linear.search.capabilities``); mirrored
@@ -305,6 +307,7 @@ class NSS(abstract_nest.AbstractNest):
             name=name,
             path_prefix=path_prefix,
             unique_tag=unique_tag,
+            initializer=WEIGHTED.nested_initializer_for(kwargs.pop("initializer", None)),
             iterations_per_full_update=iterations_per_full_update,
             iterations_per_quick_update=iterations_per_quick_update,
             number_of_cores=number_of_cores,

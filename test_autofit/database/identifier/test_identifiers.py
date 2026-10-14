@@ -486,7 +486,8 @@ def test_mcmc_identifiers_unchanged_by_clipper():
 def test_nested_samplers_have_no_clipper():
     """
     Tripwire for the hard constraint of PyAutoFit#1493: the clipper is resolved
-    on AbstractMLE and must stay there. Hoisting it to NonLinearSearch would put
+    by the point-estimate searches (``posterior_kind.POINT``, formerly
+    ``AbstractMLE``) and must stay there. Hoisting it to NonLinearSearch would put
     it within reach of the nested samplers' identifier machinery and silently
     re-key the nested-sampling archive; this fails loudly instead.
     """
@@ -505,7 +506,7 @@ def test_clipper_forks_mle_identifier(cls):
 
 def test_drawer_identifier_ignores_clipper():
     """
-    Drawer inherits the clipper attribute from AbstractMLE but never consumes
+    Drawer takes the point-estimate clipper (formerly from AbstractMLE) but never consumes
     it, so a setting that cannot affect its result must not re-key it.
     """
     assert Identifier(af.Drawer()).hash_list == [

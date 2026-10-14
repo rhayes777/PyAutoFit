@@ -15,7 +15,9 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior.vectorized import PriorVectorized
 from autofit.non_linear.checkpoint import DillCheckpointer, NativeFileCheckpointer
 from autofit.non_linear.parallel import fork_context
-from autofit.non_linear.search.nest import abstract_nest
+from autofit.non_linear.search.abstract_search import NonLinearSearch
+from autofit.non_linear.search.posterior_kind import WEIGHTED
+from autofit.non_linear.samples.nest import SamplesNest
 from autofit.non_linear.samples.adapter import RawSamples
 from autofit.non_linear.search import capabilities as cap
 
@@ -169,7 +171,9 @@ class _LikelihoodWorkerPool:
         return False
 
 
-class Nautilus(abstract_nest.AbstractNest):
+class Nautilus(NonLinearSearch):
+    samples_cls = SamplesNest
+
     # Static capabilities (see ``autofit.non_linear.search.capabilities``); mirrored
     # by ``search/registry.py``. Never identifier fields.
     jax_use = cap.JaxUse.OPTIONAL
@@ -293,6 +297,7 @@ class Nautilus(abstract_nest.AbstractNest):
             name=name,
             path_prefix=path_prefix,
             unique_tag=unique_tag,
+            initializer=WEIGHTED.nested_initializer_for(kwargs.pop("initializer", None)),
             iterations_per_full_update=iterations_per_full_update,
             iterations_per_quick_update=iterations_per_quick_update,
             number_of_cores=number_of_cores,

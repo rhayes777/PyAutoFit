@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import math
 import os
+import warnings
 from pathlib import Path
 from typing import List, Optional, Tuple, TYPE_CHECKING
 
@@ -12,8 +13,8 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.checkpoint import PICKLE_FILENAME, PickleCheckpointer
 from autofit.non_linear.objective import jax_objective
 from autofit.non_linear.initializer import Initializer, InitializerPrior
-from autofit.non_linear.search.mcmc.abstract_mcmc import AbstractMCMC
-from autofit.non_linear.search.mcmc.auto_correlations import AutoCorrelationsSettings
+from autofit.non_linear.search.abstract_search import NonLinearSearch
+from autofit.non_linear.search.posterior_kind import WEIGHTED
 from autofit.non_linear.search.mcmc.blackjax.chains import (
     InverseMassMatrixSpec,
     SERIALISED_KINDS,
@@ -53,7 +54,7 @@ _COLD_TARGET_WIDTH = 0.1
 VALID_KERNELS = ("mala", "hmc")
 
 
-class SMC(AbstractMCMC):
+class SMC(NonLinearSearch):
     samples_cls = SamplesSMC
 
     # Static capabilities (see ``autofit.non_linear.search.capabilities``); mirrored
@@ -104,9 +105,7 @@ class SMC(AbstractMCMC):
         seed: Optional[int] = None,
         initializer: Optional[Initializer] = None,
         inverse_mass_matrix: InverseMassMatrixSpec = None,
-        auto_correlation_settings: AutoCorrelationsSettings = AutoCorrelationsSettings(
-            check_for_convergence=False
-        ),
+        *legacy_positional,
         iterations_per_quick_update: Optional[int] = None,
         iterations_per_full_update: Optional[int] = None,
         number_of_cores: int = 1,
@@ -258,9 +257,6 @@ class SMC(AbstractMCMC):
             ``search.json`` records only the kind (``"none"``, ``"array"`` or ``"result"``), so a search loaded
             from it receives that string: ``"none"`` behaves as ``None``, while ``"array"`` / ``"result"`` raise at
             fit time because the covariance was not saved.
-        auto_correlation_settings
-            Kept for API parity with the other MCMC searches. SMC particles are not a chain, so no
-            auto-correlation diagnostics are computed and ``check_for_convergence`` defaults to ``False``.
         iterations_per_full_update
             Inherited from the autonerves config when ``None``. SMC calls ``perform_update`` once per
             temperature (SMC steps are coarse and few), so this does not chunk the run.
@@ -271,14 +267,39 @@ class SMC(AbstractMCMC):
             If True, the default print output of the non-linear search is silenced.
         session
             An SQLalchemy session instance.
+        legacy_positional
+            Deprecated. SMC used to take ``auto_correlation_settings`` positionally after
+            ``inverse_mass_matrix``; the arguments after it are now keyword-only. Old positional
+            calls are still bound to their former slots (the auto-correlation settings are ignored)
+            with a ``FutureWarning``, instead of being silently shifted one slot.
         """
+
+        # SMC is a weighted-posterior search (A4c): its particles are not a chain, so it
+        # takes no auto-correlation settings. An old `search.json` still records them;
+        # they are accepted and ignored so it loads.
+        kwargs.pop("auto_correlation_settings", None)
+
+        if legacy_positional:
+            (
+                iterations_per_quick_update,
+                iterations_per_full_update,
+                number_of_cores,
+                silence,
+                session,
+            ) = _bind_legacy_positional(
+                legacy_positional,
+                iterations_per_quick_update=iterations_per_quick_update,
+                iterations_per_full_update=iterations_per_full_update,
+                number_of_cores=number_of_cores,
+                silence=silence,
+                session=session,
+            )
 
         super().__init__(
             name=name,
             path_prefix=path_prefix,
             unique_tag=unique_tag,
-            initializer=initializer or InitializerPrior(),
-            auto_correlation_settings=auto_correlation_settings,
+            initializer=WEIGHTED.initializer_for(initializer),
             iterations_per_quick_update=iterations_per_quick_update,
             iterations_per_full_update=iterations_per_full_update,
             number_of_cores=number_of_cores,
@@ -1031,3 +1052,44 @@ def _build_search_internal(
         "max_smc_steps": max_smc_steps,
         "converged": bool(lambda_list) and float(lambda_list[-1]) >= 1.0,
     }
+
+
+# The arguments SMC took positionally after ``inverse_mass_matrix`` before A4c removed
+# ``auto_correlation_settings`` (adversary review 07, finding 4).
+_LEGACY_POSITIONAL = (
+    "auto_correlation_settings",
+    "iterations_per_quick_update",
+    "iterations_per_full_update",
+    "number_of_cores",
+    "silence",
+    "session",
+)
+
+
+def _bind_legacy_positional(legacy_positional, **current):
+    """
+    Bind positional arguments passed after ``inverse_mass_matrix`` to the slots they had
+    when SMC still took ``auto_correlation_settings`` there, so an old positional call
+    keeps its meaning instead of shifting every value one slot. The auto-correlation
+    settings are dropped (SMC is a weighted search). Warns with a ``FutureWarning``; pass
+    these arguments by keyword instead.
+    """
+    if len(legacy_positional) > len(_LEGACY_POSITIONAL):
+        raise TypeError(
+            f"SMC takes at most {len(_LEGACY_POSITIONAL)} deprecated positional arguments "
+            f"after inverse_mass_matrix ({', '.join(_LEGACY_POSITIONAL)}); got "
+            f"{len(legacy_positional)}. Pass them by keyword."
+        )
+    warnings.warn(
+        "Passing SMC arguments positionally after `inverse_mass_matrix` is deprecated: SMC no "
+        "longer takes `auto_correlation_settings` (it is a weighted search, not a chain), so "
+        f"these slots ({', '.join(_LEGACY_POSITIONAL[: len(legacy_positional)])}) are bound "
+        "as they were and the auto-correlation settings are ignored. Pass them by keyword.",
+        FutureWarning,
+        stacklevel=3,
+    )
+    bound = dict(zip(_LEGACY_POSITIONAL, legacy_positional))
+    bound.pop("auto_correlation_settings", None)
+    return tuple(
+        bound.get(name, current[name]) for name in _LEGACY_POSITIONAL[1:]
+    )
