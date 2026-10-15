@@ -9,11 +9,19 @@ The pages are generated from ``python -m autofit search-manifest --json``
 ``files/citations.bib``; they are never edited by hand:
 
 - ``docs/api/searches.rst``: the API reference, one autosummary block per family;
-- ``docs/searches/index.rst``: the capability matrix ("which search");
+- ``docs/searches/index.rst``: the capability matrix ("which search"), whose
+  **Catalogue** column links each search to its card in the autofit_inference
+  benchmark catalogue at the pinned commit ``CATALOGUE_COMMIT``;
 - ``docs/searches/citations.rst``: the canonical citations page for the searches.
 
 The pages deliberately omit ``autofit_version``, so a version bump never makes them
-stale; only a change to the registry or the bibliography does.
+stale; only a change to the registry, the bibliography or the catalogue pin does.
+
+The catalogue (``catalogue/search_catalogue.json`` in PyAutoLabs/autofit_inference) is
+fetched by raw URL at ``CATALOGUE_COMMIT`` each run and never stored in this repository
+beyond the generated page. To re-pin it, change ``CATALOGUE_COMMIT`` and re-run the
+generator. Offline, the fetch fails: the capability matrix is then skipped (named on
+stderr) and the other two pages are still written or checked.
 
 Run from anywhere: paths resolve relative to this file. ``--check`` is run by the Docs
 workflow (``.github/workflows/docs.yml``) and by ``test_autofit``.
@@ -24,8 +32,10 @@ import json
 import re
 import subprocess
 import sys
+import urllib.error
+import urllib.request
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 DOCS = Path(__file__).resolve().parent
 REPO = DOCS.parent
@@ -41,6 +51,98 @@ HEADER = (
 # Bibliography fields left out of the rendered entries: long, or local to an author's
 # machine. The full entries stay in files/citations.bib.
 _DROPPED_BIB_FIELDS = ("abstract", "file", "keywords", "mendeley-groups")
+
+# The autofit_inference benchmark catalogue the capability matrix links to, pinned to
+# one commit so the links (and this generator's output) never move under the docs.
+CATALOGUE_REPO = "PyAutoLabs/autofit_inference"
+CATALOGUE_FILE = "catalogue/search_catalogue.json"
+CATALOGUE_COMMIT = "bea1d8746cf009ff414ea0786c92f3e3e0909f70"
+CATALOGUE_BOARD = "https://pyautolabs.github.io/PyAutoInsight/"
+NO_CARD = "no catalogue card yet"
+
+
+class CatalogueUnavailable(RuntimeError):
+    """
+    The pinned catalogue could not be fetched or read (e.g. no network).
+    """
+
+
+def catalogue_raw_url(commit: str = CATALOGUE_COMMIT) -> str:
+    return (
+        f"https://raw.githubusercontent.com/{CATALOGUE_REPO}/{commit}/{CATALOGUE_FILE}"
+    )
+
+
+def load_catalogue_text(commit: str = CATALOGUE_COMMIT, timeout: float = 30.0) -> str:
+    """
+    The catalogue JSON at ``commit``, fetched by raw URL (nothing is cached on disk).
+    """
+    url = catalogue_raw_url(commit)
+    try:
+        with urllib.request.urlopen(url, timeout=timeout) as response:
+            return response.read().decode("utf-8")
+    except (urllib.error.URLError, OSError, ValueError) as error:
+        raise CatalogueUnavailable(f"could not fetch {url}: {error}") from error
+
+
+def _key_line(lines: List[str], key: str, start: int) -> Optional[int]:
+    """
+    The index of the first line at or after ``start`` that opens the object ``key``.
+    """
+    opening = re.compile(rf"^\s*{re.escape(json.dumps(key))}\s*:\s*\{{")
+    for index in range(start, len(lines)):
+        if opening.match(lines[index]):
+            return index
+    return None
+
+
+def catalogue_cards(text: str) -> Dict[str, dict]:
+    """
+    The catalogue's search cards keyed by search name: the task each card sits under
+    (``tasks.<task>.searches.<name>``), the card's status and its 1-based line in the
+    catalogue file (``None`` when the line cannot be located), for a line anchor.
+    """
+    try:
+        data = json.loads(text)
+        tasks = data["tasks"]
+    except (ValueError, KeyError, TypeError) as error:
+        raise CatalogueUnavailable(f"unreadable search catalogue: {error}") from error
+    lines = text.splitlines()
+    tasks_line = _key_line(lines, "tasks", 0)
+    cards = {}
+    for task_key, task in tasks.items():
+        task_line = (
+            None if tasks_line is None else _key_line(lines, task_key, tasks_line + 1)
+        )
+        searches_line = (
+            None if task_line is None else _key_line(lines, "searches", task_line + 1)
+        )
+        for name, card in task.get("searches", {}).items():
+            if name in cards:
+                continue
+            card_line = (
+                None
+                if searches_line is None
+                else _key_line(lines, name, searches_line + 1)
+            )
+            cards[name] = {
+                "task": task_key,
+                "label": task.get("label", task_key),
+                "status": card.get("status") if isinstance(card, dict) else None,
+                "line": None if card_line is None else card_line + 1,
+            }
+    return cards
+
+
+def _card_cell(search: dict, cards: Dict[str, dict], commit: str) -> str:
+    card = cards.get(search["name"])
+    if card is None:
+        return NO_CARD
+    url = f"https://github.com/{CATALOGUE_REPO}/blob/{commit}/{CATALOGUE_FILE}"
+    if card["line"] is not None:
+        url += f"#L{card['line']}"
+    status = f" ({card['status']})" if card["status"] else ""
+    return f"`{card['label']} <{url}>`__{status}"
 
 
 def load_manifest() -> dict:
@@ -181,10 +283,14 @@ def _budget(budget: dict) -> str:
     return ", ".join(f"``{key}={value}``" for key, value in budget.items())
 
 
-def searches_index_rst(manifest: dict) -> str:
+def searches_index_rst(
+    manifest: dict, cards: Dict[str, dict], commit: str = CATALOGUE_COMMIT
+) -> str:
     title = "Choosing a search: the capability matrix"
     lines = [
         HEADER,
+        f".. Catalogue cards pinned at {CATALOGUE_REPO}@{commit}\n"
+        f"   ({CATALOGUE_FILE}); change CATALOGUE_COMMIT to re-pin.\n\n",
         ".. _search_capability_matrix:\n\n",
         f"{'=' * len(title)}\n",
         f"{title}\n",
@@ -217,6 +323,7 @@ def searches_index_rst(manifest: dict) -> str:
         "Install",
         "Status",
         "Example",
+        "Catalogue",
     ]
     rows = []
     for search in manifest["searches"]:
@@ -237,9 +344,10 @@ def searches_index_rst(manifest: dict) -> str:
                 else "base",
                 capabilities["status"],
                 _example(search),
+                _card_cell(search, cards, commit),
             ]
         )
-    lines += _list_table(header, rows, "14 6 8 8 7 8 7 8 8 10 9 9")
+    lines += _list_table(header, rows, "13 5 7 7 6 7 6 7 7 9 8 8 10")
     lines += [
         "Objectives\n",
         "----------\n\n",
@@ -297,7 +405,16 @@ def searches_index_rst(manifest: dict) -> str:
         "``consumer`` (wants a warm start, e.g. from a provider's posterior) or "
         "``neutral``.\n",
         "- **Install**: ``base`` ships with ``pip install autofit``; "
-        "``autofit[optional]`` needs the optional extra.\n\n",
+        "``autofit[optional]`` needs the optional extra.\n",
+        "- **Catalogue**: the search's card in the autofit_inference benchmark "
+        f"catalogue (`{CATALOGUE_FILE} at {commit[:12]} "
+        f"<https://github.com/{CATALOGUE_REPO}/blob/{commit}/{CATALOGUE_FILE}>`__, "
+        "pinned), under the task it answers, with the card's status; tasks are never "
+        "ranked against each other. The scored wave-2 legs of each card's harness "
+        "samplers are in the same file's ``gaussian_x3@2`` section. The catalogue is "
+        "aggregated on the "
+        f"`PyAutoInsight board <{CATALOGUE_BOARD}>`__. A search the pinned catalogue "
+        f"has not benchmarked reads \"{NO_CARD}\".\n\n",
         "See also the :doc:`search citations <citations>` page and the "
         ":doc:`API reference <../api/searches>`.\n",
     ]
@@ -381,14 +498,27 @@ def searches_citations_rst(manifest: dict, bib_text: str) -> str:
     return "".join(lines)
 
 
-def generated_pages(manifest: dict) -> Dict[Path, str]:
-    return {
-        DOCS / "api" / "searches.rst": api_searches_rst(manifest),
-        DOCS / "searches" / "index.rst": searches_index_rst(manifest),
-        DOCS / "searches" / "citations.rst": searches_citations_rst(
-            manifest, BIB.read_text()
-        ),
-    }
+INDEX = DOCS / "searches" / "index.rst"
+
+
+def generated_pages(
+    manifest: dict,
+    catalogue_text: Optional[str],
+    commit: str = CATALOGUE_COMMIT,
+) -> Dict[Path, str]:
+    """
+    The generated pages; without the catalogue (``None``) the capability matrix is
+    left out, so the other pages can still be written or checked offline.
+    """
+    pages = {DOCS / "api" / "searches.rst": api_searches_rst(manifest)}
+    if catalogue_text is not None:
+        pages[INDEX] = searches_index_rst(
+            manifest, catalogue_cards(catalogue_text), commit
+        )
+    pages[DOCS / "searches" / "citations.rst"] = searches_citations_rst(
+        manifest, BIB.read_text()
+    )
+    return pages
 
 
 def main(argv=None) -> int:
@@ -400,7 +530,19 @@ def main(argv=None) -> int:
     )
     arguments = parser.parse_args(argv)
 
-    pages = generated_pages(load_manifest())
+    try:
+        catalogue_text = load_catalogue_text()
+        catalogue_cards(catalogue_text)
+    except CatalogueUnavailable as error:
+        catalogue_text = None
+        print(
+            f"skipped {INDEX.relative_to(REPO)}: the pinned search catalogue is "
+            f"unavailable ({error}). Re-run with network access to "
+            f"{'check' if arguments.check else 'regenerate'} it.",
+            file=sys.stderr,
+        )
+
+    pages = generated_pages(load_manifest(), catalogue_text)
 
     if arguments.check:
         stale = [
@@ -423,7 +565,7 @@ def main(argv=None) -> int:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(text)
         print(f"wrote {path.relative_to(REPO)}")
-    return 0
+    return 0 if catalogue_text is not None else 1
 
 
 if __name__ == "__main__":
