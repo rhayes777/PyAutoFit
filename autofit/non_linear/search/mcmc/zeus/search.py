@@ -45,6 +45,10 @@ class Zeus(NonLinearSearch):
     test_mode_budget = {"nwalkers": 20, "nsteps": 10}
     objective_target = cap.ObjectiveTarget(cap.ObjectiveQuantity.LOG_POSTERIOR, cap.CoordinateSpace.PHYSICAL)
     invalid_value = -float("inf")
+    # Zeus has always drawn its walkers' start points through the initializer under
+    # ``PYAUTO_TEST_MODE=1`` too (``test_mode_samples=False``), so ``ctx.start_points``
+    # does not substitute the initializer's test-mode samples for it.
+    _start_points_in_test_mode = False
 
     __identifier_fields__ = (
         "nwalkers",
@@ -152,23 +156,20 @@ class Zeus(NonLinearSearch):
 
         self.logger.debug("Creating Zeus Search")
 
-    def _fit(self, model: AbstractPriorModel, analysis):
+    def run(self, ctx):
         """
-        Fit a model using Zeus and the Analysis class which contains the data and returns the log likelihood from
-        instances of the model, which the `NonLinearSearch` seeks to maximize.
+        Run Zeus (the ``run(ctx)`` hook; see ``docs/design/run_ctx.md``) and return the
+        ``zeus.EnsembleSampler``.
+
+        The sampler is archived (``search_internal.dill``) after every chunk of steps; a
+        rerun of an interrupted fit continues from the archived sampler's last sample.
+        Likelihoods are spread over the fit's pool (``ctx.pool()``, ``None`` on one
+        core).
 
         Parameters
         ----------
-        model : ModelMapper
-            The model which generates instances for different points in parameter space.
-        analysis : Analysis
-            Contains the data and the log likelihood function which fits an instance of the model to the data, returning
-            the log likelihood the `NonLinearSearch` maximizes.
-
-        Returns
-        -------
-        A result object comprising the Samples object that inclues the maximum log likelihood instance and full
-        chains used by the fit.
+        ctx
+            The fit's ``FitContext``.
         """
 
         try:
@@ -183,12 +184,10 @@ class Zeus(NonLinearSearch):
                 "----------------------"
             )
 
-        pool = self.make_pool()
-
-        fitness = self.make_fitness(analysis=analysis, model=model)
+        model = ctx.model
 
         try:
-            search_internal = self.paths.load_search_internal()
+            search_internal = ctx.paths.load_search_internal()
 
             state = search_internal.get_last_sample()
             log_posterior_list = search_internal.get_last_log_prob()
@@ -210,31 +209,18 @@ class Zeus(NonLinearSearch):
             search_internal = zeus.EnsembleSampler(
                 nwalkers=self.nwalkers,
                 ndim=model.prior_count,
-                logprob_fn=fitness.call_wrap,
-                pool=pool,
+                logprob_fn=ctx.fitness.call_wrap,
+                pool=ctx.pool(),
             )
 
             search_internal.ncall_total = 0
 
-            (
-                unit_parameter_lists,
-                parameter_lists,
-                log_posterior_list,
-            ) = self.start_points(
-                model=model,
-                fitness=fitness,
-                n=search_internal.nwalkers,
-                test_mode_samples=False,
-            )
-
-            state = np.zeros(shape=(search_internal.nwalkers, model.prior_count))
+            state, log_posterior_list = ctx.start_points(search_internal.nwalkers)
+            log_posterior_list = log_posterior_list.tolist()
 
             self.logger.info(
                 "Starting new Zeus non-linear search (no previous samples found)."
             )
-
-            for index, parameters in enumerate(parameter_lists):
-                state[index, :] = np.asarray(parameters)
 
             total_iterations = 0
             iterations_remaining = self.nsteps
@@ -245,7 +231,7 @@ class Zeus(NonLinearSearch):
             # incremented by this value, so an uncast float would drift the
             # bookkeeping away from the samples zeus actually drew
             # (PyAutoFit#1422).
-            iterations = self._steps_until_full_update(iterations_remaining)
+            iterations = ctx.schedule.next_budget(total_iterations, self.nsteps)
 
             for sample in search_internal.sample(
                 start=state,
@@ -257,7 +243,7 @@ class Zeus(NonLinearSearch):
 
             search_internal.ncall_total += search_internal.ncall
 
-            self.paths.save_search_internal(
+            ctx.paths.save_search_internal(
                 obj=search_internal,
             )
 
@@ -282,15 +268,9 @@ class Zeus(NonLinearSearch):
                     iterations_remaining = 0
 
             if iterations_remaining > 0:
-                self.perform_update(
-                    model=model,
-                    analysis=analysis,
-                    search_internal=search_internal,
-                    fitness=fitness,
-                    during_analysis=True,
-                )
+                ctx.update(search_internal)
 
-        return search_internal, fitness
+        return search_internal
 
     def samples_info_from(self, search_internal=None, auto_correlations=None):
         search_internal = search_internal or self.paths.load_search_internal()

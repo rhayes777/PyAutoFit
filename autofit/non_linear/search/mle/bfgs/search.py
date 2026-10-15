@@ -217,42 +217,40 @@ class AbstractBFGS(NonLinearSearch):
             "maxls": self.maxls,
         }
 
-    def _fit(
-        self,
-        model: AbstractPriorModel,
-        analysis: Analysis,
-    ):
+    def fitness_overrides(self, analysis: Analysis) -> dict:
         """
-        Fit a model using the scipy L-BFGS method and the Analysis class which contains the data and returns the log
-        likelihood from instances of the model, which the `NonLinearSearch` seeks to maximize.
+        The ``Fitness`` stores its evaluation history when the start point is plotted:
+        the samples are then the whole optimisation path (``raw_samples_from``).
+        """
+        return {"store_history": self.should_plot_start_point}
+
+    def run(self, ctx):
+        """
+        Run scipy's ``minimize`` (the ``run(ctx)`` hook; see ``docs/design/run_ctx.md``)
+        and return its ``OptimizeResult``.
+
+        The optimisation runs in chunks of ``iterations_per_full_update`` iterations, each
+        restarted from the last chunk's optimum, with the result archived
+        (``search_internal.dill``) and the fit updated between chunks. A JAX analysis
+        gives scipy the exact gradient of the ``"value_and_grad"`` objective; a numpy
+        analysis lets scipy take finite differences of the scalar objective.
 
         Parameters
         ----------
-        model
-            The model which generates instances for different points in parameter space.
-        analysis
-            Contains the data and the log likelihood function which fits an instance of the model to the data,
-            returning the log likelihood the `NonLinearSearch` maximizes.
-
-        Returns
-        -------
-        A result object comprising the Samples object that inclues the maximum log likelihood instance and full
-        chains used by the fit.
+        ctx
+            The fit's ``FitContext``.
         """
         from scipy import optimize
+
+        model = ctx.model
+        fitness = ctx.fitness
 
         # Resolved once, before any stepping: an unsupported method should fail
         # immediately rather than after the first chunk of iterations.
         bounds = self._bounds_from(model=model)
 
-        fitness = self.make_fitness(
-            analysis=analysis,
-            model=model,
-            store_history=self.should_plot_start_point,
-        )
-
         try:
-            search_internal_dict = self.paths.load_search_internal()
+            search_internal_dict = ctx.paths.load_search_internal()
 
             x0 = search_internal_dict["x0"]
             total_iterations = search_internal_dict["total_iterations"]
@@ -263,17 +261,9 @@ class AbstractBFGS(NonLinearSearch):
 
         except (FileNotFoundError, TypeError):
 
-            (
-                unit_parameter_lists,
-                parameter_lists,
-                log_posterior_list,
-            ) = self.start_points(
-                model=model,
-                fitness=fitness,
-                n=1,
-            )
+            parameters, _ = ctx.start_points(1)
 
-            x0 = np.asarray(parameter_lists[0])
+            x0 = parameters[0]
 
             total_iterations = 0
 
@@ -283,11 +273,10 @@ class AbstractBFGS(NonLinearSearch):
 
         while total_iterations < self.maxiter:
 
-            iterations_remaining = self.maxiter - total_iterations
             # SciPy tolerates an integral float ``maxiter``, but a fractional one
             # would quietly acquire ceiling semantics instead of being rejected
             # (PyAutoFit#1422).
-            iterations = self._steps_until_full_update(iterations_remaining)
+            iterations = ctx.schedule.next_budget(total_iterations, self.maxiter)
 
             if iterations > 0:
                 options = dict(self.options)
@@ -304,7 +293,7 @@ class AbstractBFGS(NonLinearSearch):
                 # box makes the objective non-finite on either branch. Bounds are
                 # passed on both — they are correct on both, and having them
                 # diverge by branch would be a trap of its own.
-                if analysis.is_jax:
+                if fitness.analysis.is_jax:
 
                     # The exact gradient from the "value_and_grad" objective, one jitted
                     # call per step: no finite differences (which cost n_params + 1
@@ -341,26 +330,20 @@ class AbstractBFGS(NonLinearSearch):
                     search_internal.parameters_history_list = fitness.parameters_history_list
                     search_internal.log_likelihood_history_list = fitness.log_likelihood_history_list
 
-                self.paths.save_search_internal(
+                ctx.paths.save_search_internal(
                     obj=search_internal,
                 )
 
                 x0 = search_internal.x
 
                 if search_internal.nit < iterations:
-                    return search_internal, fitness
+                    return search_internal
 
-                self.perform_update(
-                    model=model,
-                    analysis=analysis,
-                    during_analysis=True,
-                    fitness=fitness,
-                    search_internal=search_internal,
-                )
+                ctx.update(search_internal)
 
         self.logger.info(f"{self.method} sampling complete.")
 
-        return search_internal, fitness
+        return search_internal
 
     def raw_samples_from(self, model: AbstractPriorModel, search_internal):
         """

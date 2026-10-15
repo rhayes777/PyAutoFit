@@ -114,12 +114,19 @@ def test__chunked_searches_take_their_chunk_size_from_the_helper(search_cls):
     its chunk inline — which is precisely the regression this helper exists to
     prevent, and precisely what shipped in PyAutoFit#1420.
 
-    These ``_fit`` bodies cannot be executed from this suite (jax/optax/emcee
-    plus a real ``Analysis``), so the call site is asserted at the source level.
+    These backend loops cannot be executed from this suite (jax/optax/emcee
+    plus a real ``Analysis``), so the call site is asserted at the source level:
+    a ``run(ctx)`` search takes its chunk from ``ctx.schedule.next_budget``
+    (``UpdateSchedule``, which wraps the helper), a legacy one from the helper.
     """
-    source = inspect.getsource(search_cls._fit)
+    from autofit.non_linear.search.abstract_search import NonLinearSearch
 
-    assert "self._steps_until_full_update(" in source
+    if search_cls.run is not NonLinearSearch.run:
+        source = inspect.getsource(search_cls.run)
+        assert "ctx.schedule.next_budget(" in source
+    else:
+        source = inspect.getsource(search_cls._fit)
+        assert "self._steps_until_full_update(" in source
     # the un-cast inline forms the crashes came from must not come back
     assert "self.iterations_per_full_update or self.n_steps" not in source
     assert "min(self.iterations_per_full_update" not in source

@@ -67,6 +67,9 @@ class SearchExecutionMixin:
     # Whether `ctx.start_points` makes the start-point plot. `Drawer` draws its whole
     # result through the initializer, so it has no starting point to plot.
     _plots_start_point = True
+    # Whether `ctx.start_points` lets the initializer return its test-mode samples under
+    # `PYAUTO_TEST_MODE=1` (`test_mode_samples`); `Zeus` draws real start points.
+    _start_points_in_test_mode = True
 
     def _run_bridge(self, model: AbstractPriorModel, analysis: Analysis):
         """

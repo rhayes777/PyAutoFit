@@ -24,7 +24,6 @@ from autofit.non_linear.search.mcmc.auto_correlations import AutoCorrelations
 from autofit.non_linear.test_mode import is_test_mode
 from autofit.non_linear.samples.adapter import ChainPosterior, RawSamples
 from autofit.non_linear.search import capabilities as cap
-from autofit.non_linear.search.seed import backend_random_state
 
 if TYPE_CHECKING:
     from autofit.database.sqlalchemy_ import sa
@@ -140,29 +139,24 @@ class Emcee(NonLinearSearch):
 
         self.logger.debug("Creating Emcee Search")
 
-    def _fit(self, model: AbstractPriorModel, analysis):
+    def run(self, ctx):
         """
-        Fit a model using Emcee and the Analysis class which contains the data and returns the log likelihood from
-        instances of the model, which the `NonLinearSearch` seeks to maximize.
+        Run emcee (the ``run(ctx)`` hook; see ``docs/design/run_ctx.md``) and return the
+        ``emcee.EnsembleSampler``.
+
+        emcee's HDF backend (``search_internal/search_internal.hdf``) is both the archive
+        and the resume state: a resumed run reopens it, continues from its last sample
+        and samples only the remaining steps. Likelihoods are spread over the fit's
+        ``SneakyPool`` (``ctx.pool.sneaky``), which is ``None`` on one core.
 
         Parameters
         ----------
-        model : ModelMapper
-            The model which generates instances for different points in parameter space.
-        analysis : Analysis
-            Contains the data and the log likelihood function which fits an instance of the model to the data, returning
-            the log likelihood the `NonLinearSearch` maximizes.
-
-        Returns
-        -------
-        A result object comprising the Samples object that inclues the maximum log likelihood instance and full
-        chains used by the fit.
+        ctx
+            The fit's ``FitContext``.
         """
         import emcee
 
-        fitness = self.make_fitness(analysis=analysis, model=model)
-
-        pool = self.make_sneaky_pool(fitness)
+        model = ctx.model
 
         try:
             backend = emcee.backends.HDFBackend(filename=self.backend_filename)
@@ -172,17 +166,18 @@ class Emcee(NonLinearSearch):
         search_internal = emcee.EnsembleSampler(
             nwalkers=self.nwalkers,
             ndim=model.prior_count,
-            log_prob_fn=fitness.call_wrap,
+            log_prob_fn=ctx.fitness.call_wrap,
             backend=backend,
-            pool=pool,
+            pool=ctx.pool.sneaky(ctx.fitness),
         )
 
-        # Backend stream 1 of the search-level seed (`autofit.non_linear.search.seed`);
-        # emcee otherwise copies numpy's global state. A resumed run restores the state
-        # its HDF backend saved.
-        random_state = backend_random_state(self)
-        if random_state is not None:
-            search_internal._random = random_state
+        # Backend stream 1 of the search-level seed (`ctx.rng`, whose stream 0 the
+        # initializer already took); emcee otherwise copies numpy's global state. A
+        # resumed run restores the state its HDF backend saved.
+        if self.seed is not None:
+            search_internal._random = np.random.RandomState(
+                np.random.MT19937(ctx.rng.spawn(1)[0])
+            )
 
         try:
             state = search_internal.get_last_sample()
@@ -200,24 +195,11 @@ class Emcee(NonLinearSearch):
                 )
 
         except AttributeError:
-            (
-                unit_parameter_lists,
-                parameter_lists,
-                log_posterior_list,
-            ) = self.start_points(
-                model=model,
-                fitness=fitness,
-                n=search_internal.nwalkers,
-            )
-
-            state = np.zeros(shape=(search_internal.nwalkers, model.prior_count))
+            state, _ = ctx.start_points(search_internal.nwalkers)
 
             self.logger.info(
                 "Starting new Emcee non-linear search (no previous samples found)."
             )
-
-            for index, parameters in enumerate(parameter_lists):
-                state[index, :] = np.asarray(parameters)
 
             total_iterations = 0
             iterations_remaining = self.nsteps
@@ -225,7 +207,7 @@ class Emcee(NonLinearSearch):
         while iterations_remaining > 0:
             # ``emcee``'s ``sample`` does ``range(iterations)`` internally and
             # never casts, so this must be an ``int`` (PyAutoFit#1422).
-            iterations = self._steps_until_full_update(iterations_remaining)
+            iterations = ctx.schedule.next_budget(total_iterations, self.nsteps)
 
             for sample in search_internal.sample(
                 initial_state=state,
@@ -252,15 +234,9 @@ class Emcee(NonLinearSearch):
                         iterations_remaining = 0
 
             if iterations_remaining > 0:
-                self.perform_update(
-                    model=model,
-                    analysis=analysis,
-                    search_internal=search_internal,
-                    fitness=fitness,
-                    during_analysis=True,
-                )
+                ctx.update(search_internal)
 
-        return search_internal, fitness
+        return search_internal
 
     def samples_info_from(self, search_internal=None, auto_correlations=None):
         search_internal = search_internal or self.backend
