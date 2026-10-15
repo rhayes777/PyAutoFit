@@ -76,7 +76,7 @@ class SMC(NonLinearSearch):
     invalid_value = -1.0e99
     # The chain dict is plain NumPy, pickled (atomically) after every chunk and kept
     # after completion: the samples cannot be rebuilt without it. Not a resume state:
-    # every ``_fit`` starts afresh (``resumable = False``).
+    # every fit starts afresh (``resumable = False``).
     checkpointer = PickleCheckpointer()
 
     __identifier_fields__ = (
@@ -382,25 +382,25 @@ class SMC(NonLinearSearch):
         """
         return self._inverse_mass_matrix_spec is not None
 
-    def _fit(self, model: AbstractPriorModel, analysis):
+    def run(self, ctx):
         """
-        Fit a model using BlackJAX adaptive tempered SMC. The autofit ``Analysis`` must be constructed with
-        ``use_jax=True`` so the log-likelihood is JAX-traceable and differentiable.
+        Run BlackJAX adaptive tempered SMC (the ``run(ctx)`` hook; see
+        ``docs/design/run_ctx.md``) and return the particle dict archived under
+        ``search_internal/``. The autofit ``Analysis`` must be constructed with
+        ``use_jax=True`` so the log-likelihood is JAX-traceable and differentiable (the
+        bridge's REQUIRED gate refuses a numpy analysis before this runs).
 
-        Returns
-        -------
-        (search_internal, fitness): tuple
-            ``search_internal`` is the dict pickled under ``search_internal/``; ``fitness`` is the autofit
-            Fitness wrapper.
+        Parameters
+        ----------
+        ctx
+            The fit's ``FitContext``.
         """
         import jax
         import jax.numpy as jnp
         import blackjax
         import blackjax.smc.resampling as resampling
 
-        # JAX is mandatory (jax_use='required'): MALA/HMC need gradients of the log-density. `fit` already ran
-        # this gate; repeated for direct callers.
-        cap.check_jax_required(self, analysis)
+        model = ctx.model
 
         n_dim = model.prior_count
 
@@ -410,8 +410,9 @@ class SMC(NonLinearSearch):
         #
         # The resample sentinel is the library-standard `-1e99` rather than `-inf`: blackjax's ESS root solver
         # multiplies the log-likelihood by a candidate `delta` that can be exactly 0.0, and `0 * -inf` is NaN.
-        # A large finite negative value gives the same zero weight without that hazard.
-        fitness = self.make_fitness(analysis=analysis, model=model)
+        # A large finite negative value gives the same zero weight without that hazard. Both are the search's
+        # declared `objective_target` / `invalid_value`, so the bridge's `Fitness` (`ctx.fitness`) carries them.
+        fitness = ctx.fitness
 
         # ---- Whitening ---------------------------------------------------
         #
@@ -446,11 +447,7 @@ class SMC(NonLinearSearch):
                 "Pass initializer=result.start_point_from() alongside inverse_mass_matrix=result."
             )
 
-        _, parameter_lists, _ = self.start_points(
-            model=model,
-            fitness=fitness,
-            n=n_start_points,
-        )
+        parameter_lists, _ = ctx.start_points(n_start_points)
 
         start_points = stack_initial_positions(parameter_lists)
 
@@ -658,13 +655,7 @@ class SMC(NonLinearSearch):
             self.output_search_internal(search_internal=search_internal)
 
             if float(state.tempering_param) < 1.0 and n_smc_steps < self.max_smc_steps:
-                self.perform_update(
-                    model=model,
-                    analysis=analysis,
-                    search_internal=search_internal,
-                    fitness=fitness,
-                    during_analysis=True,
-                )
+                ctx.update(search_internal)
 
         if search_internal is None:
             raise RuntimeError(
@@ -678,7 +669,7 @@ class SMC(NonLinearSearch):
                 "particles are not posterior samples."
             )
 
-        return search_internal, fitness
+        return search_internal
 
     def effective_step_size(self, n_dim: int) -> float:
         """
@@ -716,7 +707,7 @@ class SMC(NonLinearSearch):
 
     @property
     def backend(self) -> dict:
-        """The search-internal dict archived by ``_fit`` (``search_internal.pickle``)."""
+        """The search-internal dict archived by ``run`` (``search_internal.pickle``)."""
         if not self.checkpointer.exists(self.paths):
             raise FileNotFoundError(
                 f"{PICKLE_FILENAME} does not exist at {self.paths.search_internal_path}"

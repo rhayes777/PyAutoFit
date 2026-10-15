@@ -60,7 +60,7 @@ class BlackJAXNUTS(NonLinearSearch):
     invalid_value = -float("inf")
     # The chain dict is plain NumPy, pickled (atomically) after every chunk and kept
     # after completion: the samples cannot be rebuilt without it. Not a resume state:
-    # every ``_fit`` starts afresh (``resumable = False``).
+    # every fit starts afresh (``resumable = False``).
     checkpointer = PickleCheckpointer()
 
     __identifier_fields__ = (
@@ -305,37 +305,31 @@ class BlackJAXNUTS(NonLinearSearch):
         self.num_samples = 20
         self.num_chains = min(self.num_chains, 2)
 
-    def _fit(self, model: AbstractPriorModel, analysis):
+    def run(self, ctx):
         """
-        Fit a model using BlackJAX NUTS. The autofit ``Analysis`` must be
-        constructed with ``use_jax=True`` so the log-likelihood is
-        JAX-traceable and differentiable.
+        Run BlackJAX NUTS (the ``run(ctx)`` hook; see ``docs/design/run_ctx.md``) and
+        return the chain dict archived under ``search_internal/``. The autofit
+        ``Analysis`` must be constructed with ``use_jax=True`` so the log-likelihood is
+        JAX-traceable and differentiable (the bridge's REQUIRED gate refuses a numpy
+        analysis before this runs).
 
-        Returns
-        -------
-        (search_internal, fitness): tuple
-            ``search_internal`` is the dict pickled under
-            ``search_internal/``; ``fitness`` is the autofit Fitness wrapper.
+        Parameters
+        ----------
+        ctx
+            The fit's ``FitContext``.
         """
         import jax
         import jax.numpy as jnp
         import blackjax
 
-        # JAX is mandatory (jax_use='required'): NUTS needs gradients of the
-        # log-density. `fit` already ran this gate; repeated for direct callers.
-        cap.check_jax_required(self, analysis)
-
-        fitness = self.make_fitness(analysis=analysis, model=model)
+        model = ctx.model
+        fitness = ctx.fitness
 
         # Initial position(s): borrow the standard initializer machinery so
         # users can substitute their own (InitializerBall by default for
         # MCMC; InitializerParamStartPoints.from_result(...) to warm-start).
         # One starting point per chain.
-        unit_lists, parameter_lists, _ = self.start_points(
-            model=model,
-            fitness=fitness,
-            n=self.num_chains,
-        )
+        parameter_lists, _ = ctx.start_points(self.num_chains)
 
         n_dim = model.prior_count
 
@@ -463,7 +457,7 @@ class BlackJAXNUTS(NonLinearSearch):
         while iterations_remaining > 0:
             # ``run_chunk`` scans ``chunk_n`` steps and the key split below sizes
             # itself from it, so this must be an ``int`` (PyAutoFit#1422).
-            chunk_n = self._steps_until_full_update(iterations_remaining)
+            chunk_n = ctx.schedule.next_budget(total_done, self.num_samples)
 
             rng_key, sample_key = jax.random.split(rng_key)
             states, infos = run_chunk(sample_key, state, chunk_n)
@@ -513,15 +507,9 @@ class BlackJAXNUTS(NonLinearSearch):
             self.output_search_internal(search_internal=search_internal)
 
             if iterations_remaining > 0:
-                self.perform_update(
-                    model=model,
-                    analysis=analysis,
-                    search_internal=search_internal,
-                    fitness=fitness,
-                    during_analysis=True,
-                )
+                ctx.update(search_internal)
 
-        return search_internal, fitness
+        return search_internal
 
     # ------------------------------------------------------------------
     # Persistence + samples
@@ -533,7 +521,7 @@ class BlackJAXNUTS(NonLinearSearch):
 
     @property
     def backend(self) -> dict:
-        """The search-internal dict archived by ``_fit`` (``search_internal.pickle``)."""
+        """The search-internal dict archived by ``run`` (``search_internal.pickle``)."""
         if not self.checkpointer.exists(self.paths):
             raise FileNotFoundError(
                 f"{PICKLE_FILENAME} does not exist at {self.paths.search_internal_path}"

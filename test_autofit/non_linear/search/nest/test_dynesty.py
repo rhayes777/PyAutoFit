@@ -101,10 +101,13 @@ def test__single_core_builds_no_pool(search_cls, monkeypatch):
         raise AssertionError("fork_context must not be used when number_of_cores == 1")
 
     parallel = importlib.import_module("autofit.non_linear.parallel")
+    parallel_pool = importlib.import_module("autofit.non_linear.parallel.pool")
 
-    # `_fork_pool_cls` imports `fork_context` from the package at call time, so
-    # patching the package attribute is what intercepts the pool build.
+    # dynesty's `ForkPool` takes its workers from the fit's `PoolFactory`, which
+    # builds them through `parallel.pool.fork_context`; the package attribute is
+    # patched too so no other route can build one.
     monkeypatch.setattr(parallel, "fork_context", no_fork_context)
+    monkeypatch.setattr(parallel_pool, "fork_context", no_fork_context)
 
     monkeypatch.setenv("PYAUTO_TEST_MODE", "1")
 

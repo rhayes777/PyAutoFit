@@ -42,7 +42,7 @@ class Emcee(NonLinearSearch):
     honours_gradient_mode = False
     posterior_kind = cap.PosteriorKind.CHAIN
     produces_evidence = False
-    # Resumable: ``_fit`` reopens the HDF backend, loads the last sample and iteration
+    # Resumable: ``run`` reopens the HDF backend, loads the last sample and iteration
     # count and samples only the remaining steps. The search-extensibility report's
     # section 3.1 table listed Emcee as not resumable; that was corrected here (A1
     # review) against the published meaning "resumes from its own checkpoint".

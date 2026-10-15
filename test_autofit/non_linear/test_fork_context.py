@@ -6,7 +6,7 @@ import pytest
 
 import autofit as af
 from autofit.non_linear.fitness import Fitness
-from autofit.non_linear.parallel import fork_context
+from autofit.non_linear.parallel import PoolFactory, fork_context
 from autofit.non_linear.parallel.process import Process
 from autofit.non_linear.search.nest.dynesty.search.abstract import (
     _fork_pool_cls,
@@ -147,16 +147,22 @@ def test_factor_graph_instance_shape_in_pool_worker(factor_graph_and_fitness):
     )
     in_process_likelihood = fitness(in_process_vector)
 
-    ForkPool = _fork_pool_cls()
+    # dynesty's pool takes its workers from the fit's `PoolFactory` (`ctx.pool`).
+    pools = PoolFactory(af.DynestyStatic(number_of_cores=2))
+    ForkPool = _fork_pool_cls(pools)
 
-    with ForkPool(
-        njobs=2,
-        loglike=fitness,
-        prior_transform=prior_transform,
-        logl_args=(global_prior_model, fitness),
-        ptform_args=(global_prior_model,),
-    ) as pool:
-        worker_vector = list(pool.map(pool.prior_transform, [unit_vector]))[0]
-        worker_likelihood = list(pool.map(pool.loglike, [worker_vector]))[0]
+    try:
+        with ForkPool(
+            njobs=2,
+            loglike=fitness,
+            prior_transform=prior_transform,
+            logl_args=(global_prior_model, fitness),
+            ptform_args=(global_prior_model,),
+        ) as pool:
+            assert pools._created == [pool.pool]
+            worker_vector = list(pool.map(pool.prior_transform, [unit_vector]))[0]
+            worker_likelihood = list(pool.map(pool.loglike, [worker_vector]))[0]
+    finally:
+        pools.close(failed=False)
 
     assert worker_likelihood == pytest.approx(in_process_likelihood, rel=1e-10)
