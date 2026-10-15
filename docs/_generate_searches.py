@@ -20,8 +20,10 @@ stale; only a change to the registry, the bibliography or the catalogue pin does
 The catalogue (``catalogue/search_catalogue.json`` in PyAutoLabs/autofit_inference) is
 fetched by raw URL at ``CATALOGUE_COMMIT`` each run and never stored in this repository
 beyond the generated page. To re-pin it, change ``CATALOGUE_COMMIT`` and re-run the
-generator. Offline, the fetch fails: the capability matrix is then skipped (named on
-stderr) and the other two pages are still written or checked.
+generator. Offline (no connection), the capability matrix is skipped, named on stderr,
+and the other two pages are still written (exit 1) or checked (exit 0); with
+``--require-catalogue`` (the Docs workflow) being offline is an error too. An HTTP
+error (a bad or unpushed pin) or an unreadable catalogue is always an error.
 
 Run from anywhere: paths resolve relative to this file. ``--check`` is run by the Docs
 workflow (``.github/workflows/docs.yml``) and by ``test_autofit``.
@@ -61,9 +63,16 @@ CATALOGUE_BOARD = "https://pyautolabs.github.io/PyAutoInsight/"
 NO_CARD = "no catalogue card yet"
 
 
+class CatalogueError(RuntimeError):
+    """
+    The pinned catalogue is wrong: an HTTP error (e.g. a pin that does not exist) or
+    an unreadable file. Never skipped.
+    """
+
+
 class CatalogueUnavailable(RuntimeError):
     """
-    The pinned catalogue could not be fetched or read (e.g. no network).
+    The pinned catalogue could not be reached (no connection, a timeout).
     """
 
 
@@ -81,8 +90,10 @@ def load_catalogue_text(commit: str = CATALOGUE_COMMIT, timeout: float = 30.0) -
     try:
         with urllib.request.urlopen(url, timeout=timeout) as response:
             return response.read().decode("utf-8")
-    except (urllib.error.URLError, OSError, ValueError) as error:
-        raise CatalogueUnavailable(f"could not fetch {url}: {error}") from error
+    except urllib.error.HTTPError as error:
+        raise CatalogueError(f"could not fetch {url}: {error}") from error
+    except (urllib.error.URLError, OSError) as error:
+        raise CatalogueUnavailable(f"could not reach {url}: {error}") from error
 
 
 def _key_line(lines: List[str], key: str, start: int) -> Optional[int]:
@@ -106,7 +117,7 @@ def catalogue_cards(text: str) -> Dict[str, dict]:
         data = json.loads(text)
         tasks = data["tasks"]
     except (ValueError, KeyError, TypeError) as error:
-        raise CatalogueUnavailable(f"unreadable search catalogue: {error}") from error
+        raise CatalogueError(f"unreadable search catalogue: {error}") from error
     lines = text.splitlines()
     tasks_line = _key_line(lines, "tasks", 0)
     cards = {}
@@ -411,8 +422,8 @@ def searches_index_rst(
         f"<https://github.com/{CATALOGUE_REPO}/blob/{commit}/{CATALOGUE_FILE}>`__, "
         "pinned), under the task it answers, with the card's status; tasks are never "
         "ranked against each other. The scored wave-2 legs of each card's harness "
-        "samplers are in the same file's ``gaussian_x3@2`` section. The catalogue is "
-        "aggregated on the "
+        "samplers are in the same file's ``gaussian_x3@2`` section; the benchmark "
+        "records behind the catalogue feed the "
         f"`PyAutoInsight board <{CATALOGUE_BOARD}>`__. A search the pinned catalogue "
         f"has not benchmarked reads \"{NO_CARD}\".\n\n",
         "See also the :doc:`search citations <citations>` page and the "
@@ -503,18 +514,16 @@ INDEX = DOCS / "searches" / "index.rst"
 
 def generated_pages(
     manifest: dict,
-    catalogue_text: Optional[str],
+    cards: Optional[Dict[str, dict]],
     commit: str = CATALOGUE_COMMIT,
 ) -> Dict[Path, str]:
     """
-    The generated pages; without the catalogue (``None``) the capability matrix is
-    left out, so the other pages can still be written or checked offline.
+    The generated pages; without the catalogue cards (``None``) the capability matrix
+    is left out, so the other pages can still be written or checked offline.
     """
     pages = {DOCS / "api" / "searches.rst": api_searches_rst(manifest)}
-    if catalogue_text is not None:
-        pages[INDEX] = searches_index_rst(
-            manifest, catalogue_cards(catalogue_text), commit
-        )
+    if cards is not None:
+        pages[INDEX] = searches_index_rst(manifest, cards, commit)
     pages[DOCS / "searches" / "citations.rst"] = searches_citations_rst(
         manifest, BIB.read_text()
     )
@@ -528,13 +537,25 @@ def main(argv=None) -> int:
         action="store_true",
         help="Do not write; exit 1 if any generated page differs from the manifest.",
     )
+    parser.add_argument(
+        "--require-catalogue",
+        action="store_true",
+        help="Fail (exit 1) instead of skipping the capability matrix when the pinned "
+        "catalogue cannot be reached. Offline without it, --check skips the matrix "
+        "and exits 0; a write skips it and exits 1.",
+    )
     arguments = parser.parse_args(argv)
 
     try:
-        catalogue_text = load_catalogue_text()
-        catalogue_cards(catalogue_text)
+        cards = catalogue_cards(load_catalogue_text())
+    except CatalogueError as error:
+        print(f"error: {error}", file=sys.stderr)
+        return 1
     except CatalogueUnavailable as error:
-        catalogue_text = None
+        if arguments.require_catalogue:
+            print(f"error: {error}", file=sys.stderr)
+            return 1
+        cards = None
         print(
             f"skipped {INDEX.relative_to(REPO)}: the pinned search catalogue is "
             f"unavailable ({error}). Re-run with network access to "
@@ -542,7 +563,7 @@ def main(argv=None) -> int:
             file=sys.stderr,
         )
 
-    pages = generated_pages(load_manifest(), catalogue_text)
+    pages = generated_pages(load_manifest(), cards)
 
     if arguments.check:
         stale = [
@@ -565,7 +586,7 @@ def main(argv=None) -> int:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(text)
         print(f"wrote {path.relative_to(REPO)}")
-    return 0 if catalogue_text is not None else 1
+    return 0 if cards is not None else 1
 
 
 if __name__ == "__main__":

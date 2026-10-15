@@ -8,6 +8,7 @@ Skipped when the ``docs`` directory is absent (an installed-package test run).
 
 import importlib.util
 import json
+import urllib.error
 from pathlib import Path
 
 import pytest
@@ -97,8 +98,20 @@ def test_matrix_has_one_catalogue_cell_per_search_and_records_the_pin(
 
 
 def test_unreadable_catalogue_raises(generator):
-    with pytest.raises(generator.CatalogueUnavailable):
+    with pytest.raises(generator.CatalogueError):
         generator.catalogue_cards("not json")
+
+
+def test_http_error_is_an_error_not_a_skip(generator, monkeypatch, capsys):
+    def not_found(url, timeout):
+        raise urllib.error.HTTPError(url, 404, "Not Found", None, None)
+
+    monkeypatch.setattr(generator.urllib.request, "urlopen", not_found)
+
+    with pytest.raises(generator.CatalogueError):
+        generator.load_catalogue_text()
+    assert generator.main(["--check"]) == 1
+    assert "404" in capsys.readouterr().err
 
 
 def test_offline_check_skips_only_the_matrix(generator, monkeypatch, capsys):
@@ -111,3 +124,5 @@ def test_offline_check_skips_only_the_matrix(generator, monkeypatch, capsys):
     captured = capsys.readouterr()
     assert "skipped docs/searches/index.rst" in captured.err
     assert "2 generated search pages are up to date." in captured.out
+
+    assert generator.main(["--check", "--require-catalogue"]) == 1

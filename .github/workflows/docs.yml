@@ -32,7 +32,8 @@ jobs:
 
   # The search pages (docs/api/searches.rst, docs/searches/index.rst and
   # docs/searches/citations.rst) are generated from the search manifest
-  # (python -m autofit search-manifest --json); fail when they are stale.
+  # (python -m autofit search-manifest --json) and the autofit_inference catalogue
+  # at a pinned commit; fail when they are stale or the catalogue is unreachable.
   generated-search-docs:
     runs-on: ubuntu-latest
     steps:
@@ -43,4 +44,4 @@ jobs:
       - name: Install autofit
         run: pip install -e .
       - name: Check the generated search docs
-        run: python docs/_generate_searches.py --check
+        run: python docs/_generate_searches.py --check --require-catalogue
