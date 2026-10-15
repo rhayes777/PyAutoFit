@@ -122,7 +122,10 @@ def test__chunked_searches_take_their_chunk_size_from_the_helper(search_cls):
     from autofit.non_linear.search.abstract_search import NonLinearSearch
 
     if search_cls.run is not NonLinearSearch.run:
-        source = inspect.getsource(search_cls.run)
+        # MultiStart's step loop is split out of `run` (`_step_loop`).
+        source = inspect.getsource(search_cls.run) + inspect.getsource(
+            getattr(search_cls, "_step_loop", search_cls.run)
+        )
         assert "ctx.schedule.next_budget(" in source
     else:
         source = inspect.getsource(search_cls._fit)

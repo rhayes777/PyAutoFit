@@ -49,6 +49,10 @@ def _analysis():
         af.DynestyDynamic,
         af.BlackJAXNUTS,
         af.SMC,
+        af.MultiStartAdam,
+        af.MultiStartADABelief,
+        af.MultiStartLion,
+        af.MultiStartProdigy,
     ],
 )
 def test_proofs_are_on_the_bridge(search_cls):
