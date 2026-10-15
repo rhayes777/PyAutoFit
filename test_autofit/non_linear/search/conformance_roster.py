@@ -460,6 +460,7 @@ GOLDEN = {
             "maxcall_init",
             "maxiter",
             "maxiter_init",
+            "n_effective",
             "nlive_init",
         },
     ),
