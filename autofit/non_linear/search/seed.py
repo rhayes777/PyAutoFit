@@ -7,8 +7,9 @@ Every search accepts ``seed`` (``NonLinearSearch.__init__``). It is fanned out w
 - **stream 0** seeds the initializer (``AbstractInitializer.samples_from_model`` draws
   from a ``numpy.random.Generator``, never from the global ``random`` module);
 - **streams 1+** seed the backend: ``FitContext.rng`` has stream 0 spawned already, so
-  ``ctx.rng.spawn(k)`` hands a ``run(ctx)`` backend streams ``1..k``; the legacy
-  ``_fit`` searches take theirs from ``backend_seed_sequences``;
+  ``ctx.rng.spawn(k)`` hands a ``run(ctx)`` backend streams ``1..k`` (Emcee's
+  ``RandomState``); a backend built outside ``run`` (Dynesty's ``rstate``, resolved in
+  ``_sampler_kwargs``) takes the same streams from ``backend_seed_sequences``;
 - **grid-search children** each get an independent child sequence through a spawn key
   (``_seed_spawn_key``), which is neither serialized nor hashed.
 

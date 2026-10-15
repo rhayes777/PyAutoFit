@@ -15,7 +15,6 @@ import os
 import numpy as np
 import warnings
 from dataclasses import dataclass
-from functools import wraps
 from typing import Optional
 
 from autonerves import conf
@@ -145,20 +144,57 @@ def warn_deprecated_jax_knob(owner: str, name: str, instead: str):
     )
 
 
-def check_cores(func):
+def _mro_init_parameters(cls) -> frozenset:
     """
-    Deprecated (kept with the legacy pool shims until search-extensibility phase A5):
-    return ``None`` instead of calling the pool-creation function ``func`` when the
-    search is configured for one core.
+    The named parameters of every ``__init__`` in ``cls``'s MRO.
     """
+    import inspect
 
-    @wraps(func)
-    def wrapper(self, *args, **kwargs):
-        if self.number_of_cores == 1:
-            return None
-        return func(self, *args, **kwargs)
+    names = set()
+    for klass in cls.__mro__:
+        init = klass.__dict__.get("__init__")
+        if init is None:
+            continue
+        try:
+            parameters = inspect.signature(init).parameters.values()
+        except (TypeError, ValueError):
+            continue
+        names.update(
+            parameter.name
+            for parameter in parameters
+            if parameter.kind
+            not in (inspect.Parameter.VAR_KEYWORD, inspect.Parameter.VAR_POSITIONAL)
+        )
+    return frozenset(names)
 
-    return wrapper
+
+def warn_unknown_kwargs(search, kwargs: dict, known=()):
+    """
+    Warn (a log WARNING, never an error) about each keyword argument that reached
+    ``NonLinearSearch.__init__`` through ``**kwargs`` but that no ``__init__`` in the
+    search's MRO consumes -- a typo such as ``n_lives=`` that would otherwise be
+    silently ignored.
+
+    Not warned about: the ``known`` keys the base class reads or ``search.json``
+    records, a key some ``__init__`` in the MRO names (a subclass passing it on on
+    purpose), and ``use_jax_vmap=None`` -- the deprecated knob's default, which
+    ``SettingsSearch.search_dict`` hands every search and which only the searches that
+    accept it read (``SettingsSearch.search_dict_for`` drops it for the others). A
+    ``use_jax_vmap`` set to anything else on a search that does not accept it is
+    warned about like any other unknown argument.
+    """
+    consumed = _mro_init_parameters(type(search))
+
+    for key, value in kwargs.items():
+        if key in known or key in consumed:
+            continue
+        if key == "use_jax_vmap" and value is None:
+            continue
+        logger.warning(
+            f"{type(search).__name__} received the unknown keyword argument "
+            f"{key!r}, which is ignored. Check its spelling against the "
+            f"search's constructor."
+        )
 
 
 def configure_handler(func):

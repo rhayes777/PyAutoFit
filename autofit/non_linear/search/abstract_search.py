@@ -25,12 +25,12 @@ from autofit.non_linear.initializer import Initializer
 from autofit.non_linear.fitness import ITERATIONS_NEVER, get_timeout_seconds  # noqa: F401
 from autofit.non_linear.search.runtime import (  # noqa: F401
     SearchRuntimeSettings,
-    check_cores,
     configure_handler,
     log_fit_start,
     quick_update_message,
     warn_deprecated_jax_knob,
     warn_if_threads_unpinned,
+    warn_unknown_kwargs,
 )
 from autofit.non_linear.parallel import PoolFactory
 from autofit.non_linear.search.updater import log_process_state
@@ -160,13 +160,7 @@ class NonLinearSearch(
 
         self.kwargs = kwargs
 
-        for key in kwargs:
-            if key not in self._known_kwargs:
-                logger.warning(
-                    f"{type(self).__name__} received the unknown keyword argument "
-                    f"{key!r}, which is ignored. Check its spelling against the "
-                    f"search's constructor."
-                )
+        warn_unknown_kwargs(self, kwargs, known=self._known_kwargs)
 
         self.number_of_cores = number_of_cores
         warn_if_threads_unpinned(number_of_cores)

@@ -923,6 +923,55 @@ def test_settings_search_dict_for_filters_use_jax_vmap(caplog):
     assert _unknown_kwarg_messages(caplog) == []
 
 
+def test_settings_search_dict_splatted_into_any_search_logs_no_unknown_kwarg(caplog):
+    """
+    ``SettingsSearch.search_dict`` hands every search the deprecated
+    ``use_jax_vmap=None``; only the searches that accept it read it, and its default
+    is never reported as unknown to the others (search-extensibility A5).
+    """
+    import logging
+
+    settings_search = af.SettingsSearch(path_prefix="settings_search_test")
+
+    with caplog.at_level(logging.WARNING):
+        af.DynestyStatic(**settings_search.search_dict)
+        af.Emcee(**settings_search.search_dict)
+        af.Nautilus(**settings_search.search_dict)
+
+    assert _unknown_kwarg_messages(caplog) == []
+
+
+def test_a_set_use_jax_vmap_on_a_search_without_it_is_still_unknown(caplog):
+    import logging
+
+    with caplog.at_level(logging.WARNING):
+        af.Emcee(use_jax_vmap=True)
+
+    messages = _unknown_kwarg_messages(caplog)
+    assert len(messages) == 1
+    assert "'use_jax_vmap'" in messages[0]
+
+
+def test_a_kwarg_an_mro_init_names_is_not_unknown(caplog):
+    """
+    The guard warns only about keys no ``__init__`` in the MRO consumes: a subclass
+    that names an argument and passes it on through ``**kwargs`` is not warned about.
+    """
+    import logging
+
+    class Forwarding(af.Drawer):
+        def __init__(self, extra_setting=1, **kwargs):
+            super().__init__(extra_setting=extra_setting, **kwargs)
+
+    with caplog.at_level(logging.WARNING):
+        Forwarding(extra_setting=2)
+        Forwarding(extra_typo=3)
+
+    messages = _unknown_kwarg_messages(caplog)
+    assert len(messages) == 1
+    assert "'extra_typo'" in messages[0]
+
+
 def test_deprecated_jax_knobs_warn_only_when_passed():
     import warnings
 

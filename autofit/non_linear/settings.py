@@ -70,8 +70,8 @@ class SettingsSearch:
         Every search setting as a dictionary, including ``use_jax_vmap``.
 
         Only searches whose constructor accepts ``use_jax_vmap`` (e.g. ``Nautilus``) use it; any other search
-        logs it as an unknown keyword argument. Use ``search_dict_for`` to get the settings filtered to what a
-        given search accepts.
+        ignores it, and logs it as an unknown keyword argument only when it is set (not ``None``). Use
+        ``search_dict_for`` to get the settings filtered to what a given search accepts.
         """
         return {
             "path_prefix": self.path_prefix,
