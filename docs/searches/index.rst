@@ -3,6 +3,9 @@
    autofit/non_linear/search/registry.py (or files/citations.bib) and re-run the
    generator.
 
+.. Catalogue cards pinned at PyAutoLabs/autofit_inference@bea1d8746cf009ff414ea0786c92f3e3e0909f70
+   (catalogue/search_catalogue.json); change CATALOGUE_COMMIT to re-pin.
+
 .. _search_capability_matrix:
 
 ========================================
@@ -22,7 +25,7 @@ Capabilities
 
 .. list-table::
    :header-rows: 1
-   :widths: 14 6 8 8 7 8 7 8 8 10 9 9
+   :widths: 13 5 7 7 6 7 6 7 7 9 8 8 10
 
    * - Search
      - Family
@@ -36,6 +39,7 @@ Capabilities
      - Install
      - Status
      - Example
+     - Catalogue
    * - :class:`~autofit.Emcee`
      - mcmc
      - none
@@ -48,6 +52,7 @@ Capabilities
      - base
      - stable
      - `mcmc.py <https://github.com/PyAutoLabs/autofit_workspace/blob/main/scripts/searches/mcmc.py>`__
+     - `posterior <https://github.com/PyAutoLabs/autofit_inference/blob/bea1d8746cf009ff414ea0786c92f3e3e0909f70/catalogue/search_catalogue.json#L692>`__ (measured)
    * - :class:`~autofit.Zeus`
      - mcmc
      - none
@@ -60,6 +65,7 @@ Capabilities
      - ``autofit[optional]``
      - stable
      - `mcmc.py <https://github.com/PyAutoLabs/autofit_workspace/blob/main/scripts/searches/mcmc.py>`__
+     - `posterior <https://github.com/PyAutoLabs/autofit_inference/blob/bea1d8746cf009ff414ea0786c92f3e3e0909f70/catalogue/search_catalogue.json#L882>`__ (measured)
    * - :class:`~autofit.BlackJAXNUTS`
      - mcmc
      - required
@@ -72,6 +78,7 @@ Capabilities
      - ``autofit[optional]``
      - stable
      - `mcmc.py <https://github.com/PyAutoLabs/autofit_workspace/blob/main/scripts/searches/mcmc.py>`__
+     - `posterior <https://github.com/PyAutoLabs/autofit_inference/blob/bea1d8746cf009ff414ea0786c92f3e3e0909f70/catalogue/search_catalogue.json#L1080>`__ (measured)
    * - :class:`~autofit.SMC`
      - mcmc
      - required
@@ -84,6 +91,7 @@ Capabilities
      - ``autofit[optional]``
      - experimental
      - --
+     - `posterior <https://github.com/PyAutoLabs/autofit_inference/blob/bea1d8746cf009ff414ea0786c92f3e3e0909f70/catalogue/search_catalogue.json#L1266>`__ (measured)
    * - :class:`~autofit.DynestyStatic`
      - nest
      - optional
@@ -96,6 +104,7 @@ Capabilities
      - base
      - stable
      - `nest.py <https://github.com/PyAutoLabs/autofit_workspace/blob/main/scripts/searches/nest.py>`__
+     - `evidence <https://github.com/PyAutoLabs/autofit_inference/blob/bea1d8746cf009ff414ea0786c92f3e3e0909f70/catalogue/search_catalogue.json#L1371>`__ (measured)
    * - :class:`~autofit.DynestyDynamic`
      - nest
      - optional
@@ -108,6 +117,7 @@ Capabilities
      - base
      - stable
      - `nest.py <https://github.com/PyAutoLabs/autofit_workspace/blob/main/scripts/searches/nest.py>`__
+     - `evidence <https://github.com/PyAutoLabs/autofit_inference/blob/bea1d8746cf009ff414ea0786c92f3e3e0909f70/catalogue/search_catalogue.json#L1562>`__ (measured)
    * - :class:`~autofit.Nautilus`
      - nest
      - optional
@@ -120,6 +130,7 @@ Capabilities
      - ``autofit[optional]``
      - stable
      - `nest.py <https://github.com/PyAutoLabs/autofit_workspace/blob/main/scripts/searches/nest.py>`__
+     - `evidence <https://github.com/PyAutoLabs/autofit_inference/blob/bea1d8746cf009ff414ea0786c92f3e3e0909f70/catalogue/search_catalogue.json#L1758>`__ (measured)
    * - :class:`~autofit.NSS`
      - nest
      - required
@@ -132,6 +143,7 @@ Capabilities
      - ``autofit[optional]``
      - experimental
      - --
+     - `evidence <https://github.com/PyAutoLabs/autofit_inference/blob/bea1d8746cf009ff414ea0786c92f3e3e0909f70/catalogue/search_catalogue.json#L2306>`__ (deferred)
    * - :class:`~autofit.Drawer`
      - mle
      - none
@@ -144,6 +156,7 @@ Capabilities
      - base
      - stable
      - `mle.py <https://github.com/PyAutoLabs/autofit_workspace/blob/main/scripts/searches/mle.py>`__
+     - `point/MAP <https://github.com/PyAutoLabs/autofit_inference/blob/bea1d8746cf009ff414ea0786c92f3e3e0909f70/catalogue/search_catalogue.json#L36>`__ (unsupported)
    * - :class:`~autofit.BFGS`
      - mle
      - optional
@@ -156,6 +169,7 @@ Capabilities
      - base
      - stable
      - --
+     - `point/MAP <https://github.com/PyAutoLabs/autofit_inference/blob/bea1d8746cf009ff414ea0786c92f3e3e0909f70/catalogue/search_catalogue.json#L52>`__ (measured)
    * - :class:`~autofit.LBFGS`
      - mle
      - optional
@@ -168,6 +182,7 @@ Capabilities
      - base
      - stable
      - `mle.py <https://github.com/PyAutoLabs/autofit_workspace/blob/main/scripts/searches/mle.py>`__
+     - `point/MAP <https://github.com/PyAutoLabs/autofit_inference/blob/bea1d8746cf009ff414ea0786c92f3e3e0909f70/catalogue/search_catalogue.json#L208>`__ (measured)
    * - :class:`~autofit.MultiStartAdam`
      - mle
      - required
@@ -180,6 +195,7 @@ Capabilities
      - base
      - stable
      - `mle.py <https://github.com/PyAutoLabs/autofit_workspace/blob/main/scripts/searches/mle.py>`__
+     - `point/MAP <https://github.com/PyAutoLabs/autofit_inference/blob/bea1d8746cf009ff414ea0786c92f3e3e0909f70/catalogue/search_catalogue.json#L364>`__ (measured)
    * - :class:`~autofit.MultiStartADABelief`
      - mle
      - required
@@ -192,6 +208,7 @@ Capabilities
      - base
      - experimental
      - --
+     - `point/MAP <https://github.com/PyAutoLabs/autofit_inference/blob/bea1d8746cf009ff414ea0786c92f3e3e0909f70/catalogue/search_catalogue.json#L444>`__ (measured)
    * - :class:`~autofit.MultiStartLion`
      - mle
      - required
@@ -204,6 +221,7 @@ Capabilities
      - base
      - experimental
      - --
+     - `point/MAP <https://github.com/PyAutoLabs/autofit_inference/blob/bea1d8746cf009ff414ea0786c92f3e3e0909f70/catalogue/search_catalogue.json#L524>`__ (measured)
    * - :class:`~autofit.MultiStartProdigy`
      - mle
      - required
@@ -216,6 +234,7 @@ Capabilities
      - base
      - stable
      - --
+     - `point/MAP <https://github.com/PyAutoLabs/autofit_inference/blob/bea1d8746cf009ff414ea0786c92f3e3e0909f70/catalogue/search_catalogue.json#L604>`__ (measured)
 
 Objectives
 ----------
@@ -337,5 +356,6 @@ Column meanings
 - **Resumable**: an interrupted run resumes from its own checkpoint.
 - **Warm start**: ``provider`` (starts cold and can seed another search), ``consumer`` (wants a warm start, e.g. from a provider's posterior) or ``neutral``.
 - **Install**: ``base`` ships with ``pip install autofit``; ``autofit[optional]`` needs the optional extra.
+- **Catalogue**: the search's card in the autofit_inference benchmark catalogue (`catalogue/search_catalogue.json at bea1d8746cf0 <https://github.com/PyAutoLabs/autofit_inference/blob/bea1d8746cf009ff414ea0786c92f3e3e0909f70/catalogue/search_catalogue.json>`__, pinned), under the task it answers, with the card's status; tasks are never ranked against each other. The scored wave-2 legs of each card's harness samplers are in the same file's ``gaussian_x3@2`` section; the benchmark records behind the catalogue feed the `PyAutoInsight board <https://pyautolabs.github.io/PyAutoInsight/>`__. A search the pinned catalogue has not benchmarked reads "no catalogue card yet".
 
 See also the :doc:`search citations <citations>` page and the :doc:`API reference <../api/searches>`.
