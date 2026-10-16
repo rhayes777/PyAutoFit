@@ -427,3 +427,267 @@ def test__likelihood_pool_healthy_map_completes(monkeypatch):
     finally:
         pool.terminate()
         pool.join()
+
+
+# --- D >= 91: the live-point guard and the HDF5 checkpoint format (#1697) ---
+
+
+class _VectorGaussianAnalysis(af.Analysis):
+    """
+    An isotropic Gaussian over every free parameter, counting likelihood calls.
+    """
+
+    def __init__(self, n_dim):
+        super().__init__()
+        self.names = [f"x{index}" for index in range(n_dim)]
+        self.calls = 0
+
+    def log_likelihood_function(self, instance):
+        self.calls += 1
+        vector = np.array([getattr(instance, name) for name in self.names])
+        return -0.5 * float(np.sum(((vector - 0.5) / 0.1) ** 2))
+
+
+def _vector_model(n_dim):
+    return af.Collection(
+        **{f"x{index}": af.UniformPrior(lower_limit=0.0, upper_limit=1.0) for index in range(n_dim)}
+    )
+
+
+def _ellipsoid_d100():
+    from nautilus.bounds.basic import Ellipsoid
+
+    rng = np.random.default_rng(1)
+    return Ellipsoid.compute(rng.random((300, 100)))
+
+
+@requires_nautilus
+def test__d100_ellipsoid_round_trips_through_the_proxied_file(tmp_path):
+    """
+    A D = 100 ellipsoid's ``n_dim x n_dim`` attributes write and read back when the
+    file is opened through the proxy's ``File`` (HDF5 1.8 format).
+    """
+    import h5py
+    from nautilus.bounds.basic import Ellipsoid
+
+    from autofit.non_linear.search.nest.nautilus.search import _LargeAttributeH5py
+
+    bound = _ellipsoid_d100()
+    filepath = tmp_path / "checkpoint.hdf5"
+
+    with _LargeAttributeH5py(h5py).File(filepath, "x") as fstream:
+        bound.write(fstream.create_group("bound"))
+
+    with h5py.File(filepath, "r+") as fstream:
+        read = Ellipsoid.read(fstream["bound"])
+
+    assert np.array_equal(read.B, bound.B)
+    assert np.array_equal(read.B_inv, bound.B_inv)
+
+
+@requires_nautilus
+@pytest.mark.xfail(
+    strict=True,
+    raises=OSError,
+    reason="nautilus 1.0.5 writes D x D attributes in HDF5's earliest format; "
+    "XPASSes (and fails this strict xfail) once nautilus fixes it upstream, "
+    "the cue to remove _large_attribute_hdf5",
+)
+def test__d100_ellipsoid_write_fails_in_nautilus_default_format(tmp_path):
+    """
+    The control: nautilus's own ``h5py.File(filepath, 'x')`` cannot hold the bound.
+    """
+    import h5py
+
+    bound = _ellipsoid_d100()
+
+    with h5py.File(tmp_path / "checkpoint.hdf5", "x") as fstream:
+        bound.write(fstream.create_group("bound"))
+
+
+def test__large_attribute_hdf5_restores_nautilus_h5py():
+    pytest.importorskip("nautilus")
+    import nautilus.sampler as nautilus_sampler
+
+    from autofit.non_linear.search.nest.nautilus import search as nautilus_search
+
+    original = nautilus_sampler.h5py
+
+    with pytest.raises(RuntimeError):
+        with nautilus_search._large_attribute_hdf5():
+            assert isinstance(nautilus_sampler.h5py, nautilus_search._LargeAttributeH5py)
+            raise RuntimeError
+
+    assert nautilus_sampler.h5py is original
+
+
+class _StopAtFirstUpdate(Exception):
+    pass
+
+
+def _fast_ellipsoid_bound_cls():
+    """
+    A stand-in for nautilus's ``NautilusBound`` that keeps its D x D ellipsoid
+    matrices but none of its cost.
+
+    With ~100 live points at D = 100, nautilus's real bound rejection-samples an
+    enlarged ellipsoid against the unit cube (``Union.sample`` /
+    ``NeuralBound.sample``) with a near-zero acceptance rate, which takes minutes, so
+    the test cannot afford it. This bound is a real ``Ellipsoid`` fitted to the live
+    set (written through ``Ellipsoid.write``: the ``A``, ``B``, ``B_inv`` attributes
+    that overflow nautilus's default HDF5 format), sampled from the unit cube and
+    declared smaller than it so the sampler accepts it and writes the checkpoint.
+    """
+    from nautilus.bounds.basic import Ellipsoid
+
+    class FastEllipsoidBound(Ellipsoid):
+        @classmethod
+        def compute(cls, points, log_l, log_l_min, log_v_target, enlarge_per_dim=1.1, rng=None, **kwargs):
+            bound = super().compute(
+                points[log_l >= log_l_min], enlarge_per_dim=enlarge_per_dim, rng=rng
+            )
+            return bound
+
+        @property
+        def log_v(self):
+            return -1.0
+
+        def sample(self, n_points=100, return_points=True, pool=None):
+            points = self.rng.random((n_points, self.n_dim))
+            return points if return_points else None
+
+        def update(self, group):
+            pass
+
+    return FastEllipsoidBound
+
+
+@requires_nautilus
+def test__d100_fit_writes_a_checkpoint_that_nautilus_resumes(tmp_path, monkeypatch):
+    """
+    A D = 100 fit reaches its first checkpoint write after an ellipsoid bound
+    (nautilus-sampler 1.0.5 raised ``object header message is too large`` there),
+    and a fresh nautilus ``Sampler`` on the same file resumes it.
+
+    The fit is stopped at its first full update, as an interrupted run would be:
+    a completed fit deletes its resume state. nautilus's bound class is replaced by
+    ``_fast_ellipsoid_bound_cls`` (same ellipsoid serialisation, no rejection
+    sampling) to keep the test to seconds; everything else is the search's real
+    ``fit`` -> ``run(ctx)`` -> ``fit_x1_cpu`` path and nautilus's real write and
+    resume.
+    """
+    from nautilus import Sampler
+
+    from autofit.conf import instance
+
+    monkeypatch.delenv("PYAUTO_TEST_MODE", raising=False)
+    monkeypatch.setattr(instance, "output_path", str(tmp_path))
+
+    n_dim = 100
+    model = _vector_model(n_dim)
+    analysis = _VectorGaussianAnalysis(n_dim)
+
+    search = af.Nautilus(
+        name="nautilus_d100_checkpoint",
+        n_live=101,
+        n_networks=1,
+        n_batch=101,
+        n_like_max=404,
+        seed=1,
+        verbose=False,
+    )
+
+    import nautilus.sampler as nautilus_sampler
+
+    monkeypatch.setattr(nautilus_sampler, "NautilusBound", _fast_ellipsoid_bound_cls())
+
+    stopped = {}
+
+    def stop(search_internal=None, **kwargs):
+        stopped["n_like"] = search_internal.n_like
+        stopped["bounds"] = len(search_internal.bounds)
+        raise _StopAtFirstUpdate
+
+    monkeypatch.setattr(search, "perform_update", stop)
+
+    with pytest.raises(_StopAtFirstUpdate):
+        search.fit(model=model, analysis=analysis)
+
+    checkpoint_file = search.checkpoint_file
+
+    assert str(checkpoint_file).startswith(str(tmp_path))
+    assert checkpoint_file.exists()
+    assert stopped["bounds"] >= 2
+
+    resumed = Sampler(
+        prior=lambda x: x,
+        likelihood=lambda x: 0.0,
+        n_dim=n_dim,
+        n_live=101,
+        filepath=checkpoint_file,
+        resume=True,
+    )
+
+    assert resumed.n_like == stopped["n_like"]
+    assert len(resumed.bounds) >= 2
+
+
+def test__checkpoint_false_passes_no_filepath():
+    search = af.Nautilus(name="nautilus_no_checkpoint", checkpoint=False)
+
+    assert search.checkpoint is False
+    assert search.checkpoint_file is None
+    assert "checkpoint" not in search.__identifier_fields__
+
+    checkpointed = af.Nautilus(name="nautilus_no_checkpoint")
+
+    assert checkpointed.checkpoint_file is not None
+
+
+def _guard_fit(search, n_dim, monkeypatch):
+    monkeypatch.delenv("PYAUTO_TEST_MODE", raising=False)
+    analysis = _VectorGaussianAnalysis(n_dim)
+
+    def backend_must_not_run(*args, **kwargs):
+        raise AssertionError("the backend ran before the live-point guard")
+
+    monkeypatch.setattr(search, "_fit", backend_must_not_run)
+
+    with pytest.raises(af.exc.SearchException) as error:
+        search.fit(model=_vector_model(n_dim), analysis=analysis)
+
+    assert analysis.calls == 0
+    return str(error.value)
+
+
+def test__n_live_at_prior_count_raises_before_any_likelihood_call(monkeypatch):
+    message = _guard_fit(af.Nautilus(n_live=100), 100, monkeypatch)
+
+    assert message.startswith(
+        "Nautilus cannot fit this 100-parameter model with n_live=100"
+    )
+    assert "at least 101" in message
+
+
+def test__n_points_min_below_floor_raises(monkeypatch):
+    message = _guard_fit(af.Nautilus(n_live=200, n_points_min=50), 100, monkeypatch)
+
+    assert "n_points_min=50" in message
+    assert "at least 101" in message
+
+
+def test__live_point_floor_passes_the_gate():
+    model = _vector_model(100)
+
+    af.Nautilus(n_live=101).check_model(model)
+    af.Nautilus(n_live=101, n_points_min=101).check_model(model)
+
+    with pytest.raises(af.exc.SearchException):
+        af.Nautilus(n_live=101, n_points_min=100).check_model(model)
+
+
+def test__run_ctx_repeats_the_guard():
+    from types import SimpleNamespace
+
+    with pytest.raises(af.exc.SearchException, match="n_live=10"):
+        af.Nautilus(n_live=10).run(SimpleNamespace(model=_vector_model(20)))
