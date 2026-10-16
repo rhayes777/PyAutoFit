@@ -5,7 +5,7 @@ import numpy as np
 import logging
 import os
 import sys
-from contextlib import nullcontext
+from contextlib import contextmanager, nullcontext
 from pathlib import Path
 from typing import Dict, Optional, Tuple, TYPE_CHECKING
 
@@ -42,6 +42,84 @@ def _resumed_by_nautilus(path):
         f"The nautilus checkpoint {path} is resumed by nautilus.Sampler(filepath=...) "
         "inside the search's run(ctx); it holds no samples until the fit completes."
     )
+
+
+NAUTILUS_N_LIVE_MESSAGE = (
+    "Nautilus cannot fit this {prior_count}-parameter model with {argument}={value}: "
+    "nautilus fits an ellipsoid to the live points at its first bound, which needs "
+    "more points than dimensions (nautilus/bounds/basic.py, Ellipsoid.compute), so "
+    "the run would start and then fail. Set {argument} to at least {floor} "
+    "(n_live > n_dim, n_points_min >= n_dim + 1)."
+)
+"""
+The one message raised when a Nautilus live-point setting is below the model's floor.
+"""
+
+NAUTILUS_HDF5_LIBVER = ("v108", "latest")
+"""
+The HDF5 file-format bounds nautilus's checkpoint is opened with (see
+``_large_attribute_hdf5``).
+"""
+
+
+class _LargeAttributeH5py:
+    """
+    A stand-in for the ``h5py`` module inside ``nautilus.sampler`` whose ``File``
+    defaults to ``libver=NAUTILUS_HDF5_LIBVER`` when the caller passes none; every
+    other attribute is the real ``h5py``'s.
+    """
+
+    def __init__(self, h5py):
+        self._h5py = h5py
+
+    def File(self, *args, **kwargs):
+        kwargs.setdefault("libver", NAUTILUS_HDF5_LIBVER)
+        return self._h5py.File(*args, **kwargs)
+
+    def __getattr__(self, name):
+        return getattr(self._h5py, name)
+
+
+@contextmanager
+def _large_attribute_hdf5():
+    """
+    Let nautilus write its checkpoint for models with 91 or more parameters.
+
+    nautilus-sampler 1.0.5 stores each ellipsoid bound's ``n_dim x n_dim`` matrices
+    (``A``, ``B``, ``B_inv``) as HDF5 attributes (``Ellipsoid.write``,
+    ``nautilus/bounds/basic.py`` :404-407) in a file it creates with
+    ``h5py.File(filepath, 'x')`` (``nautilus/sampler.py`` :1270), i.e. HDF5's
+    earliest file format, whose 64 KiB object-header message limit an
+    ``n_dim**2`` float64 array exceeds from ``n_dim = 91``. The first checkpoint
+    write after an ellipsoid bound then raises ``OSError: Unable to synchronously
+    create attribute (object header message is too large)``.
+
+    For the duration of the ``with`` block, ``nautilus.sampler.h5py`` is a proxy
+    whose ``File`` defaults to ``libver=('v108', 'latest')``, the HDF5 1.8 format
+    whose dense attribute storage holds attributes of any size. The checkpoint
+    round-trips and resumes; a file written this way needs HDF5 >= 1.8 to read,
+    which every supported h5py has. The real module is restored on exit.
+
+    Remove this once nautilus stores the bound matrices as datasets (or opens the
+    file with a newer libver) upstream.
+    """
+    try:
+        import nautilus.sampler as nautilus_sampler
+    except ImportError:
+        yield
+        return
+
+    h5py = getattr(nautilus_sampler, "h5py", None)
+
+    if h5py is None or isinstance(h5py, _LargeAttributeH5py):
+        yield
+        return
+
+    nautilus_sampler.h5py = _LargeAttributeH5py(h5py)
+    try:
+        yield
+    finally:
+        nautilus_sampler.h5py = h5py
 
 
 
@@ -241,6 +319,7 @@ class Nautilus(NonLinearSearch):
         force_x1_cpu: bool = False,
         session: Optional[sa.orm.Session] = None,
         use_jax_vmap: Optional[bool] = None,
+        checkpoint: bool = True,
         **kwargs,
     ):
         """
@@ -264,7 +343,15 @@ class Nautilus(NonLinearSearch):
             The name of a unique tag for this model-fit, which will be given a unique entry in the sqlite database
             and also acts as the folder after the path prefix and before the search name.
         n_live
-            Number of live points used for sampling.
+            Number of live points used for sampling. Must exceed the number of free
+            parameters: nautilus fits an ellipsoid to the live points at its first
+            bound, which needs more points than dimensions. The search raises a
+            ``SearchException`` before any likelihood call when ``n_live`` is at or
+            below the model's ``prior_count``.
+        n_points_min
+            The minimum number of points each ellipsoid is fitted to (nautilus
+            defaults it to ``n_dim + 50``). When set, it must be at least
+            ``prior_count + 1``, checked like ``n_live``.
         n_batch
             Number of likelihood evaluations performed at each step.
         n_like_max
@@ -291,6 +378,16 @@ class Nautilus(NonLinearSearch):
             If True, force single-CPU mode even when number_of_cores > 1.
         session
             An SQLalchemy session instance so the results of the model-fit are written to an SQLite database.
+        checkpoint
+            If True (the default), nautilus writes its resume state, ``checkpoint.hdf5``,
+            in ``search_internal/`` and an interrupted fit resumes from it. If False, no
+            filepath is passed to nautilus, so nothing is written and an interrupted fit
+            starts again from scratch: an explicit resume-less mode, for example when
+            the checkpoint's disk I/O is unwanted. It does not change the samples, so it
+            is not an identifier field. Models with 91 or more parameters checkpoint
+            normally: the search writes the file in the HDF5 1.8 format, because
+            nautilus 1.0.5's default format cannot store their bounds
+            (``_large_attribute_hdf5``).
         """
 
         super().__init__(
@@ -325,6 +422,7 @@ class Nautilus(NonLinearSearch):
         self.verbose = verbose
 
         self.force_x1_cpu = force_x1_cpu
+        self.checkpoint = checkpoint
         if use_jax_vmap is not None:
             from autofit.non_linear.search.abstract_search import (
                 warn_deprecated_jax_knob,
@@ -355,6 +453,47 @@ class Nautilus(NonLinearSearch):
             }
         return {}
 
+    def check_model(self, model: AbstractPriorModel):
+        """
+        Refuse a model nautilus cannot bound, before any likelihood call.
+
+        nautilus needs more live points than dimensions (``n_live > prior_count``) and,
+        when ``n_points_min`` is set, ``n_points_min >= prior_count + 1``; neither
+        nautilus nor its ``Sampler`` checks this up front, so the run otherwise
+        starts and fails at its first ellipsoid bound.
+
+        Raises
+        ------
+        exc.SearchException
+            With ``NAUTILUS_N_LIVE_MESSAGE``, naming the setting and its floor.
+        """
+        super().check_model(model=model)
+
+        if model is None:
+            return
+
+        prior_count = model.prior_count
+
+        if self.n_live <= prior_count:
+            raise exc.SearchException(
+                NAUTILUS_N_LIVE_MESSAGE.format(
+                    prior_count=prior_count,
+                    argument="n_live",
+                    value=self.n_live,
+                    floor=prior_count + 1,
+                )
+            )
+
+        if self.n_points_min is not None and self.n_points_min < prior_count + 1:
+            raise exc.SearchException(
+                NAUTILUS_N_LIVE_MESSAGE.format(
+                    prior_count=prior_count,
+                    argument="n_points_min",
+                    value=self.n_points_min,
+                    floor=prior_count + 1,
+                )
+            )
+
     def run(self, ctx):
         """
         Run Nautilus (the ``run(ctx)`` hook; see ``docs/design/run_ctx.md``) and return
@@ -369,8 +508,11 @@ class Nautilus(NonLinearSearch):
         ctx
             The fit's ``FitContext``.
         """
+        # `fit` runs the same guard; repeated here for callers that drive `run(ctx)`
+        # directly.
+        self.check_model(model=ctx.model)
 
-        if ctx.paths.supports_checkpointing:
+        if ctx.paths.supports_checkpointing and self.checkpoint_file is not None:
             checkpoint_exists = Path(self.checkpoint_file).exists()
         else:
             checkpoint_exists = False
@@ -421,7 +563,11 @@ class Nautilus(NonLinearSearch):
         The path to the file used for checkpointing.
 
         If autofit is not outputting results to hard-disk (e.g. paths is `NullPaths`), this function is bypassed.
+        It is None when the search was built with ``checkpoint=False``, so nautilus
+        writes no checkpoint at all.
         """
+        if not getattr(self, "checkpoint", True):
+            return None
         try:
             return self.paths.search_internal_path / NAUTILUS_FILENAME
         except TypeError:
@@ -455,31 +601,32 @@ class Nautilus(NonLinearSearch):
                 "Running search where parallelization is disabled."
             )
 
-        search_internal = self.sampler_cls(
-            prior=PriorVectorized(model=model),
-            likelihood=fitness.call_wrap,
-            n_dim=model.prior_count,
-            filepath=self.checkpoint_file,
-            pool=None,
-            vectorized=fitness.batched,
-            n_live=self.n_live,
-            n_update=self.n_update,
-            enlarge_per_dim=self.enlarge_per_dim,
-            n_points_min=self.n_points_min,
-            split_threshold=self.split_threshold,
-            n_networks=self.n_networks,
-            n_batch=self.n_batch,
-            n_like_new_bound=self.n_like_new_bound,
-            seed=self.backend_seed,
-        )
+        with _large_attribute_hdf5():
+            search_internal = self.sampler_cls(
+                prior=PriorVectorized(model=model),
+                likelihood=fitness.call_wrap,
+                n_dim=model.prior_count,
+                filepath=self.checkpoint_file,
+                pool=None,
+                vectorized=fitness.batched,
+                n_live=self.n_live,
+                n_update=self.n_update,
+                enlarge_per_dim=self.enlarge_per_dim,
+                n_points_min=self.n_points_min,
+                split_threshold=self.split_threshold,
+                n_networks=self.n_networks,
+                n_batch=self.n_batch,
+                n_like_new_bound=self.n_like_new_bound,
+                seed=self.backend_seed,
+            )
 
-        return self.call_search(
-            search_internal=search_internal,
-            model=model,
-            analysis=analysis,
-            fitness=fitness,
-            update=update,
-        )
+            return self.call_search(
+                search_internal=search_internal,
+                model=model,
+                analysis=analysis,
+                fitness=fitness,
+                update=update,
+            )
 
     def fit_multiprocessing(self, fitness, model, analysis=None, pools=None, update=None):
         """
@@ -550,7 +697,7 @@ class Nautilus(NonLinearSearch):
                 )
             )
 
-        with pool_context as pool:
+        with pool_context as pool, _large_attribute_hdf5():
             search_internal = self.sampler_cls(
                 prior=PriorVectorized(model=model),
                 likelihood=fitness.call_wrap,

@@ -388,6 +388,7 @@ search = af.Nautilus(
     n_shell=1,
     n_eff=500,
     discard_exploration=False,
+    checkpoint=True,  # False: write no checkpoint.hdf5 (an interrupted fit restarts)
 )
 ```
 

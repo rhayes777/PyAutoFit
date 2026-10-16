@@ -482,6 +482,7 @@ GOLDEN = {
         | {
             "session",
             "number_of_cores",
+            "checkpoint",
             "discard_exploration",
             "enlarge_per_dim",
             "f_live",
