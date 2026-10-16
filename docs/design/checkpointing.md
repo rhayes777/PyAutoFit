@@ -53,6 +53,44 @@ dynesty's `save_sampler` writes `savestate.save.tmp` and renames it; NSS's
 can leave them unreadable. `NativeFileCheckpointer.save` and `finalize` are no-ops:
 autofit never writes or rewrites a native file.
 
+## Nautilus at 91 or more parameters
+
+nautilus-sampler 1.0.5 cannot write its own checkpoint for a model with 91 or more
+free parameters. `Ellipsoid.write` (`nautilus/bounds/basic.py`, lines 404-407) stores
+each ellipsoid bound's `n_dim x n_dim` float64 matrices (`A`, `B`, `B_inv`) as HDF5
+attributes, and `Sampler.write` creates the file with `h5py.File(filepath, 'x')`
+(`nautilus/sampler.py`, line 1270), which uses HDF5's earliest file format. That
+format caps an object-header message at 64 KiB, so from `n_dim = 91`
+(`91**2 * 8` bytes > 64 KiB) the first write after an ellipsoid bound raises
+`OSError: Unable to synchronously create attribute (object header message is too large)`
+and the run dies, although the sampler itself is fine.
+
+The workaround is `_large_attribute_hdf5()` in `autofit/non_linear/search/nest/nautilus/search.py`.
+Around sampler construction and the sampling loop, on both execution paths
+(`fit_x1_cpu` and `fit_multiprocessing`), it replaces `nautilus.sampler.h5py` with a
+proxy whose `File` defaults to `libver=('v108', 'latest')`. That is the HDF5 1.8 format,
+which stores attributes of any size densely. Every other attribute is the real `h5py`'s,
+and the module is restored when the block exits. The checkpoint then round-trips and
+resumes at any `n_dim`. A file written this way needs HDF5 >= 1.8 to read, which every
+supported h5py has. The workaround is to be removed once nautilus fixes this upstream;
+`test__d100_ellipsoid_write_fails_in_nautilus_default_format` is a strict xfail that
+starts XPASSing (and so fails) when that happens.
+
+Two related settings on `af.Nautilus`:
+
+- **Live-point floor.** nautilus's ellipsoid fit needs more points than dimensions
+  (`Ellipsoid.compute`, `nautilus/bounds/basic.py`, lines 298-300), and nothing checks
+  this before the first bound. `Nautilus.check_model` (run by `fit`, and again at the
+  top of `run(ctx)`) raises `SearchException` (`NAUTILUS_N_LIVE_MESSAGE`) before any
+  likelihood call unless `n_live > prior_count` and, when set,
+  `n_points_min >= prior_count + 1`.
+- **`checkpoint=False`.** This passes no filepath to nautilus, so no `checkpoint.hdf5`
+  is written and an interrupted fit starts again from scratch. It is an explicit
+  resume-less mode rather than a fix. It does not change the samples, so it is not an
+  identifier field.
+
+Upstream issue: <link pending>.
+
 ## Corruption
 
 A corrupt file is never silently replaced by a different source of samples:
