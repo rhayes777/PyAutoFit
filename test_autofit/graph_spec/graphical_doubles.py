@@ -78,7 +78,7 @@ def relational_graph():
 def hierarchical_graph():
     """
     Three *different* centres, each drawn from one parent ``GaussianPrior``
-    whose own ``mean`` and ``sigma`` are free (HowToFit chapter 3, tutorial 4).
+    whose own ``mean`` and ``sigma`` are free (the HowToFit advanced chapter, tutorial 4).
     """
     model_list = [dataset_model() for _ in range(3)]
 
