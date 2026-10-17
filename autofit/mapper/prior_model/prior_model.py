@@ -6,6 +6,7 @@ import numpy as np
 import typing
 from typing import *
 
+from autonerves import conf
 from autonerves.class_path import get_class_path
 from autonerves.exc import ConfigException
 from autofit.mapper.model import ModelInstance, assert_not_frozen, frozen_cache
@@ -408,7 +409,24 @@ class Model(AbstractPriorModel):
             return cls
         if not inspect.isclass(cls):
             # noinspection PyProtectedMember
-            cls = inspect._findclass(cls)
+            owner = inspect._findclass(cls)
+            if owner is None:
+                # A plain function has its own config path, but no class MRO.
+                # The class lookup walks __bases__, so do not send it a function
+                # (or None). Keep the actual model callable unchanged.
+                path = f"{cls.__module__}.{cls.__name__}".split(".")
+                for config in conf.instance.prior_config.prior_configs:
+                    try:
+                        prior_config = config(path + [attribute_name])
+                    except KeyError:
+                        continue
+                    return Prior.from_dict(prior_config)
+                raise ConfigException(
+                    f"No prior config found for function {cls.__module__}."
+                    f"{cls.__name__}, parameter {attribute_name!r}. "
+                    "Add prior configuration or pass an explicit prior to Model."
+                )
+            cls = owner
         try:
             return Prior.for_class_and_attribute_name(cls, attribute_name)
         except ConfigException as e:
@@ -559,9 +577,12 @@ class Model(AbstractPriorModel):
             return ModelInstance(constructor_arguments)
 
         if not inspect.isclass(self.cls):
-            result = object.__new__(inspect._findclass(self.cls))
-            cls = self.cls
-            cls(result, **constructor_arguments)
+            owner = inspect._findclass(self.cls)
+            if owner is None:
+                result = self.cls(**constructor_arguments)
+            else:
+                result = object.__new__(owner)
+                self.cls(result, **constructor_arguments)
         else:
             result = self.cls(**constructor_arguments)
 
