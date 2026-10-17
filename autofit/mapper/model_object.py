@@ -287,10 +287,10 @@ class ModelObject:
 
         if isinstance(self, Collection):
             type_ = "collection"
-        elif isinstance(self, AbstractPriorModel) and self.prior_count == 0:
-            type_ = "instance"
         elif isinstance(self, Model):
             type_ = "model"
+        elif isinstance(self, AbstractPriorModel) and self.prior_count == 0:
+            type_ = "instance"
         elif isinstance(self, TuplePrior):
             type_ = "tuple_prior"
         elif isinstance(self, Array):
