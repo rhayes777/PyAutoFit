@@ -61,7 +61,14 @@ def all_priors():
 
 
 def prior_id(prior):
-    return f"{type(prior).__name__}({prior.message})"
+    # Message reprs may contain process-local addresses, which make xdist
+    # workers collect different node IDs. Configuration is stable across workers.
+    parameters = ",".join(
+        f"{name}={value}"
+        for name, value in sorted(prior.dict().items())
+        if name not in {"id", "type"}
+    )
+    return f"{type(prior).__name__}({parameters})"
 
 
 def support_window(prior, tail=1e-11):
