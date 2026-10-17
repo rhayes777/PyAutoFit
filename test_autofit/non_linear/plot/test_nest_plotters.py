@@ -13,6 +13,20 @@ class MockModel:
         self.parameter_labels_with_superscripts_latex = labels
         self.total_free_parameters = len(labels)
 
+    def derived_parameters_from(self, parameter_array, weights=None):
+        # The derived set of this mock: the first two parameters become their sum.
+        from autofit.mapper.prior_model.derived import DerivedParameters
+
+        return DerivedParameters(
+            names=["sum"] + ["p"] * (parameter_array.shape[1] - 2),
+            superscripts=[None] * (parameter_array.shape[1] - 1),
+            component_paths=[()] * (parameter_array.shape[1] - 1),
+            parameter_array=__import__("numpy").column_stack(
+                [parameter_array[:, 0] + parameter_array[:, 1], parameter_array[:, 2:]]
+            ),
+            derived_mask=[True] + [False] * (parameter_array.shape[1] - 2),
+        )
+
 
 class MockSamples:
     def __init__(self):
@@ -111,3 +125,56 @@ def test__corner_anesthetic__labels_kwarg_is_reserved(samples):
         nest_plotters.corner_anesthetic(samples=samples, labels=["a", "b"])
 
     assert "labels" in str(error.value)
+
+
+def test__corner_anesthetic__parameter_indices_plot_that_subset(monkeypatch, routed):
+    # One corner plot per model component is made by passing the indices of its
+    # parameters: only those columns are plotted, with their own labels, and the
+    # figure is sized to the subset rather than the whole model.
+    from anesthetic.samples import NestedSamples
+
+    rng = np.random.default_rng(2)
+    samples = MockSamples()
+    samples.model = MockModel(["$a$", "$b$", "$c$"])
+    samples.parameter_lists = rng.normal(size=(60, 3)).tolist()
+    samples.weight_list = rng.random(60).tolist()
+
+    seen = {}
+
+    def fake_plot_2d(self, axes=None, **kwargs):
+        seen["labels"] = list(self.get_labels())
+        seen["columns"] = self.shape[1]
+
+    monkeypatch.setattr(NestedSamples, "plot_2d", fake_plot_2d)
+
+    nest_plotters.corner_anesthetic(samples=samples, parameter_indices=[0, 2])
+
+    assert seen["columns"] == 2
+    assert seen["labels"] == ["$a$", "$c$"]
+    assert routed["axes"]["figsize"] == (8, 8)
+
+
+def test__corner_anesthetic__derived_plots_the_derived_set(monkeypatch, routed):
+    from anesthetic.samples import NestedSamples
+
+    rng = np.random.default_rng(3)
+    samples = MockSamples()
+    samples.model = MockModel(["$a$", "$b$", "$c$"])
+    samples.parameter_lists = rng.normal(size=(60, 3)).tolist()
+    samples.weight_list = rng.random(60).tolist()
+
+    seen = {}
+
+    def fake_plot_2d(self, axes=None, **kwargs):
+        seen["labels"] = list(self.get_labels())
+        seen["first"] = self.to_numpy()[0, 0]
+
+    monkeypatch.setattr(NestedSamples, "plot_2d", fake_plot_2d)
+
+    nest_plotters.corner_anesthetic(samples=samples, derived=True)
+
+    # Two parameters became one, labelled from the derived set's own names,
+    # and the figure is sized to the derived set.
+    assert seen["labels"] == ["$s$", "$p$"]
+    assert seen["first"] == pytest.approx(sum(samples.parameter_lists[0][:2]))
+    assert routed["axes"]["figsize"] == (8, 8)

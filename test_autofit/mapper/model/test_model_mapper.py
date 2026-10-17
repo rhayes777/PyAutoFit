@@ -24,6 +24,17 @@ class ExtendedMockClass(af.m.MockClassx2):
 
 
 # noinspection PyUnresolvedReferences
+class MockGalaxy:
+    def __init__(self, bulge=None, disk=None):
+        self.bulge = bulge
+        self.disk = disk
+
+
+class MockBasis:
+    def __init__(self, profile_list=None):
+        self.profile_list = profile_list
+
+
 class TestRegression:
     def test_set_tuple_instance(self):
         mm = af.ModelMapper()
@@ -154,6 +165,93 @@ class TestRegression:
             r"$one_label^{\rm two}$",
             r"$two_label^{\rm two}$",
         ]
+
+    def test__superscripts__named_components_separate_like_classes(self):
+        # A lens-like model: two galaxies each holding components of one class.
+        # The superscript is the path of named components, so the lens's bulge,
+        # its disk and the source's bulge are told apart; ``galaxies`` (a
+        # Collection) and the parameter's tuple are not components and are dropped.
+        model = af.Collection(
+            galaxies=af.Collection(
+                lens=af.Model(
+                    MockGalaxy,
+                    bulge=af.Model(af.m.MockClassx2NoSuperScript),
+                    disk=af.Model(af.m.MockClassx2NoSuperScript),
+                ),
+                source=af.Model(
+                    MockGalaxy, bulge=af.Model(af.m.MockClassx2NoSuperScript)
+                ),
+            )
+        )
+
+        assert model.component_paths == [
+            ("lens", "bulge"),
+            ("lens", "bulge"),
+            ("lens", "disk"),
+            ("lens", "disk"),
+            ("source", "bulge"),
+            ("source", "bulge"),
+        ]
+        assert model.superscripts == [
+            "lens.bulge",
+            "lens.bulge",
+            "lens.disk",
+            "lens.disk",
+            "source.bulge",
+            "source.bulge",
+        ]
+        assert model.parameter_indices_by_component == {
+            "lens": [0, 1, 2, 3],
+            "source": [4, 5],
+        }
+
+    def test__superscripts__config_replaces_the_component_it_names(self):
+        # ``MockClassRelativeWidth=r`` in the notation config abbreviates that
+        # component's own name only; the galaxy's name stays.
+        model = af.Collection(
+            galaxy=af.Model(MockGalaxy, bulge=af.Model(af.m.MockClassRelativeWidth))
+        )
+
+        assert model.superscripts == ["galaxy.r", "galaxy.r", "galaxy.r"]
+        assert (
+            model.parameter_labels_with_superscripts[0] == r"one_label^{\rm galaxy.r}"
+        )
+
+        # A prior directly on the model has no named component and keeps the
+        # config entry for the model's class.
+        assert af.Model(af.m.MockClassRelativeWidth).superscripts == ["r", "r", "r"]
+        assert af.Model(af.m.MockClassRelativeWidth).parameter_indices_by_component == {
+            "model": [0, 1, 2]
+        }
+
+    def test__superscripts__list_index_kept_only_when_priors_are_not_shared(self):
+        # A basis whose profiles share one set of priors: the index is one of
+        # many paths to the same prior, so it says nothing and is dropped.
+        profile_list = af.Collection(
+            [af.Model(af.m.MockClassx2NoSuperScript) for _ in range(3)]
+        )
+        for profile in profile_list[1:]:
+            profile.one = profile_list[0].one
+            profile.two = profile_list[0].two
+        model = af.Collection(
+            galaxy=af.Model(
+                MockGalaxy, bulge=af.Model(MockBasis, profile_list=profile_list)
+            )
+        )
+
+        assert model.component_paths == [("galaxy", "bulge"), ("galaxy", "bulge")]
+        assert model.superscripts == ["galaxy.bulge", "galaxy.bulge"]
+
+        # Independent priors: the index is what tells the profiles apart.
+        model = af.Collection(
+            profiles=af.Collection(
+                [af.Model(af.m.MockClassx2NoSuperScript) for _ in range(2)]
+            )
+        )
+
+        assert model.component_paths == [("0",), ("0",), ("1",), ("1",)]
+        assert model.superscripts == ["0", "0", "1", "1"]
+        assert model.parameter_indices_by_component == {"0": [0, 1], "1": [2, 3]}
 
     def test_name_for_prior(self):
         ls = af.Collection(
@@ -524,6 +622,93 @@ class TestUtility:
             == af.m.MockClassx2
         )
 
+    def test__superscripts__named_components_separate_like_classes(self):
+        # A lens-like model: two galaxies each holding components of one class.
+        # The superscript is the path of named components, so the lens's bulge,
+        # its disk and the source's bulge are told apart; ``galaxies`` (a
+        # Collection) and the parameter's tuple are not components and are dropped.
+        model = af.Collection(
+            galaxies=af.Collection(
+                lens=af.Model(
+                    MockGalaxy,
+                    bulge=af.Model(af.m.MockClassx2NoSuperScript),
+                    disk=af.Model(af.m.MockClassx2NoSuperScript),
+                ),
+                source=af.Model(
+                    MockGalaxy, bulge=af.Model(af.m.MockClassx2NoSuperScript)
+                ),
+            )
+        )
+
+        assert model.component_paths == [
+            ("lens", "bulge"),
+            ("lens", "bulge"),
+            ("lens", "disk"),
+            ("lens", "disk"),
+            ("source", "bulge"),
+            ("source", "bulge"),
+        ]
+        assert model.superscripts == [
+            "lens.bulge",
+            "lens.bulge",
+            "lens.disk",
+            "lens.disk",
+            "source.bulge",
+            "source.bulge",
+        ]
+        assert model.parameter_indices_by_component == {
+            "lens": [0, 1, 2, 3],
+            "source": [4, 5],
+        }
+
+    def test__superscripts__config_replaces_the_component_it_names(self):
+        # ``MockClassRelativeWidth=r`` in the notation config abbreviates that
+        # component's own name only; the galaxy's name stays.
+        model = af.Collection(
+            galaxy=af.Model(MockGalaxy, bulge=af.Model(af.m.MockClassRelativeWidth))
+        )
+
+        assert model.superscripts == ["galaxy.r", "galaxy.r", "galaxy.r"]
+        assert (
+            model.parameter_labels_with_superscripts[0] == r"one_label^{\rm galaxy.r}"
+        )
+
+        # A prior directly on the model has no named component and keeps the
+        # config entry for the model's class.
+        assert af.Model(af.m.MockClassRelativeWidth).superscripts == ["r", "r", "r"]
+        assert af.Model(af.m.MockClassRelativeWidth).parameter_indices_by_component == {
+            "model": [0, 1, 2]
+        }
+
+    def test__superscripts__list_index_kept_only_when_priors_are_not_shared(self):
+        # A basis whose profiles share one set of priors: the index is one of
+        # many paths to the same prior, so it says nothing and is dropped.
+        profile_list = af.Collection(
+            [af.Model(af.m.MockClassx2NoSuperScript) for _ in range(3)]
+        )
+        for profile in profile_list[1:]:
+            profile.one = profile_list[0].one
+            profile.two = profile_list[0].two
+        model = af.Collection(
+            galaxy=af.Model(
+                MockGalaxy, bulge=af.Model(MockBasis, profile_list=profile_list)
+            )
+        )
+
+        assert model.component_paths == [("galaxy", "bulge"), ("galaxy", "bulge")]
+        assert model.superscripts == ["galaxy.bulge", "galaxy.bulge"]
+
+        # Independent priors: the index is what tells the profiles apart.
+        model = af.Collection(
+            profiles=af.Collection(
+                [af.Model(af.m.MockClassx2NoSuperScript) for _ in range(2)]
+            )
+        )
+
+        assert model.component_paths == [("0",), ("0",), ("1",), ("1",)]
+        assert model.superscripts == ["0", "0", "1", "1"]
+        assert model.parameter_indices_by_component == {"0": [0, 1], "1": [2, 3]}
+
     def test_name_for_prior(self):
         mapper = af.ModelMapper(mock_class=af.m.MockClassx2)
 
@@ -552,10 +737,12 @@ class TestPriorReplacement:
         result = mapper.mapper_from_prior_means([10, 5, 5])
 
         assert isinstance(
-            result.mock_class.one_tuple.unique_prior_tuples[0][1], af.TruncatedGaussianPrior
+            result.mock_class.one_tuple.unique_prior_tuples[0][1],
+            af.TruncatedGaussianPrior,
         )
         assert isinstance(
-            result.mock_class.one_tuple.unique_prior_tuples[1][1], af.TruncatedGaussianPrior
+            result.mock_class.one_tuple.unique_prior_tuples[1][1],
+            af.TruncatedGaussianPrior,
         )
         assert isinstance(result.mock_class.two, af.TruncatedGaussianPrior)
 
@@ -634,9 +821,7 @@ class TestListPriorModel:
         mapper = af.ModelMapper()
         mapper.list = list_prior_model
 
-        gaussian_mapper = mapper.mapper_from_prior_means(
-            [1, 2, 3, 4]
-        )
+        gaussian_mapper = mapper.mapper_from_prior_means([1, 2, 3, 4])
 
         assert len(gaussian_mapper.list) == 2
         assert gaussian_mapper.list[0].one.mean == 1
@@ -654,9 +839,7 @@ class TestListPriorModel:
         mapper = af.ModelMapper()
         mapper.list = list_prior_model
 
-        gaussian_mapper = mapper.mapper_from_prior_means(
-            [1, 2, 3, 4]
-        )
+        gaussian_mapper = mapper.mapper_from_prior_means([1, 2, 3, 4])
 
         assert len(gaussian_mapper.list) == 2
         assert gaussian_mapper.list[0].one.mean == 1

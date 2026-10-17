@@ -745,7 +745,7 @@ class AbstractPriorModel(AbstractModel):
             except AttributeError:
                 pass
 
-    def instance_from_unit_vector(self, unit_vector, ignore_assertions : bool = False):
+    def instance_from_unit_vector(self, unit_vector, ignore_assertions: bool = False):
         """
         Returns a ModelInstance, which has an attribute and class instance corresponding
         to every `Model` attributed to this instance.
@@ -795,8 +795,7 @@ class AbstractPriorModel(AbstractModel):
         )
 
         return self.instance_for_arguments(
-            arguments,
-            ignore_assertions=ignore_assertions
+            arguments, ignore_assertions=ignore_assertions
         )
 
     @property
@@ -1013,9 +1012,7 @@ class AbstractPriorModel(AbstractModel):
         arguments = dict(zip(priors, vector))
 
         return self.instance_for_arguments(
-            arguments,
-            ignore_assertions=ignore_assertions,
-            xp=xp
+            arguments, ignore_assertions=ignore_assertions, xp=xp
         )
 
     @frozen_cache
@@ -1029,7 +1026,9 @@ class AbstractPriorModel(AbstractModel):
         name/value wrappers is skipped on the likelihood hot path. Unfrozen models
         recompute it on every call.
         """
-        return tuple(prior_tuple.prior for prior_tuple in self.prior_tuples_ordered_by_id)
+        return tuple(
+            prior_tuple.prior for prior_tuple in self.prior_tuples_ordered_by_id
+        )
 
     def constrained_model_tuples(self):
         """
@@ -1524,7 +1523,7 @@ class AbstractPriorModel(AbstractModel):
 
         return self.mapper_from_prior_arguments(arguments)
 
-    def instance_from_prior_medians(self, ignore_assertions : bool = False):
+    def instance_from_prior_medians(self, ignore_assertions: bool = False):
         """
         Returns a list of physical values from the median values of the priors.
         Returns
@@ -1534,8 +1533,7 @@ class AbstractPriorModel(AbstractModel):
             and not checked.
         """
         return self.instance_from_unit_vector(
-            unit_vector=[0.5] * self.prior_count,
-            ignore_assertions=ignore_assertions
+            unit_vector=[0.5] * self.prior_count, ignore_assertions=ignore_assertions
         )
 
     def log_prior_list_from_vector(
@@ -1565,7 +1563,7 @@ class AbstractPriorModel(AbstractModel):
             )
         )
 
-    def random_instance(self, ignore_assertions : bool  = False):
+    def random_instance(self, ignore_assertions: bool = False):
         """
         Returns a random instance of the model.
 
@@ -1676,9 +1674,9 @@ class AbstractPriorModel(AbstractModel):
                     # legitimately be passed back to it.
                     allowed_keys = None
                 else:
-                    allowed_keys = {
-                        arg for arg in spec.args if arg != "self"
-                    } | set(spec.kwonlyargs)
+                    allowed_keys = {arg for arg in spec.args if arg != "self"} | set(
+                        spec.kwonlyargs
+                    )
 
             try:
                 result = Model(
@@ -1857,9 +1855,7 @@ class AbstractPriorModel(AbstractModel):
             self.check_assertions(arguments, xp=xp)
 
         return self._instance_for_arguments(
-            arguments,
-            ignore_assertions=ignore_assertions,
-            xp=xp
+            arguments, ignore_assertions=ignore_assertions, xp=xp
         )
 
     def path_for_name(self, name: str) -> Tuple[str, ...]:
@@ -2481,39 +2477,185 @@ class AbstractPriorModel(AbstractModel):
         return parameter_labels
 
     @property
+    def _component_name_object_pairs(self) -> List[List[Tuple[str, object]]]:
+        """
+        For each unique prior (ordered by id), the ``(name, object)`` pairs of the
+        named model components that own it; see ``component_paths``.
+        """
+        from autofit.mapper.prior_model.collection import Collection
+        from autofit.mapper.prior.tuple_prior import TuplePrior
+
+        paths_by_prior = defaultdict(list)
+        for path, prior in self.path_priors_tuples:
+            paths_by_prior[prior].append(path[:-1])
+
+        pairs_list = []
+
+        for path, prior in self.unique_path_prior_tuples:
+            path = path[:-1]
+            sibling_paths = paths_by_prior[prior]
+            same_length = all(len(other) == len(path) for other in sibling_paths)
+
+            pairs = []
+            obj = self
+            for i, name in enumerate(path):
+                try:
+                    obj = getattr(obj, name)
+                except AttributeError:
+                    obj = obj[int(name)]
+                if isinstance(obj, (Collection, TuplePrior)):
+                    continue
+                if same_length and any(other[i] != name for other in sibling_paths):
+                    continue
+                pairs.append((name, obj))
+
+            pairs_list.append(pairs)
+
+        return pairs_list
+
+    @property
+    def _prior_owner_and_leaf_names(self) -> List[Tuple[object, str]]:
+        """
+        For each unique prior (ordered by id), the model component that directly
+        owns it (the deepest ``Model`` on its path) and the prior's leaf name, for
+        example ``(<Model Gaussian>, "ell_comps_0")``.
+        """
+        from autofit.mapper.prior_model.collection import Collection
+        from autofit.mapper.prior.tuple_prior import TuplePrior
+
+        owners = []
+        for path in self.unique_prior_paths:
+            owner = self
+            obj = self
+            for name in path[:-1]:
+                try:
+                    obj = getattr(obj, name)
+                except AttributeError:
+                    obj = obj[int(name)]
+                if not isinstance(obj, (Collection, TuplePrior)):
+                    owner = obj
+            owners.append((owner, path[-1]))
+        return owners
+
+    def derived_parameters_from(
+        self, parameter_array, weights=None
+    ) -> "DerivedParameters":
+        """
+        The parameters of this model after each component's declared conversions
+        (its ``derived_parameters`` class attribute, e.g. shear components to a
+        magnitude and angle) are applied to an array of samples; see
+        ``autofit.mapper.prior_model.derived``.
+
+        Parameters
+        ----------
+        parameter_array
+            Samples of the model's free parameters, shape ``(n_samples, prior_count)``.
+        weights
+            The weight of each sample, which centres a periodic derived parameter
+            (an angle) on its posterior; equal by default.
+        """
+        from autofit.mapper.prior_model.derived import derived_parameters_from
+
+        return derived_parameters_from(self, parameter_array, weights=weights)
+
+    @property
+    def has_derived_parameters(self) -> bool:
+        """Whether any component of this model declares a conversion that applies to it."""
+        return self.derived_parameters_from(np.zeros((1, self.prior_count))).has_derived
+
+    @property
+    def component_paths(self) -> List[Path]:
+        """
+        The named model components that own each unique prior, ordered by prior id.
+
+        A prior's path lists everything between the model and the parameter, for
+        example ``galaxies.lens.bulge.profile_list.29.centre.centre_0``. Most of
+        that does not name a component: ``galaxies`` and ``profile_list`` are
+        ``Collection`` containers, ``centre`` is the tuple the parameter sits in,
+        and ``29`` is one of the thirty Gaussians a shared prior appears under.
+        Each is dropped, leaving ``("lens", "bulge")``.
+
+        An index is kept when it distinguishes the prior from its siblings, so a
+        collection of components with independent priors gives ``("0",)``,
+        ``("1",)``; it is dropped only where the paths to a shared prior differ,
+        which is what makes it meaningless.
+
+        This is what labels parameters in results and plots, and what groups them
+        by component (see ``parameter_indices_by_component``).
+        """
+        return [
+            tuple(name for name, _ in pairs)
+            for pairs in self._component_name_object_pairs
+        ]
+
+    @property
+    def parameter_indices_by_component(self) -> Dict[str, List[int]]:
+        """
+        The indices of the parameters belonging to each top-level model component,
+        keyed by the component's name and in model order, for example
+        ``{"lens": [0, ..., 14], "source": [15, ..., 18]}``.
+
+        Parameters whose priors sit directly on the model (no named component)
+        are grouped under ``"model"``.
+        """
+        groups = {}
+        for i, path in enumerate(self.component_paths):
+            groups.setdefault(path[0] if path else "model", []).append(i)
+        return groups
+
+    @property
     def superscripts(self) -> List[str]:
         """
         Returns a list of the model component superscripts for every parameter in a model.
 
+        The superscript is the dot-joined path of named components that own the
+        parameter (see ``component_paths``): a lens model with a lens galaxy and a
+        source galaxy labels the Gaussians of their light with ``lens.bulge`` and
+        ``source.bulge``, so every parameter of every component has a distinct
+        label however many components share a class.
 
-        The class superscript labels are defined as the name of every model component in the `ModelMapper`. For
-        the example of a 1D Gaussian, if the model component name is `gaussian` three superscripts
+        For the example of a 1D Gaussian, if the model component name is `gaussian` three superscripts
         with this string (corresponding to the parameters `centre`, `normalization` and `sigma`) will
         be returned.
 
-        For a `Collection`, the name of the inner model components are used.
-
-        These superscripts may be overwritten by those returned from the `superscripts_config_overwrite` property,
-        which optionally loads the superscripts from a `.json` config file. This allows high levels of customization
-        in what superscripts are used.
+        The name of any component whose class has an entry in the `notation/label.yaml` config
+        (`superscript:`) is replaced by that entry, so `ExternalShear=ext` gives `lens.ext` rather
+        than `lens.shear`; see the `superscripts_overwrite_via_config` property. A parameter with
+        no named component (a prior directly on the model) uses the entry for the model's own class.
 
         This is used for displaying model results as text and for visualization.
         """
+        superscripts = []
 
-        prior_paths = self.unique_prior_paths
+        for pairs, superscript_overwrite in zip(
+            self._component_name_object_pairs, self.superscripts_overwrite_via_config
+        ):
+            if not pairs:
+                superscripts.append(superscript_overwrite or None)
+                continue
 
-        tuple_filter = TuplePathModifier(self)
-
-        prior_paths = map(tuple_filter, prior_paths)
-
-        superscripts = [path[-2] if len(path) > 1 else None for path in prior_paths]
-
-        return [
-            superscript if not superscript_overwrite else superscript_overwrite
-            for superscript, superscript_overwrite in zip(
-                superscripts, self.superscripts_overwrite_via_config
+            superscripts.append(
+                ".".join(
+                    self._superscript_for_component(name, obj) for name, obj in pairs
+                )
             )
-        ]
+
+        return superscripts
+
+    @staticmethod
+    def _superscript_for_component(name: str, obj) -> str:
+        """
+        The superscript for one named component: the config entry for its class if
+        there is one, else its name. A list index is never replaced, since every
+        element of the list has the same class.
+        """
+        if name.isdigit():
+            return name
+        cls = getattr(obj, "cls", type(obj))
+        try:
+            return conf.instance["notation"]["label"]["superscript"][cls.__name__]
+        except KeyError:
+            return name
 
     @property
     def superscripts_overwrite_via_config(self) -> List[str]:

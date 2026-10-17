@@ -21,6 +21,8 @@ the nested samplers. ``NonLinearSearch.plot_results`` plots through ``plotter_fo
 import warnings
 from typing import Optional
 
+import numpy as np
+
 from autonerves import conf
 
 from autofit.non_linear.search.capabilities import PosteriorKind
@@ -37,8 +39,18 @@ class PosteriorDefaults:
     def default_initializer(self):
         raise NotImplementedError
 
-    def should_plot(self, name: str) -> bool:
-        return conf.instance["visualize"]["plots_search"][self.plots_section][name]
+    def should_plot(self, name: str, default: Optional[bool] = None) -> bool:
+        """
+        Whether the ``plots_search`` config switches on the named plot. A key a
+        user's (older) config does not mention falls back to ``default`` when one
+        is given, so a new plot does not break an existing workspace.
+        """
+        try:
+            return conf.instance["visualize"]["plots_search"][self.plots_section][name]
+        except KeyError:
+            if default is None:
+                raise
+            return default
 
     def plot_results(self, search, samples):
         raise NotImplementedError
@@ -100,20 +112,84 @@ class WeightedDefaults(PosteriorDefaults):
         from autofit.non_linear.initializer import InitializerParamBounds
 
         if isinstance(initializer, InitializerParamBounds):
-            raise ValueError("InitializerParamBounds cannot be used for nested sampling")
+            raise ValueError(
+                "InitializerParamBounds cannot be used for nested sampling"
+            )
         return self.initializer_for(initializer)
 
     def plot_results(self, search, samples):
         from autofit.non_linear.plot import corner_anesthetic
 
-        if self.should_plot("corner_anesthetic"):
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
-                corner_anesthetic(
-                    samples=samples,
-                    path=search.paths.image_path / "search",
-                    format="png",
+        path = search.paths.image_path / "search"
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+
+            if self.should_plot("corner_anesthetic"):
+                corner_anesthetic(samples=samples, path=path, format="png")
+
+            per_component = self.should_plot(
+                "corner_anesthetic_components", default=True
+            )
+
+            if per_component:
+                self._corner_per_component(
+                    corner_anesthetic,
+                    samples,
+                    path,
+                    groups=samples.model.parameter_indices_by_component,
                 )
+
+            # The derived-parameter plots re-express each component's sampled
+            # parameters in the ones it is read in (a shear's magnitude and
+            # angle rather than gamma_1 / gamma_2), where a component declares
+            # the conversion. Independent of the plots above, so it can be the
+            # only corner plot or sit beside them; skipped when no component
+            # declares anything, as it would repeat the plain plot.
+            if self.should_plot("corner_anesthetic_derived", default=False):
+                derived = samples.model.derived_parameters_from(
+                    np.asarray(samples.parameter_lists)
+                )
+
+                if derived.has_derived:
+                    corner_anesthetic(
+                        samples=samples,
+                        path=path,
+                        filename="corner_anesthetic_derived",
+                        format="png",
+                        derived=True,
+                    )
+
+                    if per_component:
+                        self._corner_per_component(
+                            corner_anesthetic,
+                            samples,
+                            path,
+                            groups=derived.parameter_indices_by_component,
+                            derived=True,
+                        )
+
+    @staticmethod
+    def _corner_per_component(corner_anesthetic, samples, path, groups, derived=False):
+        """
+        One corner plot per top-level model component (each galaxy of a lens
+        model), as the full plot of a many-parameter model is too dense to read.
+        A model with a single component already has it, so none is made.
+        """
+        if len(groups) < 2:
+            return
+
+        stem = "corner_anesthetic_derived" if derived else "corner_anesthetic"
+
+        for name, parameter_indices in groups.items():
+            corner_anesthetic(
+                samples=samples,
+                path=path,
+                filename=f"{stem}_{name}",
+                format="png",
+                parameter_indices=parameter_indices,
+                derived=derived,
+            )
 
 
 class PointDefaults(PosteriorDefaults):
