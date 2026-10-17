@@ -2608,54 +2608,30 @@ class AbstractPriorModel(AbstractModel):
         """
         Returns a list of the model component superscripts for every parameter in a model.
 
-        The superscript is the dot-joined path of named components that own the
-        parameter (see ``component_paths``): a lens model with a lens galaxy and a
-        source galaxy labels the Gaussians of their light with ``lens.bulge`` and
-        ``source.bulge``, so every parameter of every component has a distinct
-        label however many components share a class.
+        The superscript is the dot-joined path of the names the components owning
+        the parameter were given in the model (see ``component_paths``): a lens
+        model with a lens galaxy and a source galaxy labels the Gaussians of their
+        light ``lens.bulge`` and ``source.bulge``, its shear ``lens.shear``, so every
+        parameter of every component has a distinct label however many components
+        share a class.
 
         For the example of a 1D Gaussian, if the model component name is `gaussian` three superscripts
         with this string (corresponding to the parameters `centre`, `normalization` and `sigma`) will
         be returned.
 
-        The name of any component whose class has an entry in the `notation/label.yaml` config
-        (`superscript:`) is replaced by that entry, so `ExternalShear=ext` gives `lens.ext` rather
-        than `lens.shear`; see the `superscripts_overwrite_via_config` property. A parameter with
-        no named component (a prior directly on the model) uses the entry for the model's own class.
+        A prior directly on the model (a bare ``Model(Gaussian)``) has no named
+        component; it uses the `notation/label.yaml` config's `superscript:` entry
+        for the model's class if there is one (`Gaussian: g`), else no superscript.
+        See the `superscripts_overwrite_via_config` property.
 
         This is used for displaying model results as text and for visualization.
         """
-        superscripts = []
-
-        for pairs, superscript_overwrite in zip(
-            self._component_name_object_pairs, self.superscripts_overwrite_via_config
-        ):
-            if not pairs:
-                superscripts.append(superscript_overwrite or None)
-                continue
-
-            superscripts.append(
-                ".".join(
-                    self._superscript_for_component(name, obj) for name, obj in pairs
-                )
+        return [
+            ".".join(path) if path else (superscript_overwrite or None)
+            for path, superscript_overwrite in zip(
+                self.component_paths, self.superscripts_overwrite_via_config
             )
-
-        return superscripts
-
-    @staticmethod
-    def _superscript_for_component(name: str, obj) -> str:
-        """
-        The superscript for one named component: the config entry for its class if
-        there is one, else its name. A list index is never replaced, since every
-        element of the list has the same class.
-        """
-        if name.isdigit():
-            return name
-        cls = getattr(obj, "cls", type(obj))
-        try:
-            return conf.instance["notation"]["label"]["superscript"][cls.__name__]
-        except KeyError:
-            return name
+        ]
 
     @property
     def superscripts_overwrite_via_config(self) -> List[str]:

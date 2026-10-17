@@ -122,11 +122,14 @@ class TestRegression:
         mm.one = af.m.MockClassRelativeWidth
         mm.two = af.m.MockClassx2NoSuperScript
 
-        assert mm.superscripts == ["r", "r", "r", "two", "two"]
+        assert mm.superscripts == ["one", "one", "one", "two", "two"]
 
         model = af.Collection(group=mm)
 
-        assert model.superscripts == ["r", "r", "r", "two", "two"]
+        assert model.superscripts == ["one", "one", "one", "two", "two"]
+
+        # The config's class abbreviation applies only where there is no name.
+        assert af.Model(af.m.MockClassRelativeWidth).superscripts == ["r", "r", "r"]
 
     def test__superscript_overwrite_via_config(self):
         mm = af.ModelMapper()
@@ -151,17 +154,17 @@ class TestRegression:
         mm.two = af.m.MockClassx2NoSuperScript
 
         assert mm.parameter_labels_with_superscripts == [
-            r"one_label^{\rm r}",
-            r"two_label^{\rm r}",
-            r"three_label^{\rm r}",
+            r"one_label^{\rm one}",
+            r"two_label^{\rm one}",
+            r"three_label^{\rm one}",
             r"one_label^{\rm two}",
             r"two_label^{\rm two}",
         ]
 
         assert mm.parameter_labels_with_superscripts_latex == [
-            r"$one_label^{\rm r}$",
-            r"$two_label^{\rm r}$",
-            r"$three_label^{\rm r}$",
+            r"$one_label^{\rm one}$",
+            r"$two_label^{\rm one}$",
+            r"$three_label^{\rm one}$",
             r"$one_label^{\rm two}$",
             r"$two_label^{\rm two}$",
         ]
@@ -205,20 +208,21 @@ class TestRegression:
             "source": [4, 5],
         }
 
-    def test__superscripts__config_replaces_the_component_it_names(self):
-        # ``MockClassRelativeWidth=r`` in the notation config abbreviates that
-        # component's own name only; the galaxy's name stays.
+    def test__superscripts__named_component_ignores_the_config_abbreviation(self):
+        # ``MockClassRelativeWidth=r`` in the notation config: a named component
+        # is labelled by its names regardless, so like components stay distinct.
         model = af.Collection(
             galaxy=af.Model(MockGalaxy, bulge=af.Model(af.m.MockClassRelativeWidth))
         )
 
-        assert model.superscripts == ["galaxy.r", "galaxy.r", "galaxy.r"]
+        assert model.superscripts == ["galaxy.bulge"] * 3
         assert (
-            model.parameter_labels_with_superscripts[0] == r"one_label^{\rm galaxy.r}"
+            model.parameter_labels_with_superscripts[0]
+            == r"one_label^{\rm galaxy.bulge}"
         )
 
-        # A prior directly on the model has no named component and keeps the
-        # config entry for the model's class.
+        # A prior directly on the model has no name and keeps the config entry
+        # for the model's class.
         assert af.Model(af.m.MockClassRelativeWidth).superscripts == ["r", "r", "r"]
         assert af.Model(af.m.MockClassRelativeWidth).parameter_indices_by_component == {
             "model": [0, 1, 2]
@@ -659,25 +663,6 @@ class TestUtility:
         assert model.parameter_indices_by_component == {
             "lens": [0, 1, 2, 3],
             "source": [4, 5],
-        }
-
-    def test__superscripts__config_replaces_the_component_it_names(self):
-        # ``MockClassRelativeWidth=r`` in the notation config abbreviates that
-        # component's own name only; the galaxy's name stays.
-        model = af.Collection(
-            galaxy=af.Model(MockGalaxy, bulge=af.Model(af.m.MockClassRelativeWidth))
-        )
-
-        assert model.superscripts == ["galaxy.r", "galaxy.r", "galaxy.r"]
-        assert (
-            model.parameter_labels_with_superscripts[0] == r"one_label^{\rm galaxy.r}"
-        )
-
-        # A prior directly on the model has no named component and keeps the
-        # config entry for the model's class.
-        assert af.Model(af.m.MockClassRelativeWidth).superscripts == ["r", "r", "r"]
-        assert af.Model(af.m.MockClassRelativeWidth).parameter_indices_by_component == {
-            "model": [0, 1, 2]
         }
 
     def test__superscripts__list_index_kept_only_when_priors_are_not_shared(self):
