@@ -327,7 +327,7 @@ class TruncatedNormalMessage(AbstractMessage):
         untruncated Gaussian KL. Previously this method *used* the untruncated
         formula, which degrades as posterior mass approaches the bounds —
         directly distorting the ``EPHistory`` convergence metric for models
-        built on ``af.TruncatedGaussianPrior`` (e.g. HowToFit chapter 3).
+        built on ``af.TruncatedGaussianPrior`` (e.g. the HowToFit advanced chapter).
 
         Parameters
         ----------
