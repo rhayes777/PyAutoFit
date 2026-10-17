@@ -367,6 +367,13 @@ def test_weighted_plot_results_components_key_missing_from_config_defaults_on(
 def test_weighted_plot_results_derived_corner_only_when_a_component_declares_one(
     monkeypatch, tmp_path
 ):
+    from autofit.non_linear.search.posterior_kind import WeightedDefaults
+
+    # The derived plots are off by default; every switch on for this test.
+    monkeypatch.setattr(
+        WeightedDefaults, "should_plot", lambda self, name, default=None: True
+    )
+
     # Nothing to derive: the derived plot would repeat the plain one, so none.
     calls = _weighted_plot_calls(_lens_like_model(), monkeypatch, tmp_path)
     assert not any("derived" in call.get("filename", "") for call in calls)
