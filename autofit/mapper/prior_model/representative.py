@@ -1,4 +1,5 @@
 from collections import defaultdict
+import re
 from typing import List
 
 
@@ -84,8 +85,15 @@ def _find_groups(path_value_tuples, position):
             names = list(map(int, names))
             representative_key = integers_representative_key(names)
         except ValueError:
+            suffixes = [re.fullmatch(r"(\D+)(\d+)", name) for name in names]
+            if all(suffixes) and len({match[1] for match in suffixes}) == 1:
+                names = sorted(
+                    names, key=lambda name: (int(re.search(r"\d+$", name)[0]), name)
+                )
+            else:
+                names = sorted(names)
             representative_key = (
-                f"{min(names)} - {max(names)}" if len(set(names)) > 1 else names[0]
+                f"{names[0]} - {names[-1]}" if len(set(names)) > 1 else names[0]
             )
 
         paths.append(((*before, representative_key, *after), value))
