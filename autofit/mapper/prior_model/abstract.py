@@ -1696,6 +1696,10 @@ class AbstractPriorModel(AbstractModel):
                 )
             except AttributeError:
                 return instance
+            # Preserve the instance round-trip contract for converted objects.
+            # Explicit Model(...) components remain models even when all fixed.
+            # Private provenance is excluded from identifiers and serialized args.
+            result._serialize_as_instance = True
         if isinstance(instance, model_classes):
             return result.as_model()
         return result

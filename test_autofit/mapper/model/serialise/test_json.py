@@ -72,7 +72,7 @@ class TestToDict:
     def test_model_floats(self, instance_dict):
         model = af.Model(af.ex.Gaussian, centre=0.0, normalization=0.1, sigma=0.01)
 
-        assert model.dict() == instance_dict
+        assert model.dict() == {**instance_dict, "type": "model"}
 
     def test_collection(self, model, collection_dict, remove_ids):
         collection = af.Collection(gaussian=model)
