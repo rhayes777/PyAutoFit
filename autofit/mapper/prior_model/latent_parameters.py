@@ -251,7 +251,7 @@ def latent_parameters_from(
     names = model.parameter_names
     superscripts = model.superscripts
     component_paths = model.component_paths
-    paths = model.paths
+    paths = model.unique_prior_paths
 
     # Which free parameters each component owns, by leaf name -> model index.
     indices_by_owner = {}

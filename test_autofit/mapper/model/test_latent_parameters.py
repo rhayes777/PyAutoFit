@@ -191,3 +191,27 @@ def test__latent_parameters__grouping_by_latent_component_and_full_paths():
     items = latent.latent_items
     assert [path for path, _ in items] == latent.paths[1:3]
     assert items[0][1] == pytest.approx(latent.parameter_array[:, 1])
+
+
+def test__latent_parameters__shared_prior_takes_the_path_of_its_samples_column():
+    # The replaced priors are shared by two components; the latent ones are
+    # filed under the component the column is named after (the last holder),
+    # not under whichever path happens to come first.
+    mass = _component(MockComponent)
+    multipole = _component(MockComponent, comp=mass.comp)
+    multipole.centre = mass.centre
+    model = af.Collection(
+        galaxies=af.Collection(
+            lens=af.Model(MockGalaxy, light=multipole, mass=mass),
+        )
+    )
+
+    latent = model.latent_parameters_from(np.array([[0.5, 3.0, 4.0]]))
+
+    assert latent.names == ["centre", "strength", "angle"]
+    assert latent.superscripts == ["lens.mass"] * 3
+    assert latent.paths == [
+        ("galaxies", "lens", "mass", "centre"),
+        ("galaxies", "lens", "mass", "strength"),
+        ("galaxies", "lens", "mass", "angle"),
+    ]

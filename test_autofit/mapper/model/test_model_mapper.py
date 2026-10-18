@@ -926,3 +926,23 @@ class TestGaussianWidthConfig:
         af.ModelMapper()
 
         assert mapper.one is not None
+
+
+def test__superscripts__prior_shared_between_named_components_keeps_the_last_holder():
+    # A power law's ellipticity linked into its multipole: the samples column
+    # is named after the last component holding the prior (`mass`), and so is
+    # the label, rather than collapsing to the common `lens`.
+    mass = af.Model(af.m.MockClassx2NoSuperScript)
+    multipole = af.Model(af.m.MockClassx2NoSuperScript, one=mass.one, two=mass.two)
+    model = af.Collection(
+        galaxies=af.Collection(
+            lens=af.Model(MockGalaxy, bulge=multipole, disk=mass),
+        )
+    )
+
+    assert model.unique_prior_paths == [
+        ("galaxies", "lens", "disk", "one"),
+        ("galaxies", "lens", "disk", "two"),
+    ]
+    assert model.component_paths == [("lens", "disk"), ("lens", "disk")]
+    assert model.superscripts == ["lens.disk", "lens.disk"]

@@ -2521,7 +2521,18 @@ class AbstractPriorModel(AbstractModel):
                     obj = obj[int(name)]
                 if isinstance(obj, (Collection, TuplePrior)):
                     continue
-                if same_length and any(other[i] != name for other in sibling_paths):
+                # A list index that differs between the paths to one shared
+                # prior (the thirty Gaussians of a basis) says nothing and is
+                # dropped. A *name* that differs (a power law's ellipticity
+                # shared with its multipoles, ``mass`` / ``multipole_3``) is
+                # kept: this is the path the prior's samples column is named
+                # after (``unique_prior_paths``, the last component holding
+                # it), so the label and the column agree.
+                if (
+                    same_length
+                    and name.isdigit()
+                    and any(other[i] != name for other in sibling_paths)
+                ):
                     continue
                 pairs.append((name, obj))
 
@@ -2594,7 +2605,10 @@ class AbstractPriorModel(AbstractModel):
         An index is kept when it distinguishes the prior from its siblings, so a
         collection of components with independent priors gives ``("0",)``,
         ``("1",)``; it is dropped only where the paths to a shared prior differ,
-        which is what makes it meaningless.
+        which is what makes it meaningless. A prior shared between differently
+        named components (a power law's ellipticity linked into its multipoles)
+        takes the path its samples column is named after, the last component
+        holding it: ``("lens", "mass")``, not ``("lens", "multipole_3")``.
 
         This is what labels parameters in results and plots, and what groups them
         by component (see ``parameter_indices_by_component``).
