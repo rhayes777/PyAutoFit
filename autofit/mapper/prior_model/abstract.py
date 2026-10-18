@@ -284,8 +284,8 @@ class AbstractPriorModel(AbstractModel):
             seen.add(id(model))
             assertions.extend(getattr(model, "_assertions", []))
 
-        # An assertion's operand can itself be a model carrying assertions -- `derived = p + 1` is
-        # a `CompoundPrior`, and `derived.add_assertion(...)` attaches to it. On numpy those fire
+        # An assertion's operand can itself be a model carrying assertions -- `latent = p + 1` is
+        # a `CompoundPrior`, and `latent.add_assertion(...)` attaches to it. On numpy those fire
         # when the operand is realised, so they are part of the model's contract; the tree walk
         # cannot see them, because the operand hangs off the assertion rather than off the model.
         collected = {id(assertion) for assertion in assertions}
@@ -2553,31 +2553,31 @@ class AbstractPriorModel(AbstractModel):
             owners.append((owner, path[-1]))
         return owners
 
-    def derived_parameters_from(
+    def latent_parameters_from(
         self, parameter_array, weights=None
-    ) -> "DerivedParameters":
+    ) -> "LatentParameters":
         """
         The parameters of this model after each component's declared conversions
-        (its ``derived_parameters`` class attribute, e.g. shear components to a
+        (its ``latent_parameters`` class attribute, e.g. shear components to a
         magnitude and angle) are applied to an array of samples; see
-        ``autofit.mapper.prior_model.derived``.
+        ``autofit.mapper.prior_model.latent_parameters``.
 
         Parameters
         ----------
         parameter_array
             Samples of the model's free parameters, shape ``(n_samples, prior_count)``.
         weights
-            The weight of each sample, which centres a periodic derived parameter
+            The weight of each sample, which centres a periodic latent parameter
             (an angle) on its posterior; equal by default.
         """
-        from autofit.mapper.prior_model.derived import derived_parameters_from
+        from autofit.mapper.prior_model.latent_parameters import latent_parameters_from
 
-        return derived_parameters_from(self, parameter_array, weights=weights)
+        return latent_parameters_from(self, parameter_array, weights=weights)
 
     @property
-    def has_derived_parameters(self) -> bool:
+    def has_latent_parameters(self) -> bool:
         """Whether any component of this model declares a conversion that applies to it."""
-        return self.derived_parameters_from(np.zeros((1, self.prior_count))).has_derived
+        return self.latent_parameters_from(np.zeros((1, self.prior_count))).has_latent
 
     @property
     def component_paths(self) -> List[Path]:

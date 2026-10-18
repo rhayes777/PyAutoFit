@@ -47,7 +47,7 @@ from .mapper.model import path_instances_of_class
 from .mapper.model_mapper import ModelMapper
 from .mapper.model_mapper import ModelMapper as Mapper
 from .mapper.model_object import ModelObject
-from .mapper.prior_model.derived import Periodic
+from .mapper.prior_model.latent_parameters import Periodic
 from .mapper.operator import DiagonalMatrix
 from .mapper.prior.constant import Constant
 from .mapper.prior.arithmetic.assertion import ComparisonAssertion

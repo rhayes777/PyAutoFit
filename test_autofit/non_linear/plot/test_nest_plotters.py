@@ -13,18 +13,18 @@ class MockModel:
         self.parameter_labels_with_superscripts_latex = labels
         self.total_free_parameters = len(labels)
 
-    def derived_parameters_from(self, parameter_array, weights=None):
-        # The derived set of this mock: the first two parameters become their sum.
-        from autofit.mapper.prior_model.derived import DerivedParameters
+    def latent_parameters_from(self, parameter_array, weights=None):
+        # The latent set of this mock: the first two parameters become their sum.
+        from autofit.mapper.prior_model.latent_parameters import LatentParameters
 
-        return DerivedParameters(
+        return LatentParameters(
             names=["sum"] + ["p"] * (parameter_array.shape[1] - 2),
             superscripts=[None] * (parameter_array.shape[1] - 1),
             component_paths=[()] * (parameter_array.shape[1] - 1),
             parameter_array=__import__("numpy").column_stack(
                 [parameter_array[:, 0] + parameter_array[:, 1], parameter_array[:, 2:]]
             ),
-            derived_mask=[True] + [False] * (parameter_array.shape[1] - 2),
+            latent_mask=[True] + [False] * (parameter_array.shape[1] - 2),
         )
 
 
@@ -154,7 +154,7 @@ def test__corner_anesthetic__parameter_indices_plot_that_subset(monkeypatch, rou
     assert routed["axes"]["figsize"] == (8, 8)
 
 
-def test__corner_anesthetic__derived_plots_the_derived_set(monkeypatch, routed):
+def test__corner_anesthetic__latent_plots_the_latent_set(monkeypatch, routed):
     from anesthetic.samples import NestedSamples
 
     rng = np.random.default_rng(3)
@@ -171,10 +171,10 @@ def test__corner_anesthetic__derived_plots_the_derived_set(monkeypatch, routed):
 
     monkeypatch.setattr(NestedSamples, "plot_2d", fake_plot_2d)
 
-    nest_plotters.corner_anesthetic(samples=samples, derived=True)
+    nest_plotters.corner_anesthetic(samples=samples, latent=True)
 
-    # Two parameters became one, labelled from the derived set's own names,
-    # and the figure is sized to the derived set.
+    # Two parameters became one, labelled from the latent set's own names,
+    # and the figure is sized to the latent set.
     assert seen["labels"] == ["$s$", "$p$"]
     assert seen["first"] == pytest.approx(sum(samples.parameter_lists[0][:2]))
     assert routed["axes"]["figsize"] == (8, 8)

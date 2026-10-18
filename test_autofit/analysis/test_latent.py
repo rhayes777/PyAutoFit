@@ -7,6 +7,7 @@ These cover the NEW class-based path (subclass ``af.Latent``, declare
 (``compute_latent_variables`` / ``LATENT_KEYS``) is covered by
 ``test_latent_variables.py``, which also exercises the back-compat shim.
 """
+
 import logging
 
 import numpy as np
@@ -61,7 +62,9 @@ def test_latent_class_path_matches_method_override():
 
 def test_latent_samples_from_callable_directly():
     """The engine is usable as a free function, decoupled from the Analysis."""
-    latent = latent_samples_from(FwhmAnalysis(), _samples([_sample(), _sample(centre=2.0)]))
+    latent = latent_samples_from(
+        FwhmAnalysis(), _samples([_sample(), _sample(centre=2.0)])
+    )
     assert latent is not None
     assert len(latent.sample_list) == 2
 
@@ -215,15 +218,19 @@ class OneSurvivorAnalysis(af.Analysis):
 
 def test_new_path_single_survivor_summary_does_not_crash():
     latent = OneSurvivorAnalysis().compute_latent_samples(
-        _samples([
-            _sample(centre=1.0, weight=0.5),
-            _sample(centre=2.0, weight=0.3),
-            _sample(centre=3.0, weight=0.2),
-        ])
+        _samples(
+            [
+                _sample(centre=1.0, weight=0.5),
+                _sample(centre=2.0, weight=0.3),
+                _sample(centre=3.0, weight=0.2),
+            ]
+        )
     )
     assert latent is not None
     assert len(latent.sample_list) == 1
-    assert latent.pdf_converged  # weight 0.5 <= 0.99 => median_pdf routes to quantile (n=1)
+    assert (
+        latent.pdf_converged
+    )  # weight 0.5 <= 0.99 => median_pdf routes to quantile (n=1)
     _ = latent.summary()
     instance = latent.median_pdf()
     assert instance.fwhm == pytest.approx(FWHM_SIGMA_3)
@@ -263,3 +270,86 @@ def test_none_samples_raises_via_engine_directly_and_before_latent_lookup():
 
     with pytest.raises(af.exc.SamplesException):
         latent_samples_from(NoLatentAnalysis(), None)
+
+
+class _Shear:
+    """A component with a latent parameter of its own (its magnitude)."""
+
+    latent_parameters = {
+        ("gamma_1", "gamma_2"): lambda gamma_1, gamma_2, **kwargs: {
+            "magnitude": (gamma_1**2 + gamma_2**2) ** 0.5
+        }
+    }
+
+    def __init__(self, gamma_1=0.0, gamma_2=0.0):
+        self.gamma_1 = gamma_1
+        self.gamma_2 = gamma_2
+
+
+class NoLatentAnalysis(af.Analysis):
+    def log_likelihood_function(self, instance):
+        return 1.0
+
+
+def _shear_samples():
+    model = af.Collection(
+        shear=af.Model(
+            _Shear,
+            gamma_1=af.UniformPrior(-1.0, 1.0),
+            gamma_2=af.UniformPrior(-1.0, 1.0),
+        )
+    )
+    return SamplesPDF(
+        model=model,
+        sample_list=[
+            af.Sample(
+                log_likelihood=1.0,
+                log_prior=0.0,
+                weight=1.0,
+                kwargs={"shear.gamma_1": 3.0, "shear.gamma_2": 4.0},
+            ),
+            af.Sample(
+                log_likelihood=1.0,
+                log_prior=0.0,
+                weight=1.0,
+                kwargs={"shear.gamma_1": 0.0, "shear.gamma_2": 1.0},
+            ),
+        ],
+    )
+
+
+def test_model_latent_parameters_are_latent_output_without_analysis_latents():
+    """A component's declared latent parameters (``latent_parameters``) reach
+    ``latent.csv`` under their model path even when the analysis defines none."""
+    latent = latent_samples_from(NoLatentAnalysis(), _shear_samples())
+
+    assert latent is not None
+    assert [s.kwargs for s in latent.sample_list] == [
+        {("shear", "magnitude"): 5.0},
+        {("shear", "magnitude"): 1.0},
+    ]
+    assert latent.model.instance_from_vector([2.0]).shear.magnitude == 2.0
+
+
+def test_model_latent_parameters_join_the_analysis_latents():
+    """With both, one row carries the analysis's latents and the model's."""
+
+    class BothAnalysis(af.Analysis):
+        LATENT_KEYS = ["sum"]
+
+        def compute_latent_variables(self, parameters, model):
+            return (sum(parameters),)
+
+        def log_likelihood_function(self, instance):
+            return 1.0
+
+    latent = latent_samples_from(BothAnalysis(), _shear_samples())
+
+    assert latent.sample_list[0].kwargs == {
+        ("sum",): 7.0,
+        ("shear", "magnitude"): 5.0,
+    }
+
+
+def test_no_latents_anywhere_gives_none():
+    assert latent_samples_from(NoLatentAnalysis(), _samples([_sample()])) is None

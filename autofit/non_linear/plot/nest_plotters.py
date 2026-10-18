@@ -20,7 +20,7 @@ def corner_anesthetic(
     filename="corner_anesthetic",
     format="show",
     parameter_indices=None,
-    derived=False,
+    latent=False,
     **kwargs,
 ):
     """
@@ -33,13 +33,13 @@ def corner_anesthetic(
     samples
         The samples of the non-linear search, whose ``model`` labels the axes.
     parameter_indices
-        The indices (in model order, or in the derived set's order when
-        ``derived``) of the parameters to plot; all by default.
-    derived
-        Plot the model's derived parameters instead of its free ones: each
+        The indices (in model order, or in the latent set's order when
+        ``latent``) of the parameters to plot; all by default.
+    latent
+        Plot the model's latent parameters instead of its free ones: each
         component's declared conversion is applied to the samples (a shear's
         components become its magnitude and angle, say) and parameters without
-        one pass through; see ``AbstractPriorModel.derived_parameters_from``.
+        one pass through; see ``AbstractPriorModel.latent_parameters_from``.
     """
     config_dict = conf.instance["visualize"]["plots_settings"]["corner_anesthetic"]
 
@@ -54,12 +54,12 @@ def corner_anesthetic(
 
     parameter_array = np.asarray(samples.parameter_lists)
 
-    if derived:
-        derived_parameters = model.derived_parameters_from(
+    if latent:
+        latent_parameters = model.latent_parameters_from(
             parameter_array, weights=samples.weight_list
         )
-        labels = derived_parameters.parameter_labels_with_superscripts_latex
-        parameter_array = derived_parameters.parameter_array
+        labels = latent_parameters.parameter_labels_with_superscripts_latex
+        parameter_array = latent_parameters.parameter_array
     else:
         labels = model.parameter_labels_with_superscripts_latex
 

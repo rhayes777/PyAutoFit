@@ -20,6 +20,7 @@ legacy) ``Analysis.LATENT_KEYS`` / ``Analysis.compute_latent_variables`` /
 ``Analysis.LATENT_BATCH_MODE``, so analyses that still override those keep
 working unchanged. New code should subclass :class:`Latent` instead.
 """
+
 import functools
 import logging
 import time
@@ -72,6 +73,30 @@ class Latent:
         to ``analysis.compute_latent_variables``.
         """
         return analysis.compute_latent_variables(parameters, model)
+
+
+def _model_latent_parameters(samples: Samples):
+    """
+    The model's declared latent parameters over the samples, recentred on the
+    posterior where periodic, or ``None`` when no component declares any (or
+    the samples carry no model that can say).
+    """
+    model = getattr(samples, "model", None)
+    if model is None or not hasattr(model, "latent_parameters_from"):
+        return None
+    try:
+        parameter_array = np.asarray(samples.parameter_lists)
+        latent = model.latent_parameters_from(
+            parameter_array, weights=samples.weight_list
+        )
+    except Exception:
+        logger.warning(
+            "compute_latent_samples: the model's latent parameters could not be "
+            "computed and are left out of the latent output.",
+            exc_info=True,
+        )
+        return None
+    return latent if latent.has_latent else None
 
 
 def latent_samples_from(
@@ -132,7 +157,14 @@ def latent_samples_from(
     )
     keys = latent.keys(analysis)
 
-    if not keys:
+    # The model's own latent parameters (a shear's magnitude and angle for its
+    # gamma_1 / gamma_2, declared by the component class; see
+    # ``autofit/mapper/prior_model/latent_parameters.py``) join the analysis's
+    # latents in the same output. They are vectorised over the samples and need
+    # no instance, so they are added after the per-sample loop below.
+    model_latent = _model_latent_parameters(samples)
+
+    if not keys and model_latent is None:
         return None
 
     try:
@@ -159,6 +191,7 @@ def latent_samples_from(
         if analysis.is_jax:
             import jax
             import jax.numpy as jnp
+
             if batch_mode == "vmap":
                 # vmap traces `variables` once for the whole batch, so a
                 # per-sample try/except is not possible here — latent functions
@@ -193,14 +226,13 @@ def latent_samples_from(
                     # sample. Transpose to a tuple of N batched arrays so the
                     # downstream `jnp.stack(latent_values_batch, axis=-1)`
                     # works identically to the vmap path.
-                    sample_results = [
-                        _safe_jitted(p) for p in parameters_batch
-                    ]
+                    sample_results = [_safe_jitted(p) for p in parameters_batch]
                     n_latents = len(sample_results[0])
                     return tuple(
                         jnp.stack([s[i] for s in sample_results])
                         for i in range(n_latents)
                     )
+
             else:
                 raise ValueError(
                     f"Unknown LATENT_BATCH_MODE={batch_mode!r}; expected 'vmap' or 'jit'."
@@ -240,17 +272,22 @@ def latent_samples_from(
         # retained sample shares one identical key set.
         all_values = []
         all_samples = []
-        for i in range(0, len(parameter_array), batch_size):
+        # No analysis latents: nothing is evaluated per sample, every sample is
+        # kept, and the model's latent parameters alone are written below.
+        for i in range(0, len(parameter_array) if keys else 0, batch_size):
 
-            batch = parameter_array[i:i + batch_size]
-            batch_samples = samples.sample_list[i:i + batch_size]
+            batch = parameter_array[i : i + batch_size]
+            batch_samples = samples.sample_list[i : i + batch_size]
 
             # batched JAX call on this chunk
             latent_values_batch = batched_compute_latent(batch)
 
             if analysis.is_jax:
                 import jax.numpy as jnp
-                latent_values_batch = jnp.stack(latent_values_batch, axis=-1)  # (batch, n_latents)
+
+                latent_values_batch = jnp.stack(
+                    latent_values_batch, axis=-1
+                )  # (batch, n_latents)
 
             # Unify to NumPy so the global masking below is a single code path
             # for both backends (latent values are scalars, host transfer is
@@ -263,7 +300,10 @@ def latent_samples_from(
             all_values.append(latent_values_batch)
             all_samples.extend(batch_samples)
 
-        if all_values:
+        if not keys:
+            all_samples = list(samples.sample_list)
+            all_values = np.empty((len(all_samples), 0))
+        elif all_values:
             all_values = np.concatenate(all_values, axis=0)
         else:
             all_values = np.empty((0, len(keys)))
@@ -275,9 +315,7 @@ def latent_samples_from(
         # 1. Drop a latent column that is non-finite for EVERY sample
         #    (genuinely degenerate, e.g. a µJy latent with no magzero).
         kept_idx = [
-            i
-            for i in range(all_values.shape[1])
-            if np.isfinite(all_values[:, i]).any()
+            i for i in range(all_values.shape[1]) if np.isfinite(all_values[:, i]).any()
         ]
 
         # 2. Keep samples that are finite across all currently-kept latents.
@@ -294,7 +332,9 @@ def latent_samples_from(
             nan_counts = (~np.isfinite(all_values[:, kept_idx])).sum(axis=0)
             kept_idx.pop(int(np.argmax(nan_counts)))
 
-        print(f"Time to compute latent variables: {time.time() - start_latent} seconds for {len(samples)} samples.")
+        print(
+            f"Time to compute latent variables: {time.time() - start_latent} seconds for {len(samples)} samples."
+        )
 
         n_samples = len(parameter_array)
 
@@ -323,7 +363,7 @@ def latent_samples_from(
                     "after masking; skipping latent output."
                 )
 
-        if not kept_idx:
+        if not kept_idx and model_latent is None:
             _warn_no_latents()
             return None
 
@@ -337,14 +377,23 @@ def latent_samples_from(
             _warn_no_latents()
             return None
 
+        model_items = (
+            [(path, column[row_mask]) for path, column in model_latent.latent_items]
+            if model_latent is not None
+            else []
+        )
+
         latent_samples = [
             Sample(
                 log_likelihood=sample.log_likelihood,
                 log_prior=sample.log_prior,
                 weight=sample.weight,
-                kwargs={k: float(v) for k, v in zip(kept_keys, values)},
+                kwargs={
+                    **{k: float(v) for k, v in zip(kept_keys, values)},
+                    **{path: float(column[j]) for path, column in model_items},
+                },
             )
-            for sample, values in zip(kept_samples, kept_values)
+            for j, (sample, values) in enumerate(zip(kept_samples, kept_values))
         ]
 
         return type(samples)(

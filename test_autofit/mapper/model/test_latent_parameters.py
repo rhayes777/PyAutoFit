@@ -19,7 +19,7 @@ def _polar_periodic(comp_0, comp_1, **kwargs):
 
 
 class MockPeriodicComponent:
-    derived_parameters = {("comp_0", "comp_1"): _polar_periodic}
+    latent_parameters = {("comp_0", "comp_1"): _polar_periodic}
 
     def __init__(self, centre=0.0, comp=(0.0, 0.0)):
         self.centre = centre
@@ -32,7 +32,7 @@ def _scaled(comp_0, comp_1, scale, **kwargs):
 
 class MockComponent:
     # Sampled as two components, read as a strength and an angle.
-    derived_parameters = {("comp_0", "comp_1"): _polar}
+    latent_parameters = {("comp_0", "comp_1"): _polar}
 
     def __init__(self, centre=0.0, comp=(0.0, 0.0)):
         self.centre = centre
@@ -41,7 +41,7 @@ class MockComponent:
 
 class MockScaledComponent(MockComponent):
     # A subclass adds to, and may override, what its base declares.
-    derived_parameters = {("comp_0", "comp_1"): _scaled}
+    latent_parameters = {("comp_0", "comp_1"): _scaled}
 
     def __init__(self, centre=0.0, comp=(0.0, 0.0), scale=1.0):
         super().__init__(centre=centre, comp=comp)
@@ -68,41 +68,41 @@ def _component(cls, comp=None, **fixed):
     return model
 
 
-def test__derived_parameters__replace_components_in_place():
+def test__latent_parameters__replace_components_in_place():
     model = _component(MockComponent)
     samples = np.array([[0.5, 3.0, 4.0], [0.1, 0.0, 1.0]])
 
-    derived = model.derived_parameters_from(samples)
+    latent = model.latent_parameters_from(samples)
 
-    assert derived.has_derived
-    assert derived.names == ["centre", "strength", "angle"]
-    assert derived.derived_mask == [False, True, True]
-    assert derived.parameter_array[:, 0] == pytest.approx([0.5, 0.1])
-    assert derived.parameter_array[:, 1] == pytest.approx([5.0, 1.0])
-    assert derived.parameter_array[:, 2] == pytest.approx([36.869898, 0.0])
+    assert latent.has_latent
+    assert latent.names == ["centre", "strength", "angle"]
+    assert latent.latent_mask == [False, True, True]
+    assert latent.parameter_array[:, 0] == pytest.approx([0.5, 0.1])
+    assert latent.parameter_array[:, 1] == pytest.approx([5.0, 1.0])
+    assert latent.parameter_array[:, 2] == pytest.approx([36.869898, 0.0])
 
 
-def test__derived_parameters__fixed_values_reach_the_conversion_and_subclass_overrides():
+def test__latent_parameters__fixed_values_reach_the_conversion_and_subclass_overrides():
     model = _component(MockScaledComponent, scale=2.0)
 
-    derived = model.derived_parameters_from(np.array([[0.0, 3.0, 4.0]]))
+    latent = model.latent_parameters_from(np.array([[0.0, 3.0, 4.0]]))
 
-    assert derived.names == ["centre", "scaled"]
-    assert derived.parameter_array[0, 1] == pytest.approx(10.0)
+    assert latent.names == ["centre", "scaled"]
+    assert latent.parameter_array[0, 1] == pytest.approx(10.0)
 
 
-def test__derived_parameters__no_conversion_when_a_replaced_parameter_is_fixed():
+def test__latent_parameters__no_conversion_when_a_replaced_parameter_is_fixed():
     model = _component(MockComponent, comp=(0.0, 1.0))
 
-    derived = model.derived_parameters_from(np.array([[0.5]]))
+    latent = model.latent_parameters_from(np.array([[0.5]]))
 
-    assert not derived.has_derived
-    assert not model.has_derived_parameters
-    assert derived.names == ["centre"]
-    assert derived.parameter_array.tolist() == [[0.5]]
+    assert not latent.has_latent
+    assert not model.has_latent_parameters
+    assert latent.names == ["centre"]
+    assert latent.parameter_array.tolist() == [[0.5]]
 
 
-def test__derived_parameters__carry_their_component_superscript_and_grouping():
+def test__latent_parameters__carry_their_component_superscript_and_grouping():
     model = af.Collection(
         galaxies=af.Collection(
             lens=af.Model(MockGalaxy, mass=_component(MockComponent)),
@@ -111,30 +111,30 @@ def test__derived_parameters__carry_their_component_superscript_and_grouping():
     )
     rng = np.random.default_rng(0)
 
-    derived = model.derived_parameters_from(rng.normal(size=(4, model.prior_count)))
+    latent = model.latent_parameters_from(rng.normal(size=(4, model.prior_count)))
 
-    assert derived.names == ["centre", "strength", "angle", "one", "two"]
-    assert derived.superscripts == ["lens.mass"] * 3 + ["source.light"] * 2
-    assert derived.parameter_indices_by_component == {
+    assert latent.names == ["centre", "strength", "angle", "one", "two"]
+    assert latent.superscripts == ["lens.mass"] * 3 + ["source.light"] * 2
+    assert latent.parameter_indices_by_component == {
         "lens": [0, 1, 2],
         "source": [3, 4],
     }
-    assert derived.parameter_labels_with_superscripts_latex[1] == r"$s^{\rm lens.mass}$"
+    assert latent.parameter_labels_with_superscripts_latex[1] == r"$s^{\rm lens.mass}$"
 
 
-def test__derived_parameters__plain_model_passes_through():
+def test__latent_parameters__plain_model_passes_through():
     model = af.Model(af.m.MockClassx2NoSuperScript)
     samples = np.array([[1.0, 2.0]])
 
-    derived = model.derived_parameters_from(samples)
+    latent = model.latent_parameters_from(samples)
 
-    assert not derived.has_derived
-    assert derived.names == model.parameter_names
-    assert derived.parameter_array.tolist() == samples.tolist()
+    assert not latent.has_latent
+    assert latent.names == model.parameter_names
+    assert latent.parameter_array.tolist() == samples.tolist()
 
 
 def test__periodic__recentres_on_the_circular_mean():
-    from autofit.mapper.prior_model.derived import Periodic
+    from autofit.mapper.prior_model.latent_parameters import Periodic
 
     # A posterior peaked at the branch cut of [-180, 180): half the samples
     # just below 180, half just above -180. Recentred, they are contiguous
@@ -153,13 +153,41 @@ def test__periodic__recentres_on_the_circular_mean():
     assert recentred == pytest.approx([-185.0, -182.0, -179.0, -176.0])
 
 
-def test__derived_parameters__periodic_angle_is_recentred_with_the_sample_weights():
+def test__latent_parameters__periodic_angle_is_recentred_with_the_sample_weights():
     model = _component(MockPeriodicComponent)
     # arctan2(comp_0, comp_1) for these straddles +-180.
     samples = np.array([[0.0, 0.1, -1.0], [0.0, -0.1, -1.0]])
 
-    derived = model.derived_parameters_from(samples, weights=[1.0, 1.0])
+    latent = model.latent_parameters_from(samples, weights=[1.0, 1.0])
 
-    angle = derived.parameter_array[:, 2]
+    angle = latent.parameter_array[:, 2]
     assert np.ptp(angle) == pytest.approx(11.42, abs=0.01)  # not ~348
-    assert derived.names == ["centre", "strength", "angle"]
+    assert latent.names == ["centre", "strength", "angle"]
+
+
+def test__latent_parameters__grouping_by_latent_component_and_full_paths():
+    # The source has no latent parameter, so it has no group of its own in
+    # the latent grouping; every parameter keeps its full model path, a latent
+    # one under the component that declared it.
+    model = af.Collection(
+        galaxies=af.Collection(
+            lens=af.Model(MockGalaxy, mass=_component(MockComponent)),
+            source=af.Model(MockGalaxy, light=af.Model(af.m.MockClassx2NoSuperScript)),
+        )
+    )
+    rng = np.random.default_rng(1)
+    samples = rng.normal(size=(4, model.prior_count))
+
+    latent = model.latent_parameters_from(samples)
+
+    assert latent.parameter_indices_by_latent_component == {"lens": [0, 1, 2]}
+    assert latent.paths == [
+        ("galaxies", "lens", "mass", "centre"),
+        ("galaxies", "lens", "mass", "strength"),
+        ("galaxies", "lens", "mass", "angle"),
+        ("galaxies", "source", "light", "one"),
+        ("galaxies", "source", "light", "two"),
+    ]
+    items = latent.latent_items
+    assert [path for path, _ in items] == latent.paths[1:3]
+    assert items[0][1] == pytest.approx(latent.parameter_array[:, 1])

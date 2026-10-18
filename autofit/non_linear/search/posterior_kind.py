@@ -55,6 +55,12 @@ class PosteriorDefaults:
     def plot_results(self, search, samples):
         raise NotImplementedError
 
+    def plot_latent_results(self, search, samples):
+        """
+        The plots of the latent parameters, made once the fit is complete (see
+        ``WeightedDefaults.plot_latent_results``); none for most kinds.
+        """
+
 
 class ChainDefaults(PosteriorDefaults):
     kind = PosteriorKind.CHAIN
@@ -140,46 +146,73 @@ class WeightedDefaults(PosteriorDefaults):
                     groups=samples.model.parameter_indices_by_component,
                 )
 
-            # The derived-parameter plots re-express each component's sampled
-            # parameters in the ones it is read in (a shear's magnitude and
-            # angle rather than gamma_1 / gamma_2), where a component declares
-            # the conversion. Independent of the plots above, so it can be the
-            # only corner plot or sit beside them; skipped when no component
-            # declares anything, as it would repeat the plain plot.
-            if self.should_plot("corner_anesthetic_derived", default=False):
-                derived = samples.model.derived_parameters_from(
-                    np.asarray(samples.parameter_lists)
+    def plot_latent_results(self, search, samples):
+        """
+        The corner plot(s) of the latent parameters: each component's sampled
+        parameters re-expressed in the ones it is read in (a shear's magnitude
+        and angle rather than gamma_1 / gamma_2), where a component declares the
+        conversion (``AbstractPriorModel.latent_parameters_from``). Switched by
+        ``corner_anesthetic_latent`` independently of the plots above, so it can
+        be the only corner plot or sit beside them; skipped when no component
+        declares anything, as it would repeat the plain plot, and per component
+        only for the components that have a latent parameter.
+
+        Latent output is made after the fit, not at every ``iterations_per_full_update``
+        (``SearchUpdater.visualize``), the same rule as ``latent.csv``.
+        """
+        from autofit.non_linear.plot import corner_anesthetic
+
+        if not self.should_plot("corner_anesthetic_latent", default=False):
+            return
+
+        path = search.paths.image_path / "search"
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+
+            latent = samples.model.latent_parameters_from(
+                np.asarray(samples.parameter_lists)
+            )
+
+            if not latent.has_latent:
+                return
+
+            corner_anesthetic(
+                samples=samples,
+                path=path,
+                filename="corner_anesthetic_latent",
+                format="png",
+                latent=True,
+            )
+
+            # Per component only where the model has several (one alone would
+            # repeat the plot above), and only the components with a latent
+            # parameter (the others' plots would repeat their plain ones).
+            if (
+                self.should_plot("corner_anesthetic_components", default=True)
+                and len(latent.parameter_indices_by_component) > 1
+            ):
+                self._corner_per_component(
+                    corner_anesthetic,
+                    samples,
+                    path,
+                    groups=latent.parameter_indices_by_latent_component,
+                    latent=True,
                 )
 
-                if derived.has_derived:
-                    corner_anesthetic(
-                        samples=samples,
-                        path=path,
-                        filename="corner_anesthetic_derived",
-                        format="png",
-                        derived=True,
-                    )
-
-                    if per_component:
-                        self._corner_per_component(
-                            corner_anesthetic,
-                            samples,
-                            path,
-                            groups=derived.parameter_indices_by_component,
-                            derived=True,
-                        )
-
     @staticmethod
-    def _corner_per_component(corner_anesthetic, samples, path, groups, derived=False):
+    def _corner_per_component(corner_anesthetic, samples, path, groups, latent=False):
         """
         One corner plot per top-level model component (each galaxy of a lens
         model), as the full plot of a many-parameter model is too dense to read.
-        A model with a single component already has it, so none is made.
+        A model with a single component already has it, so none is made (the
+        latent plots check that on the model's components, since ``groups``
+        then holds only those with a latent parameter).
         """
-        if len(groups) < 2:
+        if len(groups) < 2 and not latent:
             return
 
-        stem = "corner_anesthetic_derived" if derived else "corner_anesthetic"
+        stem = "corner_anesthetic_latent" if latent else "corner_anesthetic"
 
         for name, parameter_indices in groups.items():
             corner_anesthetic(
@@ -188,7 +221,7 @@ class WeightedDefaults(PosteriorDefaults):
                 filename=f"{stem}_{name}",
                 format="png",
                 parameter_indices=parameter_indices,
-                derived=derived,
+                latent=latent,
             )
 
 

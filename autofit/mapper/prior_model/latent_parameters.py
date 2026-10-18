@@ -1,5 +1,5 @@
 """
-Derived parameters: a model component's own re-parameterisation of some of its
+Latent parameters: a model component's own re-parameterisation of some of its
 free parameters, for plotting and reporting.
 
 Many components are *sampled* in one parameterisation and *read* in another: a
@@ -9,20 +9,20 @@ angle, a multipole as two components but has a strength and a phase. A component
 class declares the conversion as a class attribute::
 
     class ExternalShear:
-        derived_parameters = {
+        latent_parameters = {
             ("gamma_1", "gamma_2"): shear_magnitude_and_angle_dict_from,
         }
 
 keyed by the names of the free parameters it replaces and valued by a function
 that takes every parameter of the component by name (the free ones as arrays
-over the samples, the fixed ones as floats) and returns a ``dict`` of derived
+over the samples, the fixed ones as floats) and returns a ``dict`` of latent
 name to array. The declarations of a class's bases are inherited, so a subclass
 adds to them rather than restating them.
 
-``DerivedParameters`` applies those declarations to an array of samples: the
-replaced parameters go, the derived ones take their place (at the position of
+``LatentParameters`` applies those declarations to an array of samples: the
+replaced parameters go, the latent ones take their place (at the position of
 the first replaced one, in model order), everything else passes through
-unchanged, and each derived parameter carries the superscript of the component
+unchanged, and each latent parameter carries the superscript of the component
 it came from. A declaration whose replaced parameters are not all free in this
 model is skipped, since there is nothing to convert.
 
@@ -41,19 +41,19 @@ from autonerves import conf
 
 from autofit.text import formatter as frm
 
-DerivedFunction = Callable[..., Dict[str, np.ndarray]]
+LatentFunction = Callable[..., Dict[str, np.ndarray]]
 
 
 class Periodic:
     def __init__(self, values, period: float):
         """
-        A derived parameter that is periodic (an angle), returned by a conversion so
+        A latent parameter that is periodic (an angle), returned by a conversion so
         the samples are recentred on their circular mean; see the module docstring.
 
         Parameters
         ----------
         values
-            The derived values over the samples, in whatever range the conversion gives.
+            The latent values over the samples, in whatever range the conversion gives.
         period
             The period, e.g. 180 for a position angle, ``360 / m`` for a multipole phase.
         """
@@ -84,25 +84,26 @@ class Periodic:
         return (values - mean + half) % self.period + mean - half
 
 
-def derived_parameters_for_class(cls) -> Dict[Tuple[str, ...], DerivedFunction]:
+def latent_parameters_for_class(cls) -> Dict[Tuple[str, ...], LatentFunction]:
     """
-    The derived-parameter declarations of a class and all of its bases, the most
-    derived class last so it can override an entry of a base.
+    The latent-parameter declarations of a class and all of its bases, the most
+    latent class last so it can override an entry of a base.
     """
     declarations = {}
     for base in reversed(getattr(cls, "__mro__", (cls,))):
-        declarations.update(base.__dict__.get("derived_parameters", {}) or {})
+        declarations.update(base.__dict__.get("latent_parameters", {}) or {})
     return declarations
 
 
-class DerivedParameters:
+class LatentParameters:
     def __init__(
         self,
         names: List[str],
         superscripts: List[Optional[str]],
         component_paths: List[Tuple[str, ...]],
         parameter_array: np.ndarray,
-        derived_mask: List[bool],
+        latent_mask: List[bool],
+        paths: Optional[List[Tuple[str, ...]]] = None,
     ):
         """
         Parameters of a model after each component's declared conversions are
@@ -111,26 +112,31 @@ class DerivedParameters:
         Parameters
         ----------
         names
-            The name of every parameter of the derived set, in order.
+            The name of every parameter of the latent set, in order.
         superscripts
             The superscript of each, that of the component it belongs to.
         component_paths
             The named-component path of each (see ``AbstractPriorModel.component_paths``).
         parameter_array
-            The samples of the derived set, shape ``(n_samples, len(names))``.
-        derived_mask
-            Whether each parameter was derived (``True``) or passed through.
+            The samples of the latent set, shape ``(n_samples, len(names))``.
+        latent_mask
+            Whether each parameter was latent (``True``) or passed through.
+        paths
+            The full model path of each (``galaxies.lens.shear.magnitude``), a
+            latent one under the component that declared it; the key it has in
+            the latent output (``latent.csv``).
         """
         self.names = names
         self.superscripts = superscripts
         self.component_paths = component_paths
         self.parameter_array = parameter_array
-        self.derived_mask = derived_mask
+        self.latent_mask = latent_mask
+        self.paths = paths
 
     @property
-    def has_derived(self) -> bool:
+    def has_latent(self) -> bool:
         """Whether any declaration was applied, so the set differs from the model's own."""
-        return any(self.derived_mask)
+        return any(self.latent_mask)
 
     @property
     def parameter_labels(self) -> List[str]:
@@ -152,11 +158,38 @@ class DerivedParameters:
 
     @property
     def parameter_indices_by_component(self) -> Dict[str, List[int]]:
-        """As ``AbstractPriorModel.parameter_indices_by_component``, over the derived set."""
+        """As ``AbstractPriorModel.parameter_indices_by_component``, over the latent set."""
         groups = {}
         for i, path in enumerate(self.component_paths):
             groups.setdefault(path[0] if path else "model", []).append(i)
         return groups
+
+    @property
+    def parameter_indices_by_latent_component(self) -> Dict[str, List[int]]:
+        """
+        ``parameter_indices_by_component`` restricted to the components with at
+        least one latent parameter: the plot of a component without one would
+        repeat its plain corner plot.
+        """
+        return {
+            name: indices
+            for name, indices in self.parameter_indices_by_component.items()
+            if any(self.latent_mask[i] for i in indices)
+        }
+
+    @property
+    def latent_items(self) -> List[Tuple[Tuple[str, ...], np.ndarray]]:
+        """
+        The latent parameters alone, as ``(path, samples)`` pairs, which is what
+        the latent output (``latent.csv``) takes from the model.
+        """
+        if self.paths is None:
+            raise ValueError("This LatentParameters was built without paths.")
+        return [
+            (path, self.parameter_array[:, i])
+            for i, (path, is_latent) in enumerate(zip(self.paths, self.latent_mask))
+            if is_latent
+        ]
 
 
 def _flat_fixed_values(owner) -> Dict[str, float]:
@@ -185,18 +218,30 @@ def _flat_fixed_values(owner) -> Dict[str, float]:
     return values
 
 
-def derived_parameters_from(
+def _owner_path(prior_path, leaf: str) -> Tuple[str, ...]:
+    """
+    The model path of the component owning a prior, from the prior's full path:
+    the leaf is stripped, and so is the tuple it sits in (``centre.centre_0``).
+    """
+    prior_path = tuple(prior_path)
+    owner = prior_path[:-1]
+    if owner and leaf.startswith(f"{owner[-1]}_"):
+        owner = owner[:-1]
+    return owner
+
+
+def latent_parameters_from(
     model, parameter_array: np.ndarray, weights=None
-) -> DerivedParameters:
+) -> LatentParameters:
     """
     Apply every component's declared conversions to an array of samples of the
     model; see the module docstring. Called through
-    ``AbstractPriorModel.derived_parameters_from``.
+    ``AbstractPriorModel.latent_parameters_from``.
 
     Parameters
     ----------
     weights
-        The weight of each sample, used to centre a ``Periodic`` derived parameter
+        The weight of each sample, used to centre a ``Periodic`` latent parameter
         on its posterior rather than on the prior volume; equal by default.
     """
     parameter_array = np.asarray(parameter_array)
@@ -206,6 +251,7 @@ def derived_parameters_from(
     names = model.parameter_names
     superscripts = model.superscripts
     component_paths = model.component_paths
+    paths = model.paths
 
     # Which free parameters each component owns, by leaf name -> model index.
     indices_by_owner = {}
@@ -220,7 +266,7 @@ def derived_parameters_from(
         cls = getattr(owner, "cls", None)
         if cls is None:
             continue
-        for replaced, function in derived_parameters_for_class(cls).items():
+        for replaced, function in latent_parameters_for_class(cls).items():
             if not all(name in free for name in replaced):
                 continue
             if any(free[name] in consumed for name in replaced):
@@ -229,10 +275,11 @@ def derived_parameters_from(
             values.update(
                 {name: parameter_array[:, index] for name, index in free.items()}
             )
-            derived = function(**values)
+            latent = function(**values)
             first = min(free[name] for name in replaced)
             insert_at[first] = [
                 (
+                    _owner_path(paths[first], owners[first][1]) + (name,),
                     name,
                     np.broadcast_to(
                         (
@@ -243,17 +290,19 @@ def derived_parameters_from(
                         (n_samples,),
                     ),
                 )
-                for name, value in derived.items()
+                for name, value in latent.items()
             ]
             consumed.update(free[name] for name in replaced)
 
     out_names, out_superscripts, out_paths, out_columns, out_mask = [], [], [], [], []
+    out_full_paths = []
     for i in range(len(names)):
         if i in insert_at:
-            for name, column in insert_at[i]:
+            for full_path, name, column in insert_at[i]:
                 out_names.append(name)
                 out_superscripts.append(superscripts[i])
                 out_paths.append(component_paths[i])
+                out_full_paths.append(full_path)
                 out_columns.append(column)
                 out_mask.append(True)
         if i in consumed:
@@ -261,15 +310,17 @@ def derived_parameters_from(
         out_names.append(names[i])
         out_superscripts.append(superscripts[i])
         out_paths.append(component_paths[i])
+        out_full_paths.append(tuple(paths[i]))
         out_columns.append(parameter_array[:, i])
         out_mask.append(False)
 
-    return DerivedParameters(
+    return LatentParameters(
         names=out_names,
         superscripts=out_superscripts,
         component_paths=out_paths,
         parameter_array=(
             np.column_stack(out_columns) if out_columns else parameter_array
         ),
-        derived_mask=out_mask,
+        latent_mask=out_mask,
+        paths=out_full_paths,
     )

@@ -235,3 +235,80 @@ def test__visualize__disabled_skips_all():
     analysis.visualize_combined.assert_not_called()
     updater._samples_from.assert_not_called()
     updater._plot_results.assert_not_called()
+
+
+def _visualizing_updater(plot_latent_results_func):
+    updater = SearchUpdater(
+        paths=MagicMock(),
+        timer=MagicMock(),
+        search_logger=logging.getLogger("test_updater"),
+        plot_results_func=MagicMock(),
+        samples_from_func=MagicMock(),
+        disable_output=False,
+        iterations_per_full_update=1.0,
+        plot_latent_results_func=plot_latent_results_func,
+    )
+    return updater
+
+
+def test__visualize__latent_plots_only_once_the_fit_is_complete():
+    """
+    The latent corner plots follow the latent-output rule, not the
+    ``iterations_per_full_update`` cadence: made after the fit, and during it
+    only when ``output.yaml``'s ``latent_during_fit`` is on.
+    """
+    original_during = conf.instance["output"]["latent_during_fit"]
+    conf.instance["output"]["latent_during_fit"] = False
+    try:
+        plot_latent = MagicMock()
+        updater = _visualizing_updater(plot_latent)
+        analysis = MagicMock()
+        analysis.should_visualize.return_value = True
+        samples = MagicMock()
+
+        updater.visualize(
+            model=MagicMock(),
+            analysis=analysis,
+            during_analysis=True,
+            samples_summary=MagicMock(),
+            samples=samples,
+        )
+        updater._plot_results.assert_called_once_with(samples=samples)
+        plot_latent.assert_not_called()
+
+        updater.visualize(
+            model=MagicMock(),
+            analysis=analysis,
+            during_analysis=False,
+            samples_summary=MagicMock(),
+            samples=samples,
+        )
+        plot_latent.assert_called_once_with(samples=samples)
+
+        conf.instance["output"]["latent_during_fit"] = True
+        updater.visualize(
+            model=MagicMock(),
+            analysis=analysis,
+            during_analysis=True,
+            samples_summary=MagicMock(),
+            samples=samples,
+        )
+        assert plot_latent.call_count == 2
+    finally:
+        conf.instance["output"]["latent_during_fit"] = original_during
+
+
+def test__visualize__no_latent_plotter_is_fine():
+    updater = _make_updater()
+    analysis = MagicMock()
+    analysis.should_visualize.return_value = True
+
+    updater.visualize(
+        model=MagicMock(),
+        analysis=analysis,
+        during_analysis=False,
+        samples_summary=MagicMock(),
+        samples=MagicMock(),
+    )
+
+    updater._plot_results.assert_called_once()

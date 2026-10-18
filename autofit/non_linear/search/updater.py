@@ -76,11 +76,16 @@ class SearchUpdater:
         disable_output: bool,
         iterations_per_full_update: float,
         visualization_enabled: bool = True,
+        plot_latent_results_func: Optional[Callable[[Samples], None]] = None,
     ):
         self._paths = paths
         self._timer = timer
         self._logger = search_logger
         self._plot_results = plot_results_func
+        # The plots of the latent parameters, made with the other latent output
+        # (``latent.csv``): after the fit, and during it only when
+        # ``output.yaml``'s ``latent_during_fit`` is on. None plots nothing.
+        self._plot_latent_results = plot_latent_results_func
         self._samples_from = samples_from_func
         self._disable_output = disable_output
         self._iterations_per_full_update = iterations_per_full_update
@@ -173,7 +178,10 @@ class SearchUpdater:
         Perform visualization of the non-linear search's model-fitting results.
 
         Delegates to the analysis object for model-specific plots and to the
-        search's ``plot_results`` for search-specific plots. ``update`` passes the
+        search's ``plot_results`` for search-specific plots. The search's
+        ``plot_latent_results`` follows the latent-output rule rather than the
+        ``iterations_per_full_update`` cadence: once the fit is complete, and
+        during it only if ``output.yaml``'s ``latent_during_fit`` is on. ``update`` passes the
         ``samples`` it has already converted; without them they are converted from
         ``search_internal`` here. ``plot_search=False`` outputs only the analysis
         visuals (used for the starting point, before the search has samples).
@@ -188,14 +196,12 @@ class SearchUpdater:
         paths = paths_override or self._paths
 
         if instance is None and samples_summary is None:
-            raise AssertionError(
-                """
+            raise AssertionError("""
                 The search's perform_visualization method has been called without an input instance or
                 samples_summary.
 
                 This should not occur, please ensure one of these inputs is provided.
-                """
-            )
+                """)
 
         if instance is None:
             instance = samples_summary.instance
@@ -219,10 +225,17 @@ class SearchUpdater:
                 try:
                     if samples is None:
                         samples = self._samples_from(
-                            model, search_internal,
+                            model,
+                            search_internal,
                         )
 
                     self._plot_results(samples=samples)
+
+                    if self._plot_latent_results is not None and (
+                        not during_analysis
+                        or conf.instance["output"]["latent_during_fit"]
+                    ):
+                        self._plot_latent_results(samples=samples)
                 except FileNotFoundError:
                     pass
 
@@ -230,9 +243,7 @@ class SearchUpdater:
         self._iterations += self._iterations_per_full_update
 
         if not self._disable_output:
-            self._logger.info(
-                """Fit Running: Updating results (see output folder)."""
-            )
+            self._logger.info("""Fit Running: Updating results (see output folder).""")
 
         if self._paths.has_timer:
             self._timer.update()
