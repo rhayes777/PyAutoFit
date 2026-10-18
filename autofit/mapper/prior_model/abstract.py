@@ -165,6 +165,22 @@ def paths_to_tree(paths: List[Tuple[str, ...]], tree: Optional[dict] = None) -> 
     return tree
 
 
+def superscript_from_component_path(path: Tuple[str, ...]) -> str:
+    """
+    The superscript of a parameter from the path of the named components owning it.
+
+    Paths of one or two levels are joined with dots unchanged (``lens.bulge``).
+    From three levels deep the first name is kept whole and every later name is
+    cut to its first three characters, so ``("source", "pixelization",
+    "regularization")`` gives ``source.pix.reg``: the first level is the plane or
+    galaxy that distinguishes the components, and the rest only needs to stay
+    recognisable in the small type of a corner-plot axis.
+    """
+    if len(path) < 3:
+        return ".".join(path)
+    return ".".join([path[0]] + [name[:3] for name in path[1:]])
+
+
 class AbstractPriorModel(AbstractModel):
     """
     Abstract model that maps a set of priors to a particular class. Must be
@@ -2619,6 +2635,11 @@ class AbstractPriorModel(AbstractModel):
         with this string (corresponding to the parameters `centre`, `normalization` and `sigma`) will
         be returned.
 
+        A path three or more levels deep keeps its first name whole and cuts every
+        later name to three characters, so ``source.pixelization.regularization``
+        is labelled ``source.pix.reg`` and the label stays readable on a corner
+        plot (see ``superscript_from_component_path``).
+
         A prior directly on the model (a bare ``Model(Gaussian)``) has no named
         component; it uses the `notation/label.yaml` config's `superscript:` entry
         for the model's class if there is one (`Gaussian: g`), else no superscript.
@@ -2627,7 +2648,11 @@ class AbstractPriorModel(AbstractModel):
         This is used for displaying model results as text and for visualization.
         """
         return [
-            ".".join(path) if path else (superscript_overwrite or None)
+            (
+                superscript_from_component_path(path)
+                if path
+                else (superscript_overwrite or None)
+            )
             for path, superscript_overwrite in zip(
                 self.component_paths, self.superscripts_overwrite_via_config
             )
