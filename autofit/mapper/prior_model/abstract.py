@@ -5,11 +5,24 @@ import logging
 import random
 import types
 from collections import defaultdict
-from typing import Tuple, Optional, Dict, List, Iterable, Generator, Union, Type
+from typing import (
+    TYPE_CHECKING,
+    Tuple,
+    Optional,
+    Dict,
+    List,
+    Iterable,
+    Generator,
+    Union,
+    Type,
+)
 
 import numpy as np
 
 from autonerves import conf
+
+if TYPE_CHECKING:
+    from autofit.mapper.prior_model.latent_parameters import LatentParameters
 from autonerves.exc import ConfigException
 from autofit import exc
 from autofit.mapper import model
