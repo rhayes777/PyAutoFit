@@ -29,7 +29,7 @@ def make_samples(model):
             log_likelihood_list=log_likelihood_list,
             log_prior_list=[0.0, 0.0],
             weight_list=log_likelihood_list,
-            model=model
+            model=model,
         ),
     )
 
@@ -44,13 +44,26 @@ def test__summary(samples):
 def test__latex(samples):
     latex_results_at_sigma = samples_text.latex(samples=samples, sigma=3.0)
 
-    assert r"one_label^{\rm{o}} = 1.00^{+0.20}_{-0.00} & " in latex_results_at_sigma
-    assert r"two_label^{\rm{o}} = 2.00^{+0.20}_{-0.00}" in latex_results_at_sigma
+    assert (
+        r"one_label^{\rm{mock_class}} = 1.00^{+0.20}_{-0.00} & "
+        in latex_results_at_sigma
+    )
+    assert (
+        r"two_label^{\rm{mock_class}} = 2.00^{+0.20}_{-0.00}" in latex_results_at_sigma
+    )
 
-    latex_results_at_sigma = samples_text.latex(samples=samples, sigma=3.0, include_quickmath=True)
+    latex_results_at_sigma = samples_text.latex(
+        samples=samples, sigma=3.0, include_quickmath=True
+    )
 
-    assert r"$one_label^{\rm{o}} = 1.00^{+0.20}_{-0.00}$ & " in latex_results_at_sigma
-    assert r"$two_label^{\rm{o}} = 2.00^{+0.20}_{-0.00}$" in latex_results_at_sigma
+    assert (
+        r"$one_label^{\rm{mock_class}} = 1.00^{+0.20}_{-0.00}$ & "
+        in latex_results_at_sigma
+    )
+    assert (
+        r"$two_label^{\rm{mock_class}} = 2.00^{+0.20}_{-0.00}$"
+        in latex_results_at_sigma
+    )
 
     model = af.ModelMapper(mock_class=af.m.MockClassx2FormatExp)
 
@@ -65,11 +78,19 @@ def test__latex(samples):
             log_likelihood_list=log_likelihood_list,
             log_prior_list=[0.0, 0.0],
             weight_list=log_likelihood_list,
-            model=model
+            model=model,
         ),
     )
 
-    latex_results_at_sigma = samples_text.latex(samples=samples_exp, sigma=3.0, include_quickmath=True)
+    latex_results_at_sigma = samples_text.latex(
+        samples=samples_exp, sigma=3.0, include_quickmath=True
+    )
 
-    assert r"$one_label^{\rm{o}} = 1.00^{+0.20}_{-0.00}$ & " in latex_results_at_sigma
-    assert r"$one_label^{\rm{o}} = 1.00^{+0.20}_{-0.00}$ & $2.00^{+0.00}_{-0.00} \times 10^{2}$" in latex_results_at_sigma
+    assert (
+        r"$one_label^{\rm{mock_class}} = 1.00^{+0.20}_{-0.00}$ & "
+        in latex_results_at_sigma
+    )
+    assert (
+        r"$one_label^{\rm{mock_class}} = 1.00^{+0.20}_{-0.00}$ & $2.00^{+0.00}_{-0.00} \times 10^{2}$"
+        in latex_results_at_sigma
+    )

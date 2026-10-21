@@ -5,11 +5,24 @@ import logging
 import random
 import types
 from collections import defaultdict
-from typing import Tuple, Optional, Dict, List, Iterable, Generator, Union, Type
+from typing import (
+    TYPE_CHECKING,
+    Tuple,
+    Optional,
+    Dict,
+    List,
+    Iterable,
+    Generator,
+    Union,
+    Type,
+)
 
 import numpy as np
 
 from autonerves import conf
+
+if TYPE_CHECKING:
+    from autofit.mapper.prior_model.latent_parameters import LatentParameters
 from autonerves.exc import ConfigException
 from autofit import exc
 from autofit.mapper import model
@@ -165,6 +178,94 @@ def paths_to_tree(paths: List[Tuple[str, ...]], tree: Optional[dict] = None) -> 
     return tree
 
 
+def superscripts_from_component_paths(
+    component_paths: Iterable[Tuple[str, ...]],
+) -> Dict[Tuple[str, ...], str]:
+    """
+    The superscript of every distinct path of named components, keyed by path.
+
+    Names are joined with dots (``lens.bulge``), unchanged in a model with no
+    path three levels deep. A model with such paths would run into the
+    neighbouring labels on a corner-plot axis, so every name below the first
+    level that lies on one is cut short, ``("source", "pixelization",
+    "regularization")`` giving
+    ``source.pix.reg``: the first level is the plane or galaxy that distinguishes
+    the components, and the rest only needs to stay recognisable.
+
+    A name is cut the same way in every path it appears in, so the priors of a
+    basis and those of the profiles inside it read ``lens.bul`` and ``lens.bul.0``,
+    not ``lens.bulge`` and ``lens.bul.0``. It is cut to three characters unless
+    that would match a sibling (another name under the same parent), in which
+    case it keeps as many characters as tell them apart: ``bulge_inner`` and
+    ``bulge_outer`` become ``bulge_i`` and ``bulge_o``. Distinct paths therefore
+    always have distinct superscripts.
+    """
+    component_paths = {tuple(path) for path in component_paths if path}
+
+    # Each name below the first level that lies on a path of three or more.
+    deep = {
+        path[: i + 1]
+        for path in component_paths
+        if len(path) >= 3
+        for i in range(1, len(path))
+    }
+
+    siblings = defaultdict(set)
+    for path in component_paths:
+        for i in range(1, len(path)):
+            siblings[path[:i]].add(path[i])
+
+    short = {}
+    for parent, names in siblings.items():
+        cut = {name: 3 for name in names if parent + (name,) in deep}
+        while True:
+            labels = {
+                name: name[: cut[name]] if name in cut else name for name in names
+            }
+            clashes = defaultdict(list)
+            for name, label in labels.items():
+                clashes[label].append(name)
+            grow = [
+                name
+                for group in clashes.values()
+                if len(group) > 1
+                for name in group
+                if name in cut and cut[name] < len(name)
+            ]
+            if not grow:
+                break
+            for name in grow:
+                cut[name] += 1
+        for name, label in labels.items():
+            short[parent + (name,)] = label
+
+    return {
+        path: ".".join([path[0]] + [short[path[: i + 1]] for i in range(1, len(path))])
+        for path in component_paths
+    }
+
+
+def indices_by_top_level_component(
+    component_paths: List[Tuple[str, ...]],
+) -> Dict[str, List[int]]:
+    """
+    The indices of the parameters belonging to each top-level model component,
+    keyed by the component's name and in model order, from the component path of
+    each parameter (see ``AbstractPriorModel.component_paths``).
+
+    Parameters whose priors sit directly on the model (no named component) are
+    grouped under ``"model"``, or ``"model_root"`` when a component is itself
+    named ``model``, so the two groups (and their per-component corner plots)
+    stay apart.
+    """
+    names = {path[0] for path in component_paths if path}
+    root = "model_root" if "model" in names else "model"
+    groups = {}
+    for i, path in enumerate(component_paths):
+        groups.setdefault(path[0] if path else root, []).append(i)
+    return groups
+
+
 class AbstractPriorModel(AbstractModel):
     """
     Abstract model that maps a set of priors to a particular class. Must be
@@ -268,8 +369,8 @@ class AbstractPriorModel(AbstractModel):
             seen.add(id(model))
             assertions.extend(getattr(model, "_assertions", []))
 
-        # An assertion's operand can itself be a model carrying assertions -- `derived = p + 1` is
-        # a `CompoundPrior`, and `derived.add_assertion(...)` attaches to it. On numpy those fire
+        # An assertion's operand can itself be a model carrying assertions -- `latent = p + 1` is
+        # a `CompoundPrior`, and `latent.add_assertion(...)` attaches to it. On numpy those fire
         # when the operand is realised, so they are part of the model's contract; the tree walk
         # cannot see them, because the operand hangs off the assertion rather than off the model.
         collected = {id(assertion) for assertion in assertions}
@@ -745,7 +846,7 @@ class AbstractPriorModel(AbstractModel):
             except AttributeError:
                 pass
 
-    def instance_from_unit_vector(self, unit_vector, ignore_assertions : bool = False):
+    def instance_from_unit_vector(self, unit_vector, ignore_assertions: bool = False):
         """
         Returns a ModelInstance, which has an attribute and class instance corresponding
         to every `Model` attributed to this instance.
@@ -795,8 +896,7 @@ class AbstractPriorModel(AbstractModel):
         )
 
         return self.instance_for_arguments(
-            arguments,
-            ignore_assertions=ignore_assertions
+            arguments, ignore_assertions=ignore_assertions
         )
 
     @property
@@ -1013,9 +1113,7 @@ class AbstractPriorModel(AbstractModel):
         arguments = dict(zip(priors, vector))
 
         return self.instance_for_arguments(
-            arguments,
-            ignore_assertions=ignore_assertions,
-            xp=xp
+            arguments, ignore_assertions=ignore_assertions, xp=xp
         )
 
     @frozen_cache
@@ -1029,7 +1127,9 @@ class AbstractPriorModel(AbstractModel):
         name/value wrappers is skipped on the likelihood hot path. Unfrozen models
         recompute it on every call.
         """
-        return tuple(prior_tuple.prior for prior_tuple in self.prior_tuples_ordered_by_id)
+        return tuple(
+            prior_tuple.prior for prior_tuple in self.prior_tuples_ordered_by_id
+        )
 
     def constrained_model_tuples(self):
         """
@@ -1524,7 +1624,7 @@ class AbstractPriorModel(AbstractModel):
 
         return self.mapper_from_prior_arguments(arguments)
 
-    def instance_from_prior_medians(self, ignore_assertions : bool = False):
+    def instance_from_prior_medians(self, ignore_assertions: bool = False):
         """
         Returns a list of physical values from the median values of the priors.
         Returns
@@ -1534,8 +1634,7 @@ class AbstractPriorModel(AbstractModel):
             and not checked.
         """
         return self.instance_from_unit_vector(
-            unit_vector=[0.5] * self.prior_count,
-            ignore_assertions=ignore_assertions
+            unit_vector=[0.5] * self.prior_count, ignore_assertions=ignore_assertions
         )
 
     def log_prior_list_from_vector(
@@ -1565,7 +1664,7 @@ class AbstractPriorModel(AbstractModel):
             )
         )
 
-    def random_instance(self, ignore_assertions : bool  = False):
+    def random_instance(self, ignore_assertions: bool = False):
         """
         Returns a random instance of the model.
 
@@ -1676,9 +1775,9 @@ class AbstractPriorModel(AbstractModel):
                     # legitimately be passed back to it.
                     allowed_keys = None
                 else:
-                    allowed_keys = {
-                        arg for arg in spec.args if arg != "self"
-                    } | set(spec.kwonlyargs)
+                    allowed_keys = {arg for arg in spec.args if arg != "self"} | set(
+                        spec.kwonlyargs
+                    )
 
             try:
                 result = Model(
@@ -1857,9 +1956,7 @@ class AbstractPriorModel(AbstractModel):
             self.check_assertions(arguments, xp=xp)
 
         return self._instance_for_arguments(
-            arguments,
-            ignore_assertions=ignore_assertions,
-            xp=xp
+            arguments, ignore_assertions=ignore_assertions, xp=xp
         )
 
     def path_for_name(self, name: str) -> Tuple[str, ...]:
@@ -2480,38 +2577,193 @@ class AbstractPriorModel(AbstractModel):
 
         return parameter_labels
 
+    def _prior_holder(
+        self, path: Path, sibling_paths: List[Path]
+    ) -> Tuple[Path, Tuple[str, ...], object, str]:
+        """
+        One path to a prior as ``(path, component path, owner, leaf name)``: the
+        named model components on the path (see ``component_paths``), the model
+        component directly owning the prior there (the deepest ``Model`` on the
+        path) and the prior's leaf name, for example ``(..., ("lens", "mass"),
+        <Model PowerLaw>, "ell_comps_0")``.
+
+        ``sibling_paths`` are the paths of the components holding every path to
+        the same prior, which decide whether a list index names anything.
+        """
+        from autofit.mapper.prior_model.collection import Collection
+        from autofit.mapper.prior.tuple_prior import TuplePrior
+
+        component_path = path[:-1]
+        same_length = all(len(other) == len(component_path) for other in sibling_paths)
+
+        names = []
+        owner = self
+        obj = self
+        for i, name in enumerate(component_path):
+            try:
+                obj = getattr(obj, name)
+            except AttributeError:
+                obj = obj[int(name)]
+            if isinstance(obj, (Collection, TuplePrior)):
+                continue
+            owner = obj
+            # A list index that differs between the paths to one shared prior
+            # (the thirty Gaussians of a basis) says nothing and is dropped.
+            if (
+                same_length
+                and name.isdigit()
+                and any(other[i] != name for other in sibling_paths)
+            ):
+                continue
+            names.append(name)
+
+        return tuple(path), tuple(names), owner, path[-1]
+
+    @property
+    @frozen_cache
+    def _prior_holders(self) -> List[List[Tuple[Path, Tuple[str, ...], object, str]]]:
+        """
+        For each unique prior (ordered by id), every path holding it as given by
+        ``_prior_holder``. The first is the path the prior's samples column is
+        named after (``unique_prior_paths``, the last component holding it); the
+        others are where a prior shared between components (a power law's
+        ellipticity linked into its multipoles) also sits.
+
+        Cached while the model is frozen (as during a fit), since the plots and
+        the latent output ask for it several times per update.
+        """
+        paths_by_prior = defaultdict(list)
+        for path, prior in self.path_priors_tuples:
+            paths_by_prior[prior].append(tuple(path))
+
+        holders = []
+        for primary, prior in self.unique_path_prior_tuples:
+            primary = tuple(primary)
+            paths = paths_by_prior[prior]
+            sibling_paths = [path[:-1] for path in paths]
+            holders.append(
+                [
+                    self._prior_holder(path, sibling_paths)
+                    for path in [primary] + [path for path in paths if path != primary]
+                ]
+            )
+        return holders
+
+    @property
+    def _prior_owner_and_leaf_names(self) -> List[Tuple[object, str]]:
+        """
+        For each unique prior (ordered by id), the model component that directly
+        owns it (the deepest ``Model`` on the path its samples column is named
+        after) and the prior's leaf name, for example
+        ``(<Model Gaussian>, "ell_comps_0")``.
+        """
+        return [(holders[0][2], holders[0][3]) for holders in self._prior_holders]
+
+    def latent_parameters_from(
+        self, parameter_array, weights=None, recentre: bool = False
+    ) -> "LatentParameters":
+        """
+        The parameters of this model after each component's declared conversions
+        (its ``latent_parameters`` class attribute, e.g. shear components to a
+        magnitude and angle) are applied to an array of samples; see
+        ``autofit.mapper.prior_model.latent_parameters``.
+
+        Parameters
+        ----------
+        parameter_array
+            Samples of the model's free parameters, shape ``(n_samples, prior_count)``.
+        weights
+            The weight of each sample, which with ``recentre`` centres a periodic
+            latent parameter (an angle) on its posterior; equal by default.
+        recentre
+            Whether to recentre each periodic latent parameter on its circular
+            mean, as a plot does; the latent output keeps the range the
+            conversion gives it, so it does not depend on the fit.
+        """
+        from autofit.mapper.prior_model.latent_parameters import latent_parameters_from
+
+        return latent_parameters_from(
+            self, parameter_array, weights=weights, recentre=recentre
+        )
+
+    @property
+    def has_latent_parameters(self) -> bool:
+        """Whether any component of this model declares a conversion that applies to it."""
+        return self.latent_parameters_from(np.zeros((1, self.prior_count))).has_latent
+
+    @property
+    def component_paths(self) -> List[Path]:
+        """
+        The named model components that own each unique prior, ordered by prior id.
+
+        A prior's path lists everything between the model and the parameter, for
+        example ``galaxies.lens.bulge.profile_list.29.centre.centre_0``. Most of
+        that does not name a component: ``galaxies`` and ``profile_list`` are
+        ``Collection`` containers, ``centre`` is the tuple the parameter sits in,
+        and ``29`` is one of the thirty Gaussians a shared prior appears under.
+        Each is dropped, leaving ``("lens", "bulge")``.
+
+        An index is kept when it distinguishes the prior from its siblings, so a
+        collection of components with independent priors gives ``("0",)``,
+        ``("1",)``; it is dropped only where the paths to a shared prior differ,
+        which is what makes it meaningless. A prior shared between differently
+        named components (a power law's ellipticity linked into its multipoles)
+        takes the path its samples column is named after, the last component
+        holding it: ``("lens", "mass")``, not ``("lens", "multipole_3")``.
+
+        This is what labels parameters in results and plots, and what groups them
+        by component (see ``parameter_indices_by_component``).
+        """
+        return [holders[0][1] for holders in self._prior_holders]
+
+    @property
+    def parameter_indices_by_component(self) -> Dict[str, List[int]]:
+        """
+        The indices of the parameters belonging to each top-level model component,
+        keyed by the component's name and in model order, for example
+        ``{"lens": [0, ..., 14], "source": [15, ..., 18]}``.
+
+        Parameters whose priors sit directly on the model (no named component)
+        are grouped under ``"model"`` (``"model_root"`` if a component is itself
+        named ``model``).
+        """
+        return indices_by_top_level_component(self.component_paths)
+
     @property
     def superscripts(self) -> List[str]:
         """
         Returns a list of the model component superscripts for every parameter in a model.
 
+        The superscript is the dot-joined path of the names the components owning
+        the parameter were given in the model (see ``component_paths``): a lens
+        model with a lens galaxy and a source galaxy labels the Gaussians of their
+        light ``lens.bulge`` and ``source.bulge``, its shear ``lens.shear``, so every
+        parameter of every component has a distinct label however many components
+        share a class.
 
-        The class superscript labels are defined as the name of every model component in the `ModelMapper`. For
-        the example of a 1D Gaussian, if the model component name is `gaussian` three superscripts
+        For the example of a 1D Gaussian, if the model component name is `gaussian` three superscripts
         with this string (corresponding to the parameters `centre`, `normalization` and `sigma`) will
         be returned.
 
-        For a `Collection`, the name of the inner model components are used.
+        A path three or more levels deep keeps its first name whole and cuts the
+        later names short, so ``source.pixelization.regularization`` is labelled
+        ``source.pix.reg`` and the label stays readable on a corner plot; a name is
+        cut only as far as it stays distinct from its siblings (see
+        ``superscripts_from_component_paths``).
 
-        These superscripts may be overwritten by those returned from the `superscripts_config_overwrite` property,
-        which optionally loads the superscripts from a `.json` config file. This allows high levels of customization
-        in what superscripts are used.
+        A prior directly on the model (a bare ``Model(Gaussian)``) has no named
+        component; it uses the `notation/label.yaml` config's `superscript:` entry
+        for the model's class if there is one (`Gaussian: g`), else no superscript.
+        See the `superscripts_overwrite_via_config` property.
 
         This is used for displaying model results as text and for visualization.
         """
-
-        prior_paths = self.unique_prior_paths
-
-        tuple_filter = TuplePathModifier(self)
-
-        prior_paths = map(tuple_filter, prior_paths)
-
-        superscripts = [path[-2] if len(path) > 1 else None for path in prior_paths]
-
+        component_paths = self.component_paths
+        labels = superscripts_from_component_paths(component_paths)
         return [
-            superscript if not superscript_overwrite else superscript_overwrite
-            for superscript, superscript_overwrite in zip(
-                superscripts, self.superscripts_overwrite_via_config
+            labels[path] if path else (superscript_overwrite or None)
+            for path, superscript_overwrite in zip(
+                component_paths, self.superscripts_overwrite_via_config
             )
         ]
 

@@ -128,9 +128,7 @@ def test_smc_is_weighted_and_takes_no_auto_correlation_settings():
 
 
 def test_old_smc_search_json_with_auto_correlation_settings_loads(caplog):
-    golden = json.loads(
-        (Path(__file__).parent / "seed_golden.json").read_text()
-    )
+    golden = json.loads((Path(__file__).parent / "seed_golden.json").read_text())
     old = golden["SMC"]["main_search_json"]
     assert "auto_correlation_settings" in old["arguments"]
 
@@ -162,13 +160,19 @@ SAMPLES_CLASS_PATHS = {
 
 @pytest.mark.parametrize("entry", searches_under_test(), ids=lambda e: e.name)
 def test_samples_class_path_unchanged(entry):
-    assert get_class_path(entry.resolve().samples_cls) == SAMPLES_CLASS_PATHS[entry.name]
+    assert (
+        get_class_path(entry.resolve().samples_cls) == SAMPLES_CLASS_PATHS[entry.name]
+    )
 
 
 @pytest.mark.parametrize(
     "cls, kind",
-    [(af.Emcee, posterior_kind.CHAIN), (af.SMC, posterior_kind.WEIGHTED),
-     (af.Nautilus, posterior_kind.WEIGHTED), (af.BFGS, posterior_kind.POINT)],
+    [
+        (af.Emcee, posterior_kind.CHAIN),
+        (af.SMC, posterior_kind.WEIGHTED),
+        (af.Nautilus, posterior_kind.WEIGHTED),
+        (af.BFGS, posterior_kind.POINT),
+    ],
 )
 def test_plot_results_dispatches_on_posterior_kind(cls, kind, monkeypatch):
     calls = []
@@ -215,7 +219,23 @@ def _smc_positional_prefix():
     # name, path_prefix, unique_tag, num_particles, kernel, num_mcmc_steps,
     # num_integration_steps, target_ess, step_size, whiten_inflate, max_smc_steps,
     # batch_size, seed, initializer, inverse_mass_matrix
-    return (None, None, None, 256, "mala", 5, 8, 0.5, None, 2.0, 200, 0, None, None, None)
+    return (
+        None,
+        None,
+        None,
+        256,
+        "mala",
+        5,
+        8,
+        0.5,
+        None,
+        2.0,
+        200,
+        0,
+        None,
+        None,
+        None,
+    )
 
 
 def test_smc_old_positional_auto_correlation_slot_binds_as_before():
@@ -248,3 +268,346 @@ def test_smc_keyword_construction_does_not_warn():
 
     assert search.iterations_per_quick_update == 3
     assert search.silence is True
+
+
+class _MockGalaxy:
+    def __init__(self, light=None):
+        self.light = light
+
+
+class _MockShear:
+    latent_parameters = {
+        ("gamma_1", "gamma_2"): lambda gamma_1, gamma_2, **kwargs: {
+            "magnitude": (gamma_1**2 + gamma_2**2) ** 0.5
+        }
+    }
+
+    def __init__(self, gamma_1=0.0, gamma_2=0.0):
+        self.gamma_1 = gamma_1
+        self.gamma_2 = gamma_2
+
+
+def _lens_like_model():
+    return af.Collection(
+        galaxies=af.Collection(
+            lens=af.Model(_MockGalaxy, light=af.Model(af.m.MockClassx2NoSuperScript)),
+            source=af.Model(_MockGalaxy, light=af.Model(af.m.MockClassx2NoSuperScript)),
+        )
+    )
+
+
+def _weighted_plot_calls(model, monkeypatch, tmp_path, latent=False):
+    from types import SimpleNamespace
+    import autofit.non_linear.plot as plot_module
+    from autofit.non_linear.search.posterior_kind import WeightedDefaults
+
+    calls = []
+    monkeypatch.setattr(
+        plot_module, "corner_anesthetic", lambda **kwargs: calls.append(kwargs)
+    )
+    search = SimpleNamespace(paths=SimpleNamespace(image_path=tmp_path))
+    samples = SimpleNamespace(
+        model=model,
+        parameter_lists=[[0.1] * model.prior_count] * 3,
+        weight_list=[1.0] * 3,
+    )
+    defaults = WeightedDefaults()
+    defaults.plot_results(search=search, samples=samples)
+    if latent:
+        defaults.plot_latent_results(search=search, samples=samples)
+    return calls
+
+
+def test_weighted_plot_results_one_corner_per_component(monkeypatch, tmp_path):
+    # The full corner plot of a many-parameter model is too dense to read, so
+    # each top-level component (each galaxy here) also gets its own.
+    calls = _weighted_plot_calls(_lens_like_model(), monkeypatch, tmp_path)
+
+    assert [call.get("filename", "corner_anesthetic") for call in calls] == [
+        "corner_anesthetic",
+        "corner_anesthetic_lens",
+        "corner_anesthetic_source",
+    ]
+    assert "parameter_indices" not in calls[0]
+    assert calls[1]["parameter_indices"] == [0, 1]
+    assert calls[2]["parameter_indices"] == [2, 3]
+
+
+def test_weighted_plot_results_single_component_has_no_duplicate_corner(
+    monkeypatch, tmp_path
+):
+    # One component's corner plot would repeat the full one.
+    calls = _weighted_plot_calls(
+        af.Model(af.m.MockClassx2NoSuperScript), monkeypatch, tmp_path
+    )
+
+    assert [call.get("filename", "corner_anesthetic") for call in calls] == [
+        "corner_anesthetic"
+    ]
+
+
+def test_weighted_plot_results_components_key_missing_from_config_defaults_on(
+    monkeypatch, tmp_path
+):
+    # A workspace config written before the per-component plots existed does
+    # not mention them; they default on rather than raising KeyError.
+    from autofit.non_linear.search.posterior_kind import WeightedDefaults
+
+    real_should_plot = WeightedDefaults.should_plot
+
+    def should_plot(self, name, default=None):
+        if name == "corner_anesthetic_components":
+            if default is None:
+                raise KeyError(name)
+            return default
+        return real_should_plot(self, name, default)
+
+    monkeypatch.setattr(WeightedDefaults, "should_plot", should_plot)
+
+    calls = _weighted_plot_calls(_lens_like_model(), monkeypatch, tmp_path)
+
+    assert len(calls) == 3
+
+
+def test_weighted_plot_results_latent_corner_only_when_a_component_declares_one(
+    monkeypatch, tmp_path
+):
+    from autofit.non_linear.search.posterior_kind import WeightedDefaults
+
+    # The latent plots are off by default; every switch on for this test.
+    monkeypatch.setattr(
+        WeightedDefaults, "should_plot", lambda self, name, default=None: True
+    )
+
+    # Nothing latent: the latent plot would repeat the plain one, so none.
+    calls = _weighted_plot_calls(_lens_like_model(), monkeypatch, tmp_path, latent=True)
+    assert not any("latent" in call.get("filename", "") for call in calls)
+
+    # A shear declares its magnitude: a latent plot, and one for the lens
+    # since the per-component switch is on too; none for the source, which
+    # has no latent parameter and whose plot would repeat its plain one.
+    model = af.Collection(
+        galaxies=af.Collection(
+            lens=af.Model(
+                _MockGalaxy,
+                light=af.Model(
+                    _MockShear,
+                    gamma_1=af.UniformPrior(-1.0, 1.0),
+                    gamma_2=af.UniformPrior(-1.0, 1.0),
+                ),
+            ),
+            source=af.Model(_MockGalaxy, light=af.Model(af.m.MockClassx2NoSuperScript)),
+        )
+    )
+    calls = _weighted_plot_calls(model, monkeypatch, tmp_path, latent=True)
+
+    latent_calls = [call for call in calls if call.get("latent")]
+    assert [call["filename"] for call in latent_calls] == [
+        "corner_anesthetic_latent",
+        "corner_anesthetic_latent_lens",
+    ]
+    assert latent_calls[1]["parameter_indices"] == [0]  # magnitude alone
+
+
+def test_weighted_plot_results_latent_switch_is_independent(monkeypatch, tmp_path):
+    # Latent on, the other two off: the latent plot is the only corner plot.
+    from autofit.non_linear.search.posterior_kind import WeightedDefaults
+
+    monkeypatch.setattr(
+        WeightedDefaults,
+        "should_plot",
+        lambda self, name, default=None: name == "corner_anesthetic_latent",
+    )
+    model = af.Collection(
+        lens=af.Model(
+            _MockGalaxy,
+            light=af.Model(
+                _MockShear,
+                gamma_1=af.UniformPrior(-1.0, 1.0),
+                gamma_2=af.UniformPrior(-1.0, 1.0),
+            ),
+        )
+    )
+
+    calls = _weighted_plot_calls(model, monkeypatch, tmp_path, latent=True)
+
+    assert [call.get("filename", "corner_anesthetic") for call in calls] == [
+        "corner_anesthetic_latent"
+    ]
+
+
+def test_weighted_plot_results_never_makes_the_latent_plots(monkeypatch, tmp_path):
+    # The latent plots are latent output: ``plot_results`` (every
+    # ``iterations_per_full_update``) leaves them to ``plot_latent_results``,
+    # which the updater calls once the fit is complete.
+    from autofit.non_linear.search.posterior_kind import WeightedDefaults
+
+    monkeypatch.setattr(
+        WeightedDefaults, "should_plot", lambda self, name, default=None: True
+    )
+    model = af.Collection(
+        lens=af.Model(
+            _MockGalaxy,
+            light=af.Model(
+                _MockShear,
+                gamma_1=af.UniformPrior(-1.0, 1.0),
+                gamma_2=af.UniformPrior(-1.0, 1.0),
+            ),
+        )
+    )
+
+    calls = _weighted_plot_calls(model, monkeypatch, tmp_path, latent=False)
+
+    assert not any(call.get("latent") for call in calls)
+
+
+def test_search_plot_latent_results_dispatches_on_posterior_kind(monkeypatch):
+    from autofit.non_linear.search import posterior_kind
+
+    calls = []
+    monkeypatch.setattr(
+        posterior_kind.WeightedDefaults,
+        "plot_latent_results",
+        lambda self, search, samples: calls.append(self),
+    )
+
+    af.Nautilus().plot_latent_results(samples=None)
+    assert calls == [posterior_kind.WEIGHTED]
+
+    # Other kinds, and a search without one, plot nothing and do not raise.
+    af.Emcee().plot_latent_results(samples=None)
+    af.m.MockSearch().plot_latent_results(samples=None)
+
+
+def test_weighted_plot_latent_results_single_component_has_no_duplicate(
+    monkeypatch, tmp_path
+):
+    # One component with a latent parameter and no other: its per-component
+    # latent plot would repeat the full latent plot, so none is made.
+    from autofit.non_linear.search.posterior_kind import WeightedDefaults
+
+    monkeypatch.setattr(
+        WeightedDefaults, "should_plot", lambda self, name, default=None: True
+    )
+    model = af.Collection(
+        galaxies=af.Collection(
+            lens=af.Model(
+                _MockGalaxy,
+                light=af.Model(
+                    _MockShear,
+                    gamma_1=af.UniformPrior(-1.0, 1.0),
+                    gamma_2=af.UniformPrior(-1.0, 1.0),
+                ),
+            ),
+        )
+    )
+
+    calls = _weighted_plot_calls(model, monkeypatch, tmp_path, latent=True)
+
+    assert [call.get("filename", "corner_anesthetic") for call in calls] == [
+        "corner_anesthetic",
+        "corner_anesthetic_latent",
+    ]
+
+
+def _without_key(monkeypatch, missing, values):
+    # A config written before ``missing`` existed (should_plot raises KeyError
+    # without a default), with the given value for every other key.
+    from autofit.non_linear.search.posterior_kind import WeightedDefaults
+
+    def should_plot(self, name, default=None):
+        if name == missing:
+            if default is None:
+                raise KeyError(name)
+            return default
+        return values[name]
+
+    monkeypatch.setattr(WeightedDefaults, "should_plot", should_plot)
+
+
+def test_weighted_plot_results_components_follow_corner_anesthetic_when_key_absent(
+    monkeypatch, tmp_path
+):
+    # Switching the corner plot off in an older config switches off the
+    # per-component plots it does not mention, rather than leaving them on.
+    _without_key(
+        monkeypatch, "corner_anesthetic_components", {"corner_anesthetic": False}
+    )
+
+    calls = _weighted_plot_calls(_lens_like_model(), monkeypatch, tmp_path)
+
+    assert calls == []
+
+
+def _shear_model(shear_cls):
+    return af.Collection(
+        lens=af.Model(
+            _MockGalaxy,
+            light=af.Model(
+                shear_cls,
+                gamma_1=af.UniformPrior(-1.0, 1.0),
+                gamma_2=af.UniformPrior(-1.0, 1.0),
+            ),
+        ),
+        source=af.Model(_MockGalaxy, light=af.Model(af.m.MockClassx2NoSuperScript)),
+    )
+
+
+def test_weighted_plot_latent_results_components_have_their_own_switch(
+    monkeypatch, tmp_path
+):
+    # The latent plot alone: its per-component plots are switched separately.
+    from autofit.non_linear.search.posterior_kind import WeightedDefaults
+
+    monkeypatch.setattr(
+        WeightedDefaults,
+        "should_plot",
+        lambda self, name, default=None: name == "corner_anesthetic_latent",
+    )
+
+    calls = _weighted_plot_calls(
+        _shear_model(_MockShear), monkeypatch, tmp_path, latent=True
+    )
+
+    assert [call["filename"] for call in calls] == ["corner_anesthetic_latent"]
+
+
+class _MockRaisingShear(_MockShear):
+    latent_parameters = {
+        ("gamma_1", "gamma_2"): lambda gamma_1, gamma_2, **kwargs: 1 / 0
+    }
+
+
+def test_weighted_plot_latent_results_logs_a_raising_conversion(
+    monkeypatch, tmp_path, caplog
+):
+    # A component's conversion is its own code: one that raises is logged and
+    # no latent plot is made, rather than failing the fit's final output.
+    from autofit.non_linear.search.posterior_kind import WeightedDefaults
+
+    monkeypatch.setattr(
+        WeightedDefaults, "should_plot", lambda self, name, default=None: True
+    )
+
+    with caplog.at_level("WARNING"):
+        calls = _weighted_plot_calls(
+            _shear_model(_MockRaisingShear), monkeypatch, tmp_path, latent=True
+        )
+
+    assert not any(call.get("latent") for call in calls)
+    assert "latent parameters could not be computed" in caplog.text
+
+
+def test_weighted_plot_latent_results_skipped_in_test_mode(monkeypatch, tmp_path):
+    from autofit.non_linear.search.posterior_kind import WeightedDefaults
+
+    monkeypatch.setattr(
+        WeightedDefaults, "should_plot", lambda self, name, default=None: True
+    )
+    monkeypatch.setattr("autofit.non_linear.test_mode.skip_visualization", lambda: True)
+
+    calls = _weighted_plot_calls(
+        _shear_model(_MockShear), monkeypatch, tmp_path, latent=True
+    )
+
+    assert not any(call.get("latent") for call in calls)

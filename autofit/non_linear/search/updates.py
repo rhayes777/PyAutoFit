@@ -124,6 +124,7 @@ class SearchUpdatesMixin:
                 timer=self.timer,
                 search_logger=self.logger,
                 plot_results_func=self.plot_results,
+                plot_latent_results_func=self.plot_latent_results,
                 samples_from_func=self.samples_from,
                 disable_output=self.disable_output,
                 iterations_per_full_update=self.iterations_per_full_update,
@@ -195,3 +196,18 @@ class SearchUpdatesMixin:
         if defaults is None:
             raise NotImplementedError
         defaults.plot_results(self, samples)
+
+    def plot_latent_results(self, samples):
+        """
+        The search's plots of the model's latent parameters (the corner plot of
+        a shear's magnitude and angle, say), by its ``posterior_kind``; nothing
+        for a search without one. ``SearchUpdater.visualize`` calls this once the
+        fit is complete rather than at every ``iterations_per_full_update``, as
+        it does for ``latent.csv``.
+        """
+        from autofit.non_linear.search.posterior_kind import defaults_for
+
+        defaults = defaults_for(type(self).posterior_kind)
+        if defaults is None:
+            return
+        defaults.plot_latent_results(self, samples)

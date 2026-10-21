@@ -18,12 +18,17 @@ Each concrete search applies its kind's defaults in its own ``__init__``, never 
 the nested samplers. ``NonLinearSearch.plot_results`` plots through ``plotter_for``.
 """
 
+import logging
 import warnings
 from typing import Optional
+
+import numpy as np
 
 from autonerves import conf
 
 from autofit.non_linear.search.capabilities import PosteriorKind
+
+logger = logging.getLogger(__name__)
 
 
 class PosteriorDefaults:
@@ -37,11 +42,27 @@ class PosteriorDefaults:
     def default_initializer(self):
         raise NotImplementedError
 
-    def should_plot(self, name: str) -> bool:
-        return conf.instance["visualize"]["plots_search"][self.plots_section][name]
+    def should_plot(self, name: str, default: Optional[bool] = None) -> bool:
+        """
+        Whether the ``plots_search`` config switches on the named plot. A key a
+        user's (older) config does not mention falls back to ``default`` when one
+        is given, so a new plot does not break an existing workspace.
+        """
+        try:
+            return conf.instance["visualize"]["plots_search"][self.plots_section][name]
+        except KeyError:
+            if default is None:
+                raise
+            return default
 
     def plot_results(self, search, samples):
         raise NotImplementedError
+
+    def plot_latent_results(self, search, samples):
+        """
+        The plots of the latent parameters, made once the fit is complete (see
+        ``WeightedDefaults.plot_latent_results``); none for most kinds.
+        """
 
 
 class ChainDefaults(PosteriorDefaults):
@@ -100,20 +121,128 @@ class WeightedDefaults(PosteriorDefaults):
         from autofit.non_linear.initializer import InitializerParamBounds
 
         if isinstance(initializer, InitializerParamBounds):
-            raise ValueError("InitializerParamBounds cannot be used for nested sampling")
+            raise ValueError(
+                "InitializerParamBounds cannot be used for nested sampling"
+            )
         return self.initializer_for(initializer)
 
     def plot_results(self, search, samples):
         from autofit.non_linear.plot import corner_anesthetic
 
-        if self.should_plot("corner_anesthetic"):
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
-                corner_anesthetic(
-                    samples=samples,
-                    path=search.paths.image_path / "search",
-                    format="png",
+        path = search.paths.image_path / "search"
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+
+            corner = self.should_plot("corner_anesthetic")
+
+            if corner:
+                corner_anesthetic(samples=samples, path=path, format="png")
+
+            # An older config without the key: the per-component plots follow
+            # the full one, so switching that off switches them off too.
+            if self.should_plot("corner_anesthetic_components", default=corner):
+                self._corner_per_component(
+                    corner_anesthetic,
+                    samples,
+                    path,
+                    groups=samples.model.parameter_indices_by_component,
                 )
+
+    def plot_latent_results(self, search, samples):
+        """
+        The corner plot(s) of the latent parameters: each component's sampled
+        parameters re-expressed in the ones it is read in (a shear's magnitude
+        and angle rather than gamma_1 / gamma_2), where a component declares the
+        conversion (``AbstractPriorModel.latent_parameters_from``). Switched by
+        ``corner_anesthetic_latent`` independently of the plots above, so it can
+        be the only corner plot or sit beside them; skipped when no component
+        declares anything, as it would repeat the plain plot, and per component
+        (``corner_anesthetic_latent_components``) only for the components that
+        have a latent parameter. Skipped in test mode like every other plot.
+
+        Latent output is made after the fit, not at every ``iterations_per_full_update``
+        (``SearchUpdater.visualize``), the same rule as ``latent.csv``.
+        """
+        from autofit.non_linear.plot import corner_anesthetic
+        from autofit.non_linear.test_mode import skip_visualization
+
+        if skip_visualization():
+            return
+
+        if not self.should_plot("corner_anesthetic_latent", default=False):
+            return
+
+        path = search.paths.image_path / "search"
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+
+            # The conversions are a component's own code, run here outside the
+            # plot's exception handling: one that raises is logged and the fit
+            # carries on without the latent plots, as it does without the
+            # latent columns of ``latent.csv``.
+            try:
+                latent = samples.model.latent_parameters_from(
+                    np.asarray(samples.parameter_lists)
+                )
+            except Exception:
+                logger.warning(
+                    "The model's latent parameters could not be computed, so "
+                    "their corner plots are not made.",
+                    exc_info=True,
+                )
+                return
+
+            if not latent.has_latent:
+                return
+
+            corner_anesthetic(
+                samples=samples,
+                path=path,
+                filename="corner_anesthetic_latent",
+                format="png",
+                latent=True,
+            )
+
+            # Per component only where the model has several (one alone would
+            # repeat the plot above), and only the components with a latent
+            # parameter (the others' plots would repeat their plain ones).
+            if (
+                self.should_plot("corner_anesthetic_latent_components", default=True)
+                and len(latent.parameter_indices_by_component) > 1
+            ):
+                self._corner_per_component(
+                    corner_anesthetic,
+                    samples,
+                    path,
+                    groups=latent.parameter_indices_by_latent_component,
+                    latent=True,
+                )
+
+    @staticmethod
+    def _corner_per_component(corner_anesthetic, samples, path, groups, latent=False):
+        """
+        One corner plot per top-level model component (each galaxy of a lens
+        model), as the full plot of a many-parameter model is too dense to read.
+        A model with a single component already has it, so none is made (the
+        latent plots check that on the model's components, since ``groups``
+        then holds only those with a latent parameter).
+        """
+        if len(groups) < 2 and not latent:
+            return
+
+        stem = "corner_anesthetic_latent" if latent else "corner_anesthetic"
+
+        for name, parameter_indices in groups.items():
+            corner_anesthetic(
+                samples=samples,
+                path=path,
+                filename=f"{stem}_{name}",
+                format="png",
+                parameter_indices=parameter_indices,
+                latent=latent,
+            )
 
 
 class PointDefaults(PosteriorDefaults):

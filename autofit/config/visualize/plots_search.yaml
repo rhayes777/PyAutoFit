@@ -1,5 +1,8 @@
 nest:
   corner_anesthetic: true   # Output corner figure (using anestetic) during a non-linear search fit?
+  corner_anesthetic_components: true   # Also output one corner figure per top-level model component (e.g. per galaxy), each named corner_anesthetic_<component>? Follows corner_anesthetic when absent.
+  corner_anesthetic_latent: false   # Output a corner figure of the latent parameters (e.g. a shear's magnitude and angle rather than gamma_1 / gamma_2), named corner_anesthetic_latent? Independent of the two above. Made after the fit like latent.csv (during it only if output.yaml's latent_during_fit is on).
+  corner_anesthetic_latent_components: true   # With corner_anesthetic_latent, also output one latent corner figure per top-level component that has a latent parameter, each named corner_anesthetic_latent_<component>? Follows corner_anesthetic_latent when absent.
 mcmc:
   corner_cornerpy: true     # Output corner figure (using corner.py) during a non-linear search fit?
 mle:
