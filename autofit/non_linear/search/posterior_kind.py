@@ -18,6 +18,7 @@ Each concrete search applies its kind's defaults in its own ``__init__``, never 
 the nested samplers. ``NonLinearSearch.plot_results`` plots through ``plotter_for``.
 """
 
+import logging
 import warnings
 from typing import Optional
 
@@ -26,6 +27,8 @@ import numpy as np
 from autonerves import conf
 
 from autofit.non_linear.search.capabilities import PosteriorKind
+
+logger = logging.getLogger(__name__)
 
 
 class PosteriorDefaults:
@@ -131,14 +134,14 @@ class WeightedDefaults(PosteriorDefaults):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
 
-            if self.should_plot("corner_anesthetic"):
+            corner = self.should_plot("corner_anesthetic")
+
+            if corner:
                 corner_anesthetic(samples=samples, path=path, format="png")
 
-            per_component = self.should_plot(
-                "corner_anesthetic_components", default=True
-            )
-
-            if per_component:
+            # An older config without the key: the per-component plots follow
+            # the full one, so switching that off switches them off too.
+            if self.should_plot("corner_anesthetic_components", default=corner):
                 self._corner_per_component(
                     corner_anesthetic,
                     samples,
@@ -155,12 +158,17 @@ class WeightedDefaults(PosteriorDefaults):
         ``corner_anesthetic_latent`` independently of the plots above, so it can
         be the only corner plot or sit beside them; skipped when no component
         declares anything, as it would repeat the plain plot, and per component
-        only for the components that have a latent parameter.
+        (``corner_anesthetic_latent_components``) only for the components that
+        have a latent parameter. Skipped in test mode like every other plot.
 
         Latent output is made after the fit, not at every ``iterations_per_full_update``
         (``SearchUpdater.visualize``), the same rule as ``latent.csv``.
         """
         from autofit.non_linear.plot import corner_anesthetic
+        from autofit.non_linear.test_mode import skip_visualization
+
+        if skip_visualization():
+            return
 
         if not self.should_plot("corner_anesthetic_latent", default=False):
             return
@@ -170,9 +178,21 @@ class WeightedDefaults(PosteriorDefaults):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
 
-            latent = samples.model.latent_parameters_from(
-                np.asarray(samples.parameter_lists)
-            )
+            # The conversions are a component's own code, run here outside the
+            # plot's exception handling: one that raises is logged and the fit
+            # carries on without the latent plots, as it does without the
+            # latent columns of ``latent.csv``.
+            try:
+                latent = samples.model.latent_parameters_from(
+                    np.asarray(samples.parameter_lists)
+                )
+            except Exception:
+                logger.warning(
+                    "The model's latent parameters could not be computed, so "
+                    "their corner plots are not made.",
+                    exc_info=True,
+                )
+                return
 
             if not latent.has_latent:
                 return
@@ -189,7 +209,7 @@ class WeightedDefaults(PosteriorDefaults):
             # repeat the plot above), and only the components with a latent
             # parameter (the others' plots would repeat their plain ones).
             if (
-                self.should_plot("corner_anesthetic_components", default=True)
+                self.should_plot("corner_anesthetic_latent_components", default=True)
                 and len(latent.parameter_indices_by_component) > 1
             ):
                 self._corner_per_component(

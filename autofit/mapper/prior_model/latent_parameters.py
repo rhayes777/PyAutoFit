@@ -26,18 +26,25 @@ unchanged, and each latent parameter carries the superscript of the component
 it came from. A declaration whose replaced parameters are not all free in this
 model is skipped, since there is nothing to convert.
 
+A prior shared between components (a power law's ellipticity linked into its
+multipoles) is seen by the declarations of every component holding it, so each
+can convert it; the same conversion of the same priors is made once, under the
+component the priors' samples column is named after.
+
 An angle is periodic, and a conversion fixes where its branch cut falls: a
 position angle in ``[-45, 135)`` whose posterior peaks near 135 is split in two,
 and its corner plot shows a double peak that is not there. A conversion returns
-such a value as ``Periodic(angle, period)`` and the samples are recentred on
-their (weighted) circular mean, so the cut sits opposite the peak.
+such a value as ``Periodic(angle, period)``. For a plot (``recentre=True``) the
+samples are recentred on their (weighted) circular mean, so the cut sits
+opposite the peak. The latent output (``latent.csv``) keeps the conversion's own
+range, so the same parameter has the same range in every fit and fits can be
+compared; a posterior straddling the cut is then split there, and its median and
+errors in ``latent.results`` with it.
 """
 
 from typing import Callable, Dict, List, Optional, Tuple
 
 import numpy as np
-
-from autonerves import conf
 
 from autofit.text import formatter as frm
 
@@ -159,10 +166,9 @@ class LatentParameters:
     @property
     def parameter_indices_by_component(self) -> Dict[str, List[int]]:
         """As ``AbstractPriorModel.parameter_indices_by_component``, over the latent set."""
-        groups = {}
-        for i, path in enumerate(self.component_paths):
-            groups.setdefault(path[0] if path else "model", []).append(i)
-        return groups
+        from autofit.mapper.prior_model.abstract import indices_by_top_level_component
+
+        return indices_by_top_level_component(self.component_paths)
 
     @property
     def parameter_indices_by_latent_component(self) -> Dict[str, List[int]]:
@@ -231,7 +237,7 @@ def _owner_path(prior_path, leaf: str) -> Tuple[str, ...]:
 
 
 def latent_parameters_from(
-    model, parameter_array: np.ndarray, weights=None
+    model, parameter_array: np.ndarray, weights=None, recentre: bool = False
 ) -> LatentParameters:
     """
     Apply every component's declared conversions to an array of samples of the
@@ -241,49 +247,74 @@ def latent_parameters_from(
     Parameters
     ----------
     weights
-        The weight of each sample, used to centre a ``Periodic`` latent parameter
-        on its posterior rather than on the prior volume; equal by default.
+        The weight of each sample, used with ``recentre`` to centre a
+        ``Periodic`` latent parameter on its posterior rather than on the prior
+        volume; equal by default.
+    recentre
+        Whether to recentre each ``Periodic`` latent parameter on its circular
+        mean (for a plot), rather than keep the range the conversion gives it.
     """
+    from autofit.mapper.prior_model.abstract import superscripts_from_component_paths
+
     parameter_array = np.asarray(parameter_array)
     n_samples = parameter_array.shape[0]
 
-    owners = model._prior_owner_and_leaf_names
+    holders = model._prior_holders
     names = model.parameter_names
     superscripts = model.superscripts
     component_paths = model.component_paths
     paths = model.unique_prior_paths
 
-    # Which free parameters each component owns, by leaf name -> model index.
+    # Every component holding a free parameter, with what it holds by leaf name:
+    # the model index and the holder (prior path, component path) there. A
+    # shared prior is held by each component it sits in.
     indices_by_owner = {}
-    for i, (owner, leaf) in enumerate(owners):
-        indices_by_owner.setdefault(id(owner), (owner, {}))[1][leaf] = i
+    for i, prior_holders in enumerate(holders):
+        for holder in prior_holders:
+            prior_path, component_path, owner, leaf = holder
+            free = indices_by_owner.setdefault(id(owner), (owner, {}))[1]
+            free.setdefault(leaf, (i, prior_path, component_path))
+
+    # A component converts its own priors before one that only shares them, so a
+    # conversion made by both is filed under the one the samples are named after.
+    def borrowed(entry):
+        owner, free = entry
+        return sum(holders[i][0][2] is not owner for i, _, _ in free.values())
 
     # Resolve every applicable declaration first: which indices it consumes and
     # what it yields, keyed by the index it is inserted at.
     insert_at = {}
     consumed = set()
-    for owner, free in indices_by_owner.values():
+    made = set()
+    for owner, free in sorted(indices_by_owner.values(), key=borrowed):
         cls = getattr(owner, "cls", None)
         if cls is None:
             continue
         for replaced, function in latent_parameters_for_class(cls).items():
             if not all(name in free for name in replaced):
                 continue
-            if any(free[name] in consumed for name in replaced):
+            replaced_indices = tuple(free[name][0] for name in replaced)
+            if (function, replaced_indices) in made:
                 continue
+            made.add((function, replaced_indices))
             values = _flat_fixed_values(owner)
             values.update(
-                {name: parameter_array[:, index] for name, index in free.items()}
+                {
+                    name: parameter_array[:, index]
+                    for name, (index, _, _) in free.items()
+                }
             )
             latent = function(**values)
-            first = min(free[name] for name in replaced)
-            insert_at[first] = [
+            first_name = min(replaced, key=lambda name: free[name][0])
+            first, prior_path, component_path = free[first_name]
+            insert_at.setdefault(first, []).extend(
                 (
-                    _owner_path(paths[first], owners[first][1]) + (name,),
+                    _owner_path(prior_path, first_name) + (name,),
+                    component_path,
                     name,
                     np.broadcast_to(
                         (
-                            value.recentred(weights)
+                            (value.recentred(weights) if recentre else value.values)
                             if isinstance(value, Periodic)
                             else np.asarray(value, dtype=float)
                         ),
@@ -291,20 +322,19 @@ def latent_parameters_from(
                     ),
                 )
                 for name, value in latent.items()
-            ]
-            consumed.update(free[name] for name in replaced)
+            )
+            consumed.update(replaced_indices)
 
     out_names, out_superscripts, out_paths, out_columns, out_mask = [], [], [], [], []
     out_full_paths = []
     for i in range(len(names)):
-        if i in insert_at:
-            for full_path, name, column in insert_at[i]:
-                out_names.append(name)
-                out_superscripts.append(superscripts[i])
-                out_paths.append(component_paths[i])
-                out_full_paths.append(full_path)
-                out_columns.append(column)
-                out_mask.append(True)
+        for full_path, component_path, name, column in insert_at.get(i, []):
+            out_names.append(name)
+            out_superscripts.append(superscripts[i])
+            out_paths.append(component_path)
+            out_full_paths.append(full_path)
+            out_columns.append(column)
+            out_mask.append(True)
         if i in consumed:
             continue
         out_names.append(names[i])
@@ -313,6 +343,14 @@ def latent_parameters_from(
         out_full_paths.append(tuple(paths[i]))
         out_columns.append(parameter_array[:, i])
         out_mask.append(False)
+
+    # A latent parameter of a component that only shares the prior is labelled
+    # by that component, not by the one the prior's column is named after.
+    labels = superscripts_from_component_paths(component_paths + out_paths)
+    out_superscripts = [
+        labels[path] if path else superscript
+        for path, superscript in zip(out_paths, out_superscripts)
+    ]
 
     return LatentParameters(
         names=out_names,

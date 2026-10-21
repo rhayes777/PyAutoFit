@@ -255,15 +255,73 @@ class TestRegression:
         assert model.superscripts == ["source.pix.reg", "source.pix.reg"]
 
         from autofit.mapper.prior_model.abstract import (
-            superscript_from_component_path,
+            superscripts_from_component_paths,
         )
 
-        assert superscript_from_component_path(("lens",)) == "lens"
-        assert superscript_from_component_path(("lens", "bulge")) == "lens.bulge"
-        assert (
-            superscript_from_component_path(("a", "bc", "defg", "hijkl"))
-            == "a.bc.def.hij"
+        assert superscripts_from_component_paths([("lens",), ("lens", "bulge")]) == {
+            ("lens",): "lens",
+            ("lens", "bulge"): "lens.bulge",
+        }
+        assert superscripts_from_component_paths([("a", "bc", "defg", "hijkl")]) == {
+            ("a", "bc", "defg", "hijkl"): "a.bc.def.hij"
+        }
+
+    def test__superscripts__deep_paths_stay_unique(self):
+        # Cutting every deep name to three characters would label both shears
+        # lens.bul.she; each name keeps as many characters as tell it from its
+        # siblings instead.
+        from autofit.mapper.prior_model.abstract import (
+            superscripts_from_component_paths,
         )
+
+        paths = [
+            ("lens", "bulge_inner", "shear"),
+            ("lens", "bulge_outer", "shear"),
+            ("lens", "disk"),
+        ]
+        labels = superscripts_from_component_paths(paths)
+
+        assert labels == {
+            ("lens", "bulge_inner", "shear"): "lens.bulge_i.she",
+            ("lens", "bulge_outer", "shear"): "lens.bulge_o.she",
+            ("lens", "disk"): "lens.disk",
+        }
+
+        # A name cut short is cut the same way everywhere: the basis's own
+        # priors and those of a profile in it read lens.bul and lens.bul.0.
+        labels = superscripts_from_component_paths(
+            [("lens", "bulge"), ("lens", "bulge", "0"), ("lens", "bul")]
+        )
+        assert labels == {
+            ("lens", "bulge"): "lens.bulg",
+            ("lens", "bulge", "0"): "lens.bulg.0",
+            ("lens", "bul"): "lens.bul",
+        }
+        assert len(set(labels.values())) == len(labels)
+
+    def test__superscripts__deep_paths_in_a_model_stay_unique(self):
+        model = af.Collection(
+            lens=af.Model(
+                MockGalaxy,
+                bulge=af.Model(
+                    MockGalaxy, bulge=af.Model(af.m.MockClassx2NoSuperScript)
+                ),
+                disk=af.Model(
+                    MockGalaxy, bulge=af.Model(af.m.MockClassx2NoSuperScript)
+                ),
+            )
+        )
+        model.lens.bulge_inner = model.lens.bulge
+        model.lens.bulge_outer = model.lens.disk
+        del model.lens.bulge
+        del model.lens.disk
+
+        assert model.superscripts == [
+            "lens.bulge_i.bul",
+            "lens.bulge_i.bul",
+            "lens.bulge_o.bul",
+            "lens.bulge_o.bul",
+        ]
 
     def test__superscripts__list_index_kept_only_when_priors_are_not_shared(self):
         # A basis whose profiles share one set of priors: the index is one of

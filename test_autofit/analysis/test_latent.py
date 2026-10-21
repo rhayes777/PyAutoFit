@@ -353,3 +353,16 @@ def test_model_latent_parameters_join_the_analysis_latents():
 
 def test_no_latents_anywhere_gives_none():
     assert latent_samples_from(NoLatentAnalysis(), _samples([_sample()])) is None
+
+
+def test_model_latent_parameters_switched_off_in_output_config():
+    """``output.yaml``'s ``latent_model_parameters: false`` leaves the model's
+    declared latent parameters out of the latent output."""
+    from autonerves import conf
+
+    original = conf.instance["output"]["latent_model_parameters"]
+    conf.instance["output"]["latent_model_parameters"] = False
+    try:
+        assert latent_samples_from(NoLatentAnalysis(), _shear_samples()) is None
+    finally:
+        conf.instance["output"]["latent_model_parameters"] = original

@@ -92,6 +92,7 @@ latent_draw_via_pdf : true # Whether to draw latent variable values via the PDF 
 latent_draw_via_pdf_size : 100 # The number of samples drawn to estimate latent variable errors if `latent_draw_via_pdf` is True.
 latent_csv: true # Whether to ouptut the `latent.csv` file.
 latent_results: true # Whether to output the `latent.results` file.
+latent_model_parameters: true # Whether the latent parameters a model component declares (e.g. a shear's magnitude and angle for its gamma_1 / gamma_2) join the latent output (`latent.csv`, `latent.results`, `latent_summary.json`). An angle keeps the range its conversion gives it (the same in every fit); only the corner plots recentre it on the posterior.
 
 # Other Files:
 

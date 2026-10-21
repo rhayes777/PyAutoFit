@@ -56,7 +56,7 @@ def corner_anesthetic(
 
     if latent:
         latent_parameters = model.latent_parameters_from(
-            parameter_array, weights=samples.weight_list
+            parameter_array, weights=samples.weight_list, recentre=True
         )
         labels = latent_parameters.parameter_labels_with_superscripts_latex
         parameter_array = latent_parameters.parameter_array

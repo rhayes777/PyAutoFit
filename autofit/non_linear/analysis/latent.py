@@ -29,6 +29,8 @@ from typing import Optional
 
 import numpy as np
 
+from autonerves import conf
+
 from autofit import exc
 from autofit.non_linear.jax_compile import log_on_first_compile
 from autofit.non_linear.samples.sample import Sample
@@ -77,18 +79,24 @@ class Latent:
 
 def _model_latent_parameters(samples: Samples):
     """
-    The model's declared latent parameters over the samples, recentred on the
-    posterior where periodic, or ``None`` when no component declares any (or
-    the samples carry no model that can say).
+    The model's declared latent parameters over the samples, or ``None`` when
+    ``output.yaml``'s ``latent_model_parameters`` is off, no component declares
+    any, or the samples carry no model that can say.
+
+    A periodic one (an angle) keeps the range its conversion gives it rather than
+    being recentred on this fit's posterior, so the column has the same range in
+    every fit (see ``autofit/mapper/prior_model/latent_parameters.py``).
     """
+    try:
+        if not conf.instance["output"]["latent_model_parameters"]:
+            return None
+    except KeyError:
+        pass
     model = getattr(samples, "model", None)
     if model is None or not hasattr(model, "latent_parameters_from"):
         return None
     try:
-        parameter_array = np.asarray(samples.parameter_lists)
-        latent = model.latent_parameters_from(
-            parameter_array, weights=samples.weight_list
-        )
+        latent = model.latent_parameters_from(np.asarray(samples.parameter_lists))
     except Exception:
         logger.warning(
             "compute_latent_samples: the model's latent parameters could not be "

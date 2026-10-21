@@ -158,11 +158,24 @@ def test__latent_parameters__periodic_angle_is_recentred_with_the_sample_weights
     # arctan2(comp_0, comp_1) for these straddles +-180.
     samples = np.array([[0.0, 0.1, -1.0], [0.0, -0.1, -1.0]])
 
-    latent = model.latent_parameters_from(samples, weights=[1.0, 1.0])
+    latent = model.latent_parameters_from(samples, weights=[1.0, 1.0], recentre=True)
 
     angle = latent.parameter_array[:, 2]
     assert np.ptp(angle) == pytest.approx(11.42, abs=0.01)  # not ~348
     assert latent.names == ["centre", "strength", "angle"]
+
+
+def test__latent_parameters__periodic_angle_keeps_the_conversion_range_by_default():
+    # The latent output is not recentred, so a column has the range the
+    # conversion gives it in every fit, whatever this fit's posterior.
+    model = _component(MockPeriodicComponent)
+    samples = np.array([[0.0, 0.1, -1.0], [0.0, -0.1, -1.0]])
+
+    latent = model.latent_parameters_from(samples, weights=[1.0, 1.0])
+
+    angle = latent.parameter_array[:, 2]
+    assert angle == pytest.approx(np.degrees(np.arctan2([0.1, -0.1], [-1.0, -1.0])))
+    assert np.ptp(angle) > 340.0
 
 
 def test__latent_parameters__grouping_by_latent_component_and_full_paths():
@@ -215,3 +228,99 @@ def test__latent_parameters__shared_prior_takes_the_path_of_its_samples_column()
         ("galaxies", "lens", "mass", "strength"),
         ("galaxies", "lens", "mass", "angle"),
     ]
+
+
+class MockMultipole:
+    # Holds the ellipticity of the mass it perturbs (linked to it) and declares
+    # only its own components.
+    latent_parameters = {
+        (
+            "multipole_comps_0",
+            "multipole_comps_1",
+        ): lambda multipole_comps_0, multipole_comps_1, **kwargs: _polar(
+            multipole_comps_0, multipole_comps_1
+        )
+    }
+
+    def __init__(self, ell_comps=(0.0, 0.0), multipole_comps=(0.0, 0.0)):
+        self.ell_comps = ell_comps
+        self.multipole_comps = multipole_comps
+
+
+class MockMass:
+    latent_parameters = {
+        ("ell_comps_0", "ell_comps_1"): lambda ell_comps_0, ell_comps_1, **kwargs: {
+            "axis_ratio": 1.0 - np.hypot(ell_comps_0, ell_comps_1),
+            "angle": np.degrees(np.arctan2(ell_comps_0, ell_comps_1)),
+        }
+    }
+
+    def __init__(self, ell_comps=(0.0, 0.0)):
+        self.ell_comps = ell_comps
+
+
+def _tuple_prior(*names):
+    from autofit.mapper.prior.tuple_prior import TuplePrior
+
+    prior = TuplePrior()
+    for name in names:
+        setattr(prior, name, af.UniformPrior(-1.0, 1.0))
+    return prior
+
+
+@pytest.mark.parametrize("mass_first", [True, False])
+def test__latent_parameters__shared_prior_is_converted_by_every_holder(mass_first):
+    # A power law's ellipticity linked into its multipole: whichever component
+    # the priors' samples column is named after, the mass still converts its
+    # ellipticity to an axis ratio and angle, and the multipole its own
+    # components.
+    mass = af.Model(MockMass)
+    mass.ell_comps = _tuple_prior("ell_comps_0", "ell_comps_1")
+    multipole = af.Model(MockMultipole)
+    multipole.ell_comps = mass.ell_comps
+    multipole.multipole_comps = _tuple_prior("multipole_comps_0", "multipole_comps_1")
+    components = (
+        dict(mass=mass, multipole=multipole)
+        if mass_first
+        else dict(multipole=multipole, mass=mass)
+    )
+    model = af.Collection(lens=af.Model(MockGalaxyMany, **components))
+
+    latent = model.latent_parameters_from(np.array([[0.3, 0.4, 0.0, 0.5]]))
+
+    assert sorted(latent.names) == ["angle", "angle", "axis_ratio", "strength"]
+    by_path = dict(zip(latent.paths, latent.parameter_array[0]))
+    assert by_path[("lens", "mass", "axis_ratio")] == pytest.approx(0.5)
+    assert by_path[("lens", "mass", "angle")] == pytest.approx(
+        np.degrees(np.arctan2(0.3, 0.4))
+    )
+    assert by_path[("lens", "multipole", "strength")] == pytest.approx(0.5)
+    assert (
+        dict(zip(latent.paths, latent.superscripts))[("lens", "mass", "axis_ratio")]
+        == "lens.mass"
+    )
+    assert (
+        dict(zip(latent.paths, latent.superscripts))[("lens", "multipole", "strength")]
+        == "lens.multipole"
+    )
+
+
+class MockGalaxyMany:
+    def __init__(self, mass=None, multipole=None):
+        self.mass = mass
+        self.multipole = multipole
+
+
+def test__latent_parameters__root_group_does_not_collide_with_a_component_named_model():
+    model = af.Collection(
+        model=af.Model(af.m.MockClassx2NoSuperScript),
+    )
+    model.free = af.UniformPrior(0.0, 1.0)
+
+    latent = model.latent_parameters_from(np.zeros((1, model.prior_count)))
+
+    assert model.parameter_indices_by_component == {"model": [0, 1], "model_root": [2]}
+    assert latent.parameter_indices_by_component == {
+        "model": [0, 1],
+        "model_root": [2],
+    }

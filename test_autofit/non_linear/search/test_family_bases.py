@@ -508,3 +508,106 @@ def test_weighted_plot_latent_results_single_component_has_no_duplicate(
         "corner_anesthetic",
         "corner_anesthetic_latent",
     ]
+
+
+def _without_key(monkeypatch, missing, values):
+    # A config written before ``missing`` existed (should_plot raises KeyError
+    # without a default), with the given value for every other key.
+    from autofit.non_linear.search.posterior_kind import WeightedDefaults
+
+    def should_plot(self, name, default=None):
+        if name == missing:
+            if default is None:
+                raise KeyError(name)
+            return default
+        return values[name]
+
+    monkeypatch.setattr(WeightedDefaults, "should_plot", should_plot)
+
+
+def test_weighted_plot_results_components_follow_corner_anesthetic_when_key_absent(
+    monkeypatch, tmp_path
+):
+    # Switching the corner plot off in an older config switches off the
+    # per-component plots it does not mention, rather than leaving them on.
+    _without_key(
+        monkeypatch, "corner_anesthetic_components", {"corner_anesthetic": False}
+    )
+
+    calls = _weighted_plot_calls(_lens_like_model(), monkeypatch, tmp_path)
+
+    assert calls == []
+
+
+def _shear_model(shear_cls):
+    return af.Collection(
+        lens=af.Model(
+            _MockGalaxy,
+            light=af.Model(
+                shear_cls,
+                gamma_1=af.UniformPrior(-1.0, 1.0),
+                gamma_2=af.UniformPrior(-1.0, 1.0),
+            ),
+        ),
+        source=af.Model(_MockGalaxy, light=af.Model(af.m.MockClassx2NoSuperScript)),
+    )
+
+
+def test_weighted_plot_latent_results_components_have_their_own_switch(
+    monkeypatch, tmp_path
+):
+    # The latent plot alone: its per-component plots are switched separately.
+    from autofit.non_linear.search.posterior_kind import WeightedDefaults
+
+    monkeypatch.setattr(
+        WeightedDefaults,
+        "should_plot",
+        lambda self, name, default=None: name == "corner_anesthetic_latent",
+    )
+
+    calls = _weighted_plot_calls(
+        _shear_model(_MockShear), monkeypatch, tmp_path, latent=True
+    )
+
+    assert [call["filename"] for call in calls] == ["corner_anesthetic_latent"]
+
+
+class _MockRaisingShear(_MockShear):
+    latent_parameters = {
+        ("gamma_1", "gamma_2"): lambda gamma_1, gamma_2, **kwargs: 1 / 0
+    }
+
+
+def test_weighted_plot_latent_results_logs_a_raising_conversion(
+    monkeypatch, tmp_path, caplog
+):
+    # A component's conversion is its own code: one that raises is logged and
+    # no latent plot is made, rather than failing the fit's final output.
+    from autofit.non_linear.search.posterior_kind import WeightedDefaults
+
+    monkeypatch.setattr(
+        WeightedDefaults, "should_plot", lambda self, name, default=None: True
+    )
+
+    with caplog.at_level("WARNING"):
+        calls = _weighted_plot_calls(
+            _shear_model(_MockRaisingShear), monkeypatch, tmp_path, latent=True
+        )
+
+    assert not any(call.get("latent") for call in calls)
+    assert "latent parameters could not be computed" in caplog.text
+
+
+def test_weighted_plot_latent_results_skipped_in_test_mode(monkeypatch, tmp_path):
+    from autofit.non_linear.search.posterior_kind import WeightedDefaults
+
+    monkeypatch.setattr(
+        WeightedDefaults, "should_plot", lambda self, name, default=None: True
+    )
+    monkeypatch.setattr("autofit.non_linear.test_mode.skip_visualization", lambda: True)
+
+    calls = _weighted_plot_calls(
+        _shear_model(_MockShear), monkeypatch, tmp_path, latent=True
+    )
+
+    assert not any(call.get("latent") for call in calls)

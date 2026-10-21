@@ -13,7 +13,7 @@ class MockModel:
         self.parameter_labels_with_superscripts_latex = labels
         self.total_free_parameters = len(labels)
 
-    def latent_parameters_from(self, parameter_array, weights=None):
+    def latent_parameters_from(self, parameter_array, weights=None, recentre=False):
         # The latent set of this mock: the first two parameters become their sum.
         from autofit.mapper.prior_model.latent_parameters import LatentParameters
 

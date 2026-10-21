@@ -312,3 +312,57 @@ def test__visualize__no_latent_plotter_is_fine():
     )
 
     updater._plot_results.assert_called_once()
+
+
+class _MockRaisingComponent:
+    latent_parameters = {("one", "two"): lambda one, two, **kwargs: 1 / 0}
+
+    def __init__(self, one=0.0, two=0.0):
+        self.one = one
+        self.two = two
+
+
+def test__visualize__raising_latent_conversion_is_logged_not_raised(
+    monkeypatch, tmp_path, caplog
+):
+    """
+    The final ``visualize`` of a fit makes the latent plots; a component whose
+    conversion raises is logged there and the fit's output completes.
+    """
+    from types import SimpleNamespace
+    from functools import partial
+
+    import autofit as af
+    from autofit.non_linear.search.posterior_kind import WeightedDefaults
+
+    monkeypatch.setattr(
+        WeightedDefaults, "should_plot", lambda self, name, default=None: True
+    )
+    model = af.Collection(
+        component=af.Model(
+            _MockRaisingComponent,
+            one=af.UniformPrior(0.0, 1.0),
+            two=af.UniformPrior(0.0, 1.0),
+        )
+    )
+    samples = SimpleNamespace(
+        model=model, parameter_lists=[[0.1, 0.2]] * 3, weight_list=[1.0] * 3
+    )
+    search = SimpleNamespace(paths=SimpleNamespace(image_path=tmp_path))
+    updater = _visualizing_updater(
+        partial(WeightedDefaults().plot_latent_results, search)
+    )
+    analysis = MagicMock()
+    analysis.should_visualize.return_value = True
+
+    with caplog.at_level(logging.WARNING):
+        updater.visualize(
+            model=model,
+            analysis=analysis,
+            during_analysis=False,
+            samples_summary=MagicMock(),
+            samples=samples,
+        )
+
+    updater._plot_results.assert_called_once_with(samples=samples)
+    assert "latent parameters could not be computed" in caplog.text
