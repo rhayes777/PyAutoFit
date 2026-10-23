@@ -15,7 +15,12 @@ from autofit.mapper.identifier import Identifier
 from autofit.non_linear.paths import DirectoryPaths
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.tools.util import IntervalCounter
-from .diagnostics import EPDiagnostics, check_sigma_collapse, mean_field_summary
+from .diagnostics import (
+    EPDiagnostics,
+    check_evidence_nonfinite,
+    check_sigma_collapse,
+    mean_field_summary,
+)
 from .factor_optimiser import AbstractFactorOptimiser, ExactFactorFit
 from .visualise import Visualise
 
@@ -653,7 +658,8 @@ class EPOptimiser:
         Write the diagnostics CSVs (`ep_history.csv`, `mean_field_history.csv`)
         and the mean-field evolution plot to the output folder. At the end of
         a run (``final=True``) also write ``ep_diagnostics.results``: the
-        mean-field summary table plus any sigma-collapse warnings.
+        mean-field summary table plus any stale-factor, sigma-collapse and
+        non-finite-evidence warnings.
         """
         if not self.output_path:
             return
@@ -662,7 +668,9 @@ class EPOptimiser:
 
         if final and model_approx is not None:
             warnings_list = (
-                self._stale_factor_warnings() + check_sigma_collapse(self.diagnostics)
+                self._stale_factor_warnings()
+                + check_sigma_collapse(self.diagnostics)
+                + check_evidence_nonfinite(self.diagnostics)
             )
             with open(self.output_path / "ep_diagnostics.results", "w+") as f:
                 f.write(mean_field_summary(model_approx.mean_field))

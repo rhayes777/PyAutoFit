@@ -146,11 +146,17 @@ class FactorHistory:
         successful optimisations.
 
         If there are less than two successful optimisations then this is
-        infinite.
+        infinite. It is also infinite when either evidence is NaN (a
+        non-finite evidence term, see ``EPMeanField.log_evidence``), so an
+        evidence-based stopping rule can never claim convergence on a NaN
+        (PyAutoFit#1713).
         """
-        return (
+        divergence = (
                 self.latest_successful.log_evidence - self.previous_successful.log_evidence
         )
+        if np.any(np.isnan(divergence)):
+            return float("inf")
+        return divergence
 
     @property
     def evidences(self) -> List[float]:
