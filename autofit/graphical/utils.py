@@ -257,6 +257,16 @@ def to_variabledata(variables, raw_values) -> VariableData:
 class StatusFlag(Enum):
     FAILURE = 0
     SUCCESS = 1
+    # The factor's optimiser converged without taking a step: a stop condition
+    # (typically the gradient tolerance) already held at the start point, so
+    # the start point is the mode of the tilted density. This is a converged,
+    # successful update (`Status.updated` is true and EP projects it like any
+    # other), not a skip — it is common once EP has settled, and on the first
+    # visit whenever a factor's cavity already puts the mode where the factor
+    # wants it (e.g. a prior whose mean the posterior happens to share). The
+    # projected message can still move, because the curvature is recomputed at
+    # the mode. Only an optimiser that did not succeed (FAILURE, EXCEPTION) or
+    # a projection that was rejected (BAD_PROJECTION) leaves a message stale.
     NO_CHANGE = 2
     BAD_PROJECTION = 3
     # The factor's optimiser *raised* rather than returning a failed status.

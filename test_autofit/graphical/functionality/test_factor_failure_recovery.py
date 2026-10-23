@@ -25,6 +25,7 @@ from autofit.graphical.expectation_propagation.factor_optimiser import (
     ExactFactorFit,
 )
 from autofit.graphical.expectation_propagation.history import EPHistory
+from autofit.graphical.laplace import LaplaceOptimiser
 from autofit.graphical.utils import StatusFlag
 from autofit.mapper.variable import Variable
 from autofit.messages.normal import NormalMessage
@@ -591,6 +592,87 @@ def test_restart_from_fixed_point_is_not_stale(tmp_path):
     assert rows
     assert all(row["flag"] == StatusFlag.SUCCESS.name for row in rows)
     assert all(row["reverted_variables"] == "" for row in rows)
+
+
+def make_at_mode_approx():
+    """
+    A prior and a likelihood on one variable `x`, both centred on 5, started
+    from a mean field also centred on 5: every tilted density this graph forms
+    has its mode at the start point, so the prior factor's Laplace optimiser
+    meets its gradient tolerance before taking a step (PyAutoFit#1711; the
+    analytic_gaussian leg-A seed-140 `PriorFactor5 {NO_CHANGE: 2}` shape).
+    """
+    x = Variable("x")
+    prior = NormalMessage(5.0, 2.0).as_factor(x, name="prior_x")
+    likelihood = NormalMessage(5.0, 1.0).as_factor(x, name="like_x")
+    factor_graph = graph.FactorGraph([prior, likelihood])
+    model_approx = graph.EPMeanField.from_approx_dists(
+        factor_graph, {x: NormalMessage(5.0, 10.0)}
+    )
+    return model_approx, factor_graph, prior, likelihood, x
+
+
+def test_zero_iteration_convergence_is_reported_as_an_update():
+    """
+    A Laplace optimisation whose start point already satisfies a stop condition
+    has converged: it is a successful update with nothing left to move, not a
+    skip. The flag stays `NO_CHANGE` (the mode did not move) but `updated` must
+    be true, so nothing downstream can read it as a failed line search.
+    """
+    model_approx, _, prior, _, x = make_at_mode_approx()
+
+    new_model_dist, status = LaplaceOptimiser().optimise(
+        model_approx.factor_approximation(prior)
+    )
+
+    assert status.success
+    assert status.flag is StatusFlag.NO_CHANGE
+    assert status.messages[-1].endswith("iter=0")
+    assert status.updated, "a zero-iteration convergence was reported as a skip"
+    # the mode did not move, but the projection is the tilted density's, not
+    # the start point's: the curvature carries the prior's precision
+    assert new_model_dist[x].mean == pytest.approx(5.0)
+    assert new_model_dist[x].sigma == pytest.approx(
+        (1 / 2.0**2 + 1 / 10.0**2) ** -0.5, rel=1e-4
+    )
+
+
+def test_factor_at_its_mode_on_first_visit_is_not_stale(tmp_path, caplog):
+    """
+    EP over a factor that is at its mode on every visit: its history rows keep
+    the `NO_CHANGE` flag (so `ep_history.csv` still shows the zero-iteration
+    convergence) but count as updates, the STALE FACTORS warning is not raised
+    for it, and the posterior is the closed form, width included.
+    """
+    model_approx, factor_graph, prior, likelihood, x = make_at_mode_approx()
+
+    optimiser = graph.EPOptimiser(
+        factor_graph,
+        factor_optimisers={prior: LaplaceOptimiser(), likelihood: ExactFactorFit()},
+        ep_history=EPHistory(kl_tol=None),
+        paths=DirectoryPaths(name="at_mode_first_visit", path_prefix=str(tmp_path)),
+    )
+    with caplog.at_level(logging.WARNING):
+        result = optimiser.run(model_approx, max_steps=3, max_consecutive_failures=100)
+
+    with open(optimiser.output_path / "ep_history.csv", newline="") as f:
+        rows = [row for row in csv.DictReader(f) if row["factor"] == prior.name]
+
+    assert rows
+    assert all(row["flag"] == StatusFlag.NO_CHANGE.name for row in rows)
+    assert all(row["updated"] == "True" for row in rows)
+    assert all(row["reverted_variables"] == "" for row in rows)
+
+    assert prior in optimiser._factors_updated
+    assert prior not in optimiser._factors_skipped
+    assert optimiser._stale_factor_warnings() == []
+    assert "STALE FACTORS" not in caplog.text
+    written = (optimiser.output_path / "ep_diagnostics.results").read_text()
+    assert "STALE FACTORS" not in written
+
+    posterior = result.mean_field[x]
+    assert posterior.mean == pytest.approx(5.0)
+    assert posterior.sigma == pytest.approx((1 / 2.0**2 + 1 / 1.0**2) ** -0.5, rel=1e-6)
 
 
 def test_factor_step_preserves_the_changed_mask_on_the_status():

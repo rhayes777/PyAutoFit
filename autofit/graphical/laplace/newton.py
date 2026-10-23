@@ -369,6 +369,15 @@ def optimise_quasi_newton(
         if callback:
             callback(state, old_state)
 
+    if success and i == 0:
+        # A stop condition met before the first step (e.g. the gradient
+        # tolerance at the start point) is convergence, not a skip: the start
+        # point is already the mode of the tilted density, and its projection
+        # is as valid as one reached after a step. Report it as an update; the
+        # flag stays NO_CHANGE so `ep_history.csv` still records that the mode
+        # did not move (PyAutoFit#1711).
+        updated = True
+
     message += f", iter={i}"
     messages += (message,)
     status = Status(
