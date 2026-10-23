@@ -438,6 +438,9 @@ class EPOptimiser:
                 return True
         else:
             if status.updated:
+                # Includes a `NO_CHANGE` update — an optimiser that converged
+                # at its start point — whose projection was accepted: that is
+                # a converged update, not a skip (PyAutoFit#1711).
                 self._factors_updated.add(factor)
             else:
                 # A skipped update (failed line search, bad projection): the
@@ -467,6 +470,15 @@ class EPOptimiser:
         update was skipped (failed line search, bad projection), at least once
         and *never once* updated. A factor that failed intermittently but landed
         at least one update has a real message and is not reported.
+
+        "Updated" is not "flagged SUCCESS". A factor whose optimiser meets its
+        stop condition at the start point is flagged `NO_CHANGE` in
+        `ep_history.csv`, but that is a converged update — the start point is
+        the mode of its tilted density, and the projection is accepted like any
+        other — so a factor whose every update is `NO_CHANGE` is not stale and
+        is not named here (PyAutoFit#1711). On a graph where a factor's cavity
+        already puts the mode where the factor wants it (a prior whose mean the
+        posterior happens to share), that is the expected outcome.
 
         The factor-level test cannot see a *partial* revert. On a hierarchical
         graph every projection may be `BAD_PROJECTION` with one variable — the
