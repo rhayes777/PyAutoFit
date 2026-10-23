@@ -1,4 +1,5 @@
 import logging
+import weakref
 from typing import Dict, Tuple, Optional, List
 
 import numpy as np
@@ -12,6 +13,14 @@ from autofit.mapper.variable import Variable, Plate, VariableData
 from autofit.messages.abstract import AbstractMessage
 
 logger = logging.getLogger(__name__)
+
+#: Non-finite evidence terms already reported by ``EPMeanField.log_evidence``,
+#: keyed weakly on the factor graph (one fit = one graph, shared by every mean
+#: field the EP updates build over it) with the set of reported
+#: ``(label, kind)`` sets as the value — so each is logged once per fit rather
+#: than on every EP update, and nothing is kept alive once the fit's graph is
+#: gone (PyAutoFit#1713).
+_reported_nonfinite = weakref.WeakKeyDictionary()
 
 
 class EPMeanField(FactorGraph):
@@ -306,6 +315,61 @@ class EPMeanField(FactorGraph):
             for factor, meanfield in self.factor_mean_field.items()
         }
 
+    def _evidence_terms(self) -> Tuple[Dict[Variable, float], Dict[Factor, float]]:
+        """
+        The per-variable log evidences ``log Zᵢ`` and per-factor ``log_norm``
+        sums that ``log_evidence`` combines.
+
+        Evaluated under ``np.errstate`` so a message whose log-partition is
+        non-finite does not emit numpy ``RuntimeWarning``s here; such a term
+        is reported by name by ``log_evidence`` instead.
+        """
+        with np.errstate(invalid="ignore", over="ignore", divide="ignore"):
+            variable_evidence = {
+                v: np.sum(logz) for v, logz in self.variable_evidence.items()
+            }
+            factor_log_norm = {
+                factor: np.sum(meanfield.log_norm)
+                for factor, meanfield in self.factor_mean_field.items()
+            }
+        return variable_evidence, factor_log_norm
+
+    @staticmethod
+    def _nonfinite_terms(variable_evidence, factor_log_norm) -> Dict:
+        """
+        ``{term: kind}`` for every non-finite evidence term, keyed by the
+        ``Variable`` or ``Factor`` itself; ``kind`` is ``"nan"``, ``"+inf"``
+        or ``"-inf"``.
+        """
+        nonfinite = {}
+        for term, value in list(variable_evidence.items()) + list(
+            factor_log_norm.items()
+        ):
+            if not np.isfinite(value):
+                nonfinite[term] = (
+                    "nan" if np.isnan(value) else ("+inf" if value > 0 else "-inf")
+                )
+        return nonfinite
+
+    @staticmethod
+    def _term_label(term) -> str:
+        if isinstance(term, Factor):
+            return f"factor '{term.name}' log_norm"
+        return f"variable '{term.name}'"
+
+    @property
+    def nonfinite_evidence_terms(self) -> Dict[str, str]:
+        """
+        The non-finite terms of ``log_evidence`` as ``{label: kind}``, e.g.
+        ``{"variable 'sigma'": "+inf"}``; empty when the evidence is finite.
+
+        A variable's term is its log evidence ``log Zᵢ`` (the log
+        normalisation of the product of its messages); a factor's is its mean
+        field's ``log_norm``.
+        """
+        nonfinite = self._nonfinite_terms(*self._evidence_terms())
+        return {self._term_label(term): kind for term, kind in nonfinite.items()}
+
     @property
     def log_evidence(self):
         """
@@ -324,16 +388,67 @@ class EPMeanField(FactorGraph):
         Evidence for model
 
         Z = ∏ᵢ Zᵢ ∏ₐ Zₐ
+
+        Non-finite terms
+        ----------------
+        If any variable's ``log Zᵢ`` or any factor's ``log_norm`` is NaN or
+        ±inf the sum is undefined (a ``+inf`` variable term and the ``-inf``
+        it induces in every adjacent factor term add to NaN). The evidence is
+        then returned as an explicit ``float("nan")`` without numpy
+        ``RuntimeWarning``s, and the offending terms are named in one
+        ``logger.warning`` per distinct set of terms (so once per fit, not
+        once per EP update). The usual cause is a message whose
+        log-partition is non-finite in floating point — e.g. a truncated
+        message whose mass inside its support underflows to zero
+        (PyAutoFit#1713). Only the evidence readout is affected: the mean
+        field and its posteriors are computed without it.
         """
-        variable_evidence = {
-            v: np.sum(logz) for v, logz in self.variable_evidence.items()
-        }
-        factor_evidence = sum(
-            np.sum(meanfield.log_norm)
-            - sum(variable_evidence[v] for v in factor.all_variables)
-            for factor, meanfield in self.factor_mean_field.items()
+        variable_evidence, factor_log_norm = self._evidence_terms()
+
+        nonfinite = self._nonfinite_terms(variable_evidence, factor_log_norm)
+        if nonfinite:
+            self._warn_nonfinite(nonfinite)
+            return float("nan")
+
+        with np.errstate(invalid="ignore", over="ignore"):
+            factor_evidence = sum(
+                factor_log_norm[factor]
+                - sum(variable_evidence[v] for v in factor.all_variables)
+                for factor in self.factor_mean_field
+            )
+            return factor_evidence + sum(variable_evidence.values())
+
+    def _warn_nonfinite(self, nonfinite: Dict) -> None:
+        """
+        Log the non-finite evidence terms once per distinct set of terms.
+
+        Every EP update builds a new ``EPMeanField`` over the same graph, and
+        the history re-evaluates past evidences, so the key is the set of
+        offending (term, kind) pairs rather than the instance.
+        """
+        key = frozenset(
+            (self._term_label(term), kind) for term, kind in nonfinite.items()
         )
-        return factor_evidence + sum(variable_evidence.values())
+        try:
+            reported = _reported_nonfinite.setdefault(self.factor_graph, set())
+        except TypeError:  # a graph that cannot be weakly referenced
+            reported = set()
+        if key in reported:
+            return
+        reported.add(key)
+        terms = ", ".join(
+            sorted(
+                f"{self._term_label(term)} ({kind})"
+                for term, kind in nonfinite.items()
+            )
+        )
+        logger.warning(
+            f"EP log evidence is non-finite and is reported as NaN: {terms}. "
+            f"A message's log-partition is non-finite in floating point (e.g. a "
+            f"truncated message whose mass inside its support underflows). The "
+            f"mean field and its posteriors are unaffected; only the evidence "
+            f"readout is. Reported once per fit (PyAutoFit#1713)."
+        )
 
     def __repr__(self) -> str:
         clsname = type(self).__name__

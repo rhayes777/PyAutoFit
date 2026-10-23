@@ -84,6 +84,9 @@ class EPDiagnostics:
         self.scale_variables: Set[str] = set()
         self._previous_mean_field = None
         self._step = 0
+        # {term label: (first step, kind)} for every non-finite term of the
+        # log evidence seen during the run (PyAutoFit#1713).
+        self.evidence_nonfinite: Dict[str, Tuple[int, str]] = {}
 
     def register_hierarchical_scales(self, factor_graph) -> None:
         """
@@ -132,6 +135,18 @@ class EPDiagnostics:
         except Exception as e:  # diagnostics must never kill the fit
             logger.warning(f"EPDiagnostics: log_evidence failed: {e}")
             log_evidence = float("nan")
+
+        # A non-finite evidence is returned as NaN by `EPMeanField.log_evidence`;
+        # record which terms caused it, and from which step, for
+        # `check_evidence_nonfinite` (PyAutoFit#1713).
+        if not np.isfinite(log_evidence):
+            try:
+                terms = model_approx.nonfinite_evidence_terms
+            except Exception as e:
+                logger.warning(f"EPDiagnostics: evidence term scan failed: {e}")
+                terms = {}
+            for label, kind in terms.items():
+                self.evidence_nonfinite.setdefault(label, (self._step, kind))
 
         if self._previous_mean_field is not None:
             try:
@@ -244,6 +259,39 @@ class EPDiagnostics:
         ax.legend(fontsize="small")
         fig.savefig(str(Path(output_path) / "mean_field_evolution.png"))
         plt.close(fig)
+
+
+def check_evidence_nonfinite(diagnostics: EPDiagnostics) -> List[str]:
+    """
+    Report the non-finite terms of the EP log evidence seen during a run.
+
+    ``EPMeanField.log_evidence`` returns NaN, and logs once, when a variable's
+    log evidence or a factor's ``log_norm`` is NaN or ±inf (PyAutoFit#1713).
+    This turns the terms ``EPDiagnostics.snapshot`` recorded into a single
+    ``evidence_nonfinite: <names>`` line for ``ep_diagnostics.results``, so a
+    batch run keeps a named trace of it. The posteriors are unaffected; the
+    line says that the ``log_evidence`` column of ``ep_history.csv`` is NaN
+    from the step named.
+
+    Returns
+    -------
+    A list holding that one line, or an empty list when every evidence was
+    finite.
+    """
+    terms = getattr(diagnostics, "evidence_nonfinite", {})
+    if not terms:
+        return []
+    names = ", ".join(
+        f"{label} ({kind}, first at step {step})"
+        for label, (step, kind) in sorted(terms.items())
+    )
+    return [
+        f"evidence_nonfinite: {names} — the EP log evidence is NaN from that "
+        f"step on (ep_history.csv log_evidence column). A message's "
+        f"log-partition is non-finite in floating point; the mean field and "
+        f"its posteriors are unaffected, only the evidence readout is "
+        f"(PyAutoFit#1713)."
+    ]
 
 
 def mean_field_summary(mean_field) -> str:
